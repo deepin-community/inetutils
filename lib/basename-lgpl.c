@@ -1,6 +1,6 @@
 /* basename.c -- return the last element in a file name
 
-   Copyright (C) 1990, 1998-2001, 2003-2006, 2009-2021 Free Software
+   Copyright (C) 1990, 1998-2001, 2003-2006, 2009-2025 Free Software
    Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
@@ -21,7 +21,6 @@
 /* Specification.  */
 #include "basename-lgpl.h"
 
-#include <stdbool.h>
 #include <string.h>
 
 #include "filename.h"
@@ -30,13 +29,12 @@ char *
 last_component (char const *name)
 {
   char const *base = name + FILE_SYSTEM_PREFIX_LEN (name);
-  char const *p;
   bool last_was_slash = false;
 
   while (ISSLASH (*base))
     base++;
 
-  for (p = base; *p; p++)
+  for (char const *p = base; *p; p++)
     {
       if (ISSLASH (*p))
         last_was_slash = true;

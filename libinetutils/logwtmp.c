@@ -1,7 +1,5 @@
 /* logwtmp.c - A version of BSDs `logwtmp' that should be widely portable
-  Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-  2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016,
-  2017, 2018, 2019, 2020, 2021 Free Software Foundation, Inc.
+  Copyright (C) 1997-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -46,17 +44,13 @@
 #endif
 #include <string.h>
 
-#if !HAVE_DECL_ERRNO
-extern int errno;
-#endif
-
 #ifdef HAVE_UTMPX_H
 static void
 _logwtmp (struct utmpx *ut)
 #else /* !HAVE_UTMPX_H */
 static void
 _logwtmp (struct utmp *ut)
-#endif /* !HAVE_UTMP_H */
+#endif				/* !HAVE_UTMP_H */
 {
 #ifdef KEEP_OPEN
   static int fd = -1;
@@ -143,7 +137,7 @@ logwtmp (char *line, char *name, char *host)
       ut.ut_host[sizeof (ut.ut_host) - 1] = '\0';
       ut.ut_syslen = sizeof (ut.ut_host);
     }
-# endif /* UT_SYSLEN */
+# endif/* UT_SYSLEN */
 #endif /* UT_HOST */
 
 #if defined HAVE_STRUCT_UTMP_UT_TV || defined HAVE_STRUCT_UTMPX_UT_TV

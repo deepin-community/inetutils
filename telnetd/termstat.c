@@ -1,8 +1,5 @@
 /*
-  Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
-  2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012,
-  2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021 Free Software
-  Foundation, Inc.
+  Copyright (C) 1993-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -52,7 +49,7 @@
 
 #include "telnetd.h"
 
-#include <fcntl.h>	/* Solaris */
+#include <fcntl.h>		/* Solaris */
 
 /*
  * local variables
@@ -312,9 +309,7 @@ localstat (void)
 	  send_do (TELOPT_LINEMODE, 1);
 	  /* send along edit modes */
 	  sprintf (data, "%c%c%c%c%c%c%c",
-		   IAC, SB, TELOPT_LINEMODE,
-		   LM_MODE, useeditmode,
-		   IAC, SE);
+		   IAC, SB, TELOPT_LINEMODE, LM_MODE, useeditmode, IAC, SE);
 	  net_output_datalen (data, sizeof (data));
 	  DEBUG (debug_options, 1,
 		 printsub ('>', data + 2, sizeof (data) - 2));
@@ -345,9 +340,7 @@ localstat (void)
 	  char data[8];
 
 	  sprintf (data, "%c%c%c%c%c%c%c",
-		   IAC, SB, TELOPT_LINEMODE,
-		   LM_MODE, useeditmode,
-		   IAC, SE);
+		   IAC, SB, TELOPT_LINEMODE, LM_MODE, useeditmode, IAC, SE);
 	  net_output_datalen (data, sizeof (data));
 	  DEBUG (debug_options, 1,
 		 printsub ('>', data + 2, sizeof (data) - 2));
@@ -401,8 +394,7 @@ flowstat (void)
 	  flowmode = tty_flowmode ();
 	  sprintf (data, "%c%c%c%c%c%c",
 		   IAC, SB, TELOPT_LFLOW,
-		   flowmode ? LFLOW_ON : LFLOW_OFF,
-		   IAC, SE);
+		   flowmode ? LFLOW_ON : LFLOW_OFF, IAC, SE);
 	  net_output_datalen (data, sizeof (data));
 	  DEBUG (debug_options, 1,
 		 printsub ('>', data + 2, sizeof (data) - 2));
@@ -430,7 +422,7 @@ flowstat (void)
  * affected.
  */
 void
-clientstat (register int code, register int parm1, register int parm2)
+clientstat (int code, int parm1, int parm2)
 {
   void netflush (void);
 
@@ -493,8 +485,7 @@ clientstat (register int code, register int parm1, register int parm2)
 
 		sprintf (data, "%c%c%c%c%c%c%c",
 			 IAC, SB, TELOPT_LINEMODE,
-			 LM_MODE, useeditmode,
-			 IAC, SE);
+			 LM_MODE, useeditmode, IAC, SE);
 		net_output_datalen (data, sizeof (data));
 		DEBUG (debug_options, 1,
 		       printsub ('>', data + 2, sizeof (data) - 2));
@@ -514,7 +505,7 @@ clientstat (register int code, register int parm1, register int parm2)
 
     case LM_MODE:
       {
-	register int ack, changed;
+	int ack, changed;
 
 	/*
 	 * Client has sent along a mode mask.  If it agrees with
@@ -560,8 +551,7 @@ clientstat (register int code, register int parm1, register int parm2)
 
 		sprintf (data, "%c%c%c%c%c%c%c",
 			 IAC, SB, TELOPT_LINEMODE,
-			 LM_MODE, useeditmode | MODE_ACK,
-			 IAC, SE);
+			 LM_MODE, useeditmode | MODE_ACK, IAC, SE);
 		net_output_datalen (data, sizeof (data));
 		DEBUG (debug_options, 1,
 		       printsub ('>', data + 2, sizeof (data) - 2));
@@ -597,7 +587,7 @@ clientstat (register int code, register int parm1, register int parm2)
 
 # if !defined SOLARIS && !defined SOLARIS10
 	ioctl (pty, TIOCSWINSZ, (char *) &ws);
-# else /* SOLARIS || SOLARIS10 */
+# else/* SOLARIS || SOLARIS10 */
 	{
 	  int tty = pty;
 	  char *name = ptsname (pty);
@@ -610,7 +600,7 @@ clientstat (register int code, register int parm1, register int parm2)
 	  if (name)
 	    close (tty);
 	}
-# endif /* SOLARIS || SOLARIS10 */
+# endif/* SOLARIS || SOLARIS10 */
       }
 #endif /* TIOCSWINSZ */
 
@@ -628,7 +618,7 @@ clientstat (register int code, register int parm1, register int parm2)
 	/*
 	 * Change terminal speed as requested by client.
 	 * We set the receive speed first, so that if we can't
-	 * store seperate receive and transmit speeds, the transmit
+	 * store separate receive and transmit speeds, the transmit
 	 * speed will take precedence.
 	 */
 	tty_rspeed (parm2);
@@ -657,13 +647,13 @@ clientstat (register int code, register int parm1, register int parm2)
 
 #if defined CRAY2 && defined UNICOS5
 void
-termstat ()
+termstat (void)
 {
   needtermstat = 1;
 }
 
 void
-_termstat ()
+_termstat (void)
 {
   needtermstat = 0;
   init_termbuf ();
@@ -704,7 +694,7 @@ defer_terminit (void)
 
 # if !defined SOLARIS && !defined SOLARIS10
       ioctl (pty, TIOCSWINSZ, (char *) &ws);
-# else /* SOLARIS || SOLARIS10 */
+# else/* SOLARIS || SOLARIS10 */
       {
 	int tty = pty;
 	char *name = ptsname (pty);
@@ -717,7 +707,7 @@ defer_terminit (void)
 	if (name)
 	  close (tty);
       }
-# endif /* SOLARIS || SOLARIS10 */
+# endif/* SOLARIS || SOLARIS10 */
     }
 #endif /* TIOCSWINSZ */
 

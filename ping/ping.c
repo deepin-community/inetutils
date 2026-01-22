@@ -1,7 +1,5 @@
 /*
-  Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-  2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017,
-  2018, 2019, 2020, 2021 Free Software Foundation, Inc.
+  Copyright (C) 1998-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -48,7 +46,8 @@
 #endif
 
 #include <argp.h>
-#include <unused-parameter.h>
+#include <attribute.h>
+#include <timespec.h>
 #include <ping.h>
 #include "ping_impl.h"
 #include "libinetutils.h"
@@ -70,7 +69,7 @@ size_t data_length = PING_DATALEN;
 unsigned options;
 unsigned int suboptions;
 unsigned long preload = 0;
-int tos = -1;		/* Triggers with non-negative values.  */
+int tos = -1;			/* Triggers with non-negative values.  */
 int ttl = 0;
 int timeout = -1;
 int linger = MAXWAIT;
@@ -82,15 +81,15 @@ static int send_echo (PING * ping);
 
 const char args_doc[] = "HOST ...";
 const char doc[] = "Send ICMP ECHO_REQUEST packets to network hosts."
-                   "\vOptions marked with (root only) are available only to "
-                   "superuser.";
+  "\vOptions marked with (root only) are available only to " "superuser.";
 const char *program_authors[] = {
-	"Sergey Poznyakoff",
-	NULL
+  "Sergey Poznyakoff",
+  NULL
 };
 
 /* Define keys for long options that do not have short counterparts. */
-enum {
+enum
+{
   ARG_ECHO = 256,
   ARG_ADDRESS,
   ARG_TIMESTAMP,
@@ -103,42 +102,43 @@ static struct argp_option argp_options[] = {
 #define GRP 0
   {NULL, 0, NULL, 0, "Options controlling ICMP request types:", GRP},
   {"address", ARG_ADDRESS, NULL, 0, "send ICMP_ADDRESS packets (root only)",
-   GRP+1},
-  {"echo", ARG_ECHO, NULL, 0, "send ICMP_ECHO packets (default)", GRP+1},
-  {"mask", ARG_ADDRESS, NULL, 0, "same as --address", GRP+1},
-  {"timestamp", ARG_TIMESTAMP, NULL, 0, "send ICMP_TIMESTAMP packets", GRP+1},
-  {"type", 't', "TYPE", 0, "send TYPE packets", GRP+1},
+   GRP + 1},
+  {"echo", ARG_ECHO, NULL, 0, "send ICMP_ECHO packets (default)", GRP + 1},
+  {"mask", ARG_ADDRESS, NULL, 0, "same as --address", GRP + 1},
+  {"timestamp", ARG_TIMESTAMP, NULL, 0, "send ICMP_TIMESTAMP packets",
+   GRP + 1},
+  {"type", 't', "TYPE", 0, "send TYPE packets", GRP + 1},
   /* This option is not yet fully implemented, so mark it as hidden. */
   {"router", ARG_ROUTERDISCOVERY, NULL, OPTION_HIDDEN, "send "
-   "ICMP_ROUTERDISCOVERY packets (root only)", GRP+1},
+   "ICMP_ROUTERDISCOVERY packets (root only)", GRP + 1},
 #undef GRP
 #define GRP 10
   {NULL, 0, NULL, 0, "Options valid for all request types:", GRP},
-  {"count", 'c', "NUMBER", 0, "stop after sending NUMBER packets", GRP+1},
-  {"debug", 'd', NULL, 0, "set the SO_DEBUG option", GRP+1},
+  {"count", 'c', "NUMBER", 0, "stop after sending NUMBER packets", GRP + 1},
+  {"debug", 'd', NULL, 0, "set the SO_DEBUG option", GRP + 1},
   {"interval", 'i', "NUMBER", 0, "wait NUMBER seconds between sending each "
-   "packet", GRP+1},
-  {"numeric", 'n', NULL, 0, "do not resolve host addresses", GRP+1},
+   "packet", GRP + 1},
+  {"numeric", 'n', NULL, 0, "do not resolve host addresses", GRP + 1},
   {"ignore-routing", 'r', NULL, 0, "send directly to a host on an attached "
-   "network", GRP+1},
-  {"tos", 'T', "NUM", 0, "set type of service (TOS) to NUM", GRP+1},
-  {"ttl", ARG_TTL, "N", 0, "specify N as time-to-live", GRP+1},
-  {"verbose", 'v', NULL, 0, "verbose output", GRP+1},
-  {"timeout", 'w', "N", 0, "stop after N seconds", GRP+1},
-  {"linger", 'W', "N", 0, "number of seconds to wait for response", GRP+1},
+   "network", GRP + 1},
+  {"tos", 'T', "NUM", 0, "set type of service (TOS) to NUM", GRP + 1},
+  {"ttl", ARG_TTL, "N", 0, "specify N as time-to-live", GRP + 1},
+  {"verbose", 'v', NULL, 0, "verbose output", GRP + 1},
+  {"timeout", 'w', "N", 0, "stop after N seconds", GRP + 1},
+  {"linger", 'W', "N", 0, "number of seconds to wait for response", GRP + 1},
 #undef GRP
 #define GRP 20
   {NULL, 0, NULL, 0, "Options valid for --echo requests:", GRP},
-  {"flood", 'f', NULL, 0, "flood ping (root only)", GRP+1},
+  {"flood", 'f', NULL, 0, "flood ping (root only)", GRP + 1},
   {"preload", 'l', "NUMBER", 0, "send NUMBER packets as fast as possible "
-   "before falling into normal mode of behavior (root only)", GRP+1},
+   "before falling into normal mode of behavior (root only)", GRP + 1},
   {"pattern", 'p', "PATTERN", 0, "fill ICMP packet with given pattern (hex)",
-   GRP+1},
-  {"quiet", 'q', NULL, 0, "quiet output", GRP+1},
-  {"route", 'R', NULL, 0, "record route", GRP+1},
+   GRP + 1},
+  {"quiet", 'q', NULL, 0, "quiet output", GRP + 1},
+  {"route", 'R', NULL, 0, "record route", GRP + 1},
   {"ip-timestamp", ARG_IPTIMESTAMP, "FLAG", 0, "IP timestamp of type FLAG, "
-   "which is one of \"tsonly\" and \"tsaddr\"", GRP+1},
-  {"size", 's', "NUMBER", 0, "send NUMBER data octets", GRP+1},
+   "which is one of \"tsonly\" and \"tsaddr\"", GRP + 1},
+  {"size", 's', "NUMBER", 0, "send NUMBER data octets", GRP + 1},
 #undef GRP
   {NULL, 0, NULL, 0, NULL, 0}
 };
@@ -163,11 +163,11 @@ parse_opt (int key, char *arg, struct argp_state *state)
     case 'i':
       v = strtod (arg, &endptr);
       if (*endptr)
-        argp_error (state, "invalid value (`%s' near `%s')", arg, endptr);
+	argp_error (state, "invalid value (`%s' near `%s')", arg, endptr);
       options |= OPT_INTERVAL;
       interval = v * PING_PRECISION;
       if (!is_root && interval < PING_MIN_USER_INTERVAL)
-        error (EXIT_FAILURE, 0, "option value too small: %s", arg);
+	error (EXIT_FAILURE, 0, "option value too small: %s", arg);
       break;
 
     case 'r':
@@ -214,7 +214,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
     case 'l':
       preload = strtoul (arg, &endptr, 0);
       if (*endptr || preload > INT_MAX)
-        error (EXIT_FAILURE, 0, "invalid preload value (%s)", arg);
+	error (EXIT_FAILURE, 0, "invalid preload value (%s)", arg);
       break;
 
     case 'f':
@@ -262,7 +262,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
 }
 
 static struct argp argp =
-  {argp_options, parse_opt, args_doc, doc, NULL, NULL, NULL};
+  { argp_options, parse_opt, args_doc, doc, NULL, NULL, NULL };
 
 int
 main (int argc, char **argv)
@@ -273,9 +273,9 @@ main (int argc, char **argv)
 
   set_program_name (argv[0]);
 
-# ifdef HAVE_SETLOCALE
-  setlocale(LC_ALL, "");
-# endif
+#ifdef HAVE_SETLOCALE
+  setlocale (LC_ALL, "");
+#endif
 
   if (getuid () == 0)
     is_root = true;
@@ -352,7 +352,7 @@ int (*decode_type (const char *arg)) (char *hostname)
   else
     error (EXIT_FAILURE, 0, "unsupported packet type: %s", arg);
 
- return ping_type;
+  return ping_type;
 }
 
 int
@@ -364,7 +364,7 @@ decode_ip_timestamp (char *arg)
     sopt = SOPT_TSONLY;
   else if (strcasecmp (arg, "tsaddr") == 0)
     sopt = SOPT_TSADDR;
-#if 0	/* Not yet implemented.  */
+#if 0				/* Not yet implemented.  */
   else if (strcasecmp (arg, "prespec") == 0)
     sopt = SOPT_TSPRESPEC;
 #endif
@@ -377,19 +377,19 @@ decode_ip_timestamp (char *arg)
 int volatile stop = 0;
 
 void
-sig_int (int signal _GL_UNUSED_PARAMETER)
+sig_int (int signal MAYBE_UNUSED)
 {
   stop = 1;
 }
 
 int
-ping_run (PING * ping, int (*finish) ())
+ping_run (PING *ping, int (*finish) (void))
 {
   fd_set fdset;
   int fdmax;
-  struct timeval resp_time;
-  struct timeval last, intvl, now;
-  struct timeval *t = NULL;
+  struct timespec resp_time;
+  struct timespec last, intvl, now;
+  struct timespec *t = NULL;
   int finishing = 0;
   size_t nresp = 0;
   size_t i;
@@ -398,26 +398,18 @@ ping_run (PING * ping, int (*finish) ())
 
   fdmax = ping->ping_fd + 1;
 
-  /* Some systems use `struct timeval' of size 16.  As these are
-   * not initialising `timeval' properly by assignment alone, let
-   * us play safely here.  gettimeofday() is always sufficient.
-   */
-  memset (&resp_time, 0, sizeof (resp_time));
-  memset (&intvl, 0, sizeof (intvl));
-  memset (&now, 0, sizeof (now));
-
   for (i = 0; i < preload; i++)
     send_echo (ping);
 
   if (options & OPT_FLOOD)
     {
       intvl.tv_sec = 0;
-      intvl.tv_usec = 10000;
+      intvl.tv_nsec = 1e7;
     }
   else
     PING_SET_INTERVAL (intvl, ping->ping_interval);
 
-  gettimeofday (&last, NULL);
+  last = current_timespec ();
   send_echo (ping);
 
   while (!stop)
@@ -426,29 +418,17 @@ ping_run (PING * ping, int (*finish) ())
 
       FD_ZERO (&fdset);
       FD_SET (ping->ping_fd, &fdset);
-      gettimeofday (&now, NULL);
-      resp_time.tv_sec = last.tv_sec + intvl.tv_sec - now.tv_sec;
-      resp_time.tv_usec = last.tv_usec + intvl.tv_usec - now.tv_usec;
+      now = current_timespec ();
+      resp_time = timespec_sub (timespec_add (last, intvl), now);
 
-      while (resp_time.tv_usec < 0)
-	{
-	  resp_time.tv_usec += 1000000;
-	  resp_time.tv_sec--;
-	}
-      while (resp_time.tv_usec >= 1000000)
-	{
-	  resp_time.tv_usec -= 1000000;
-	  resp_time.tv_sec++;
-	}
+      if (timespec_sign (resp_time) == -1)
+	resp_time.tv_sec = resp_time.tv_nsec = 0;
 
-      if (resp_time.tv_sec < 0)
-	resp_time.tv_sec = resp_time.tv_usec = 0;
-
-      n = select (fdmax, &fdset, NULL, NULL, &resp_time);
+      n = pselect (fdmax, &fdset, NULL, NULL, &resp_time, NULL);
       if (n < 0)
 	{
 	  if (errno != EINTR)
-	    error (EXIT_FAILURE, errno, "select failed");
+	    error (EXIT_FAILURE, errno, "pselect failed");
 	  continue;
 	}
       else if (n == 1)
@@ -457,7 +437,7 @@ ping_run (PING * ping, int (*finish) ())
 	    nresp++;
 	  if (t == 0)
 	    {
-	      gettimeofday (&now, NULL);
+	      now = current_timespec ();
 	      t = &now;
 	    }
 
@@ -486,7 +466,7 @@ ping_run (PING * ping, int (*finish) ())
 
 	      intvl.tv_sec = linger;
 	    }
-	  gettimeofday (&last, NULL);
+	  last = current_timespec ();
 	}
     }
 
@@ -498,15 +478,18 @@ ping_run (PING * ping, int (*finish) ())
 }
 
 int
-send_echo (PING * ping)
+send_echo (PING *ping)
 {
   size_t off = 0;
   int rc;
 
   if (PING_TIMING (data_length))
     {
-      struct timeval tv;
-      gettimeofday (&tv, NULL);
+      struct timespec now = current_timespec ();
+      /* *INDENT-OFF* */
+      struct timeval tv = { .tv_sec = now.tv_sec,
+                            .tv_usec = now.tv_nsec / 1000 };
+      /* *INDENT-ON* */
       ping_set_data (ping, &tv, 0, sizeof (tv), USE_IPV6);
       off += sizeof (tv);
     }

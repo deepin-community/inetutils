@@ -1,8 +1,5 @@
 /*
-  Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
-  2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012,
-  2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021 Free Software
-  Foundation, Inc.
+  Copyright (C) 1993-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -103,6 +100,7 @@ extern void printsub (char, unsigned char *, int);
 static unsigned char str_data[1024] = { IAC, SB, TELOPT_AUTHENTICATION, 0,
   AUTHTYPE_KERBEROS_V4,
 };
+
 static unsigned char str_name[1024] = { IAC, SB, TELOPT_AUTHENTICATION,
   TELQUAL_NAME,
 };
@@ -121,9 +119,10 @@ static AUTH_DAT adat = { 0 };
 
 # ifdef	ENCRYPTION
 static Block session_key = { 0 };
+
 static Schedule sched;
 static Block challenge = { 0 };
-# endif	/* ENCRYPTION */
+# endif/* ENCRYPTION */
 
 static int
 Data (ap, type, d, c)
@@ -192,7 +191,7 @@ kerberos4_send (ap)
   KTEXT_ST auth;
 # ifdef	ENCRYPTION
   Block enckey;
-# endif	/* ENCRYPTION */
+# endif/* ENCRYPTION */
   char instance[INST_SZ];
   char *realm;
   char *krb_realmofhost ();
@@ -255,7 +254,7 @@ kerberos4_send (ap)
    */
   if ((ap->way & AUTH_HOW_MASK) == AUTH_HOW_MUTUAL)
     {
-      register int i;
+      int i;
 
       des_key_sched (cred.session, sched);
       des_init_random_number_generator (cred.session);
@@ -268,7 +267,7 @@ kerberos4_send (ap)
        */
       for (i = 7; i >= 0; --i)
 	{
-	  register int x;
+	  int x;
 	  x = (unsigned int) challenge[i] + 1;
 	  challenge[i] = x;	/* ignore overflow */
 	  if (x < 256)		/* if no overflow, all done */
@@ -276,7 +275,7 @@ kerberos4_send (ap)
 	}
       des_ecb_encrypt (challenge, challenge, sched, 1);
     }
-# endif	/* ENCRYPTION */
+# endif/* ENCRYPTION */
 
   if (auth_debug_mode)
     {
@@ -297,7 +296,7 @@ kerberos4_is (ap, data, cnt)
 # ifdef	ENCRYPTION
   Session_Key skey;
   Block datablock;
-# endif	/* ENCRYPTION */
+# endif/* ENCRYPTION */
   char realm[REALM_SZ];
   char instance[INST_SZ];
   int r;
@@ -335,7 +334,7 @@ kerberos4_is (ap, data, cnt)
 	}
 # ifdef	ENCRYPTION
       memmove ((void *) session_key, (void *) adat.session, sizeof (Block));
-# endif	/* ENCRYPTION */
+# endif/* ENCRYPTION */
       krb_kntoln (&adat, name);
 
       if (UserNameRequested && !kuserok (&adat, UserNameRequested))
@@ -348,7 +347,7 @@ kerberos4_is (ap, data, cnt)
     case KRB_CHALLENGE:
 # ifndef ENCRYPTION
       Data (ap, KRB_RESPONSE, (void *) 0, 0);
-# else /* ENCRYPTION */
+# else/* ENCRYPTION */
       if (!VALIDKEY (session_key))
 	{
 	  /*
@@ -384,7 +383,7 @@ kerberos4_is (ap, data, cnt)
       des_ecb_encrypt (datablock, challenge, sched, 0);
       for (r = 7; r >= 0; r--)
 	{
-	  register int t;
+	  int t;
 	  t = (unsigned int) challenge[r] + 1;
 	  challenge[r] = t;	/* ignore overflow */
 	  if (t < 256)		/* if no overflow, all done */
@@ -392,7 +391,7 @@ kerberos4_is (ap, data, cnt)
 	}
       des_ecb_encrypt (challenge, challenge, sched, 1);
       Data (ap, KRB_RESPONSE, (void *) challenge, sizeof (challenge));
-# endif	/* ENCRYPTION */
+# endif/* ENCRYPTION */
       break;
 
     default:
@@ -411,7 +410,7 @@ kerberos4_reply (ap, data, cnt)
 {
 # ifdef	ENCRYPTION
   Session_Key skey;
-# endif	/* ENCRYPTION */
+# endif/* ENCRYPTION */
 
   if (cnt-- < 1)
     return;
@@ -436,7 +435,7 @@ kerberos4_reply (ap, data, cnt)
 	   */
 # ifndef ENCRYPTION
 	  Data (ap, KRB_CHALLENGE, (void *) 0, 0);
-# else /* ENCRYPTION */
+# else/* ENCRYPTION */
 	  Data (ap, KRB_CHALLENGE, (void *) session_key,
 		sizeof (session_key));
 	  des_ecb_encrypt (session_key, session_key, sched, 1);
@@ -444,7 +443,7 @@ kerberos4_reply (ap, data, cnt)
 	  skey.length = 8;
 	  skey.data = session_key;
 	  encrypt_session_key (&skey, 0);
-# endif	/* ENCRYPTION */
+# endif/* ENCRYPTION */
 	  return;
 	}
       auth_finished (ap, AUTH_USER);
@@ -458,7 +457,7 @@ kerberos4_reply (ap, data, cnt)
 	  (0 != memcmp ((void *) data, (void *) challenge,
 			sizeof (challenge))))
 	{
-# endif	/* ENCRYPTION */
+# endif/* ENCRYPTION */
 	  printf ("[ Kerberos V4 challenge failed!!! ]\r\n");
 	  auth_send_retry ();
 	  return;
@@ -466,7 +465,7 @@ kerberos4_reply (ap, data, cnt)
 	}
       printf ("[ Kerberos V4 challenge successful ]\r\n");
       auth_finished (ap, AUTH_USER);
-# endif	/* ENCRYPTION */
+# endif/* ENCRYPTION */
       break;
     default:
       if (auth_debug_mode)
@@ -504,7 +503,7 @@ kerberos4_printsub (data, cnt, buf, buflen)
      int cnt, buflen;
 {
   char lbuf[32];
-  register int i;
+  int i;
 
   buf[buflen - 1] = '\0';	/* make sure its NULL terminated */
   buflen -= 1;

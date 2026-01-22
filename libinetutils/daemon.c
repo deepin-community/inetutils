@@ -1,7 +1,5 @@
 /*
-  Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-  2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015,
-  2016, 2017, 2018, 2019, 2020, 2021 Free Software Foundation, Inc.
+  Copyright (C) 1996-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -55,7 +53,7 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <unused-parameter.h>
+#include <attribute.h>
 
 /*
   According to Unix-FAQ maintained by Andrew Gierth:
@@ -88,7 +86,7 @@
   we inherited from our parent process. We have no way of knowing where
   these fds might have been redirected to. Note that many daemons use
   sysconf() to determine the limit _SC_OPEN_MAX. _SC_OPEN_MAX tells you the
-  maximun open files/process. Then in a loop, the daemon can close all
+  maximum open files/process. Then in a loop, the daemon can close all
   possible file descriptors. You have to decide if you need to do this or not.
   If you think that there might be file-descriptors open you should close
   them, since there's a limit on number of concurrent file descriptors.
@@ -104,7 +102,7 @@
 #define MAXFD 64
 
 void
-waitdaemon_timeout (int signo _GL_UNUSED_PARAMETER)
+waitdaemon_timeout (int signo MAYBE_UNUSED)
 {
   int left;
 

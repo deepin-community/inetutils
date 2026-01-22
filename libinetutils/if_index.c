@@ -1,7 +1,5 @@
 /*
-  Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-  2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021
-  Free Software Foundation, Inc.
+  Copyright (C) 2001-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -42,7 +40,7 @@ unsigned int
 if_nametoindex (const char *ifname)
 {
   int result = 0;
-#ifdef SIOCGIFINDEX
+# ifdef SIOCGIFINDEX
   {
     int fd = socket (AF_INET, SOCK_DGRAM, 0);
     if (fd >= 0)
@@ -57,7 +55,7 @@ if_nametoindex (const char *ifname)
 	  return ifr.ifr_index;
       }
   }
-#endif
+# endif
   {
     struct if_nameindex *idx;
     idx = if_nameindex ();
@@ -95,7 +93,7 @@ if_freenameindex (struct if_nameindex *ifn)
 struct if_nameindex *
 if_nameindex (void)
 {
-#if defined SIOCGIFCONF
+# if defined SIOCGIFCONF
   int fd = socket (AF_INET, SOCK_DGRAM, 0);
   struct ifconf ifc;
   unsigned int i = 0;
@@ -127,7 +125,7 @@ if_nameindex (void)
 
   i = 0;
   ifr = (struct ifreq *) ifc.ifc_req;
-  end = (struct ifreq *) ((caddr_t) ifr + ifc.ifc_len);
+  end = (struct ifreq *) (ifr + ifc.ifc_len);
   while (ifr < end)
     {
       cur = ifr;
@@ -163,11 +161,11 @@ if_nameindex (void)
 	  return NULL;
 	}
 
-# if defined SIOCGIFINDEX
+#  if defined SIOCGIFINDEX
       if (ioctl (fd, SIOCGIFINDEX, cur) >= 0)
 	idx[i].if_index = cur->ifr_index;
       else
-# endif
+#  endif
 	idx[i].if_index = i + 1;
       i++;
     }
@@ -191,9 +189,9 @@ if_nameindex (void)
   close (fd);
   return idx;
 
-#else
+# else
   errno = ENOSYS;
   return NULL;
-#endif
+# endif
 }
 #endif

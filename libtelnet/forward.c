@@ -1,7 +1,5 @@
 /*
-  Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-  2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016,
-  2017, 2018, 2019, 2020, 2021 Free Software Foundation, Inc.
+  Copyright (C) 1997-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -344,8 +342,7 @@ mk_cred (dec_rep, etype, key, sender_addr, recv_addr, outbuf)
 
   krb5_use_cstype (&eblock, etype);
   ret_cred.enc_part.ciphertext.length = krb5_encrypt_size (scratch->length,
-							   eblock.
-							   crypto_entry);
+							   eblock.crypto_entry);
   /* add padding area, and zero it */
   if (!(scratch->data = realloc (scratch->data,
 				 ret_cred.enc_part.ciphertext.length)))

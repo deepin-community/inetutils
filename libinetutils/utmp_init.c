@@ -1,7 +1,5 @@
 /*
-  Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-  2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2107, 2018,
-  2019, 2020, 2021 Free Software Foundation, Inc.
+  Copyright (C) 1999-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -141,11 +139,12 @@ utmp_init (char *line, char *user, char *id, char *host)
   updwtmpx (PATH_WTMPX, &utx);
 #  elif defined HAVE_LOGWTMPX
   logwtmpx (line, user, id, 0, LOGIN_PROCESS);
-#  endif /* wtmp updating */
+#  endif
+  /* wtmp updating */
   endutxent ();
-# elif defined HAVE_LOGINX /* !HAVE_PUTUTXLINE */
+# elif defined HAVE_LOGINX	/* !HAVE_PUTUTXLINE */
   loginx (&utx, 0, LOGIN_PROCESS);
-# endif /* HAVE_LOGINX && !HAVE_PUTUTXLINE */
+# endif/* HAVE_LOGINX && !HAVE_PUTUTXLINE */
 
 #else /* !HAVE_UTMPX_H */
 # ifdef HAVE_PUTUTLINE
@@ -153,14 +152,15 @@ utmp_init (char *line, char *user, char *id, char *host)
   pututline (&utx);
 #  ifdef HAVE_UPDWTMP
   updwtmp (PATH_WTMP, &utx);
-#  elif defined HAVE_LOGWTMP /* !HAVE_UPDWTMP */
+#  elif defined HAVE_LOGWTMP	/* !HAVE_UPDWTMP */
   logwtmp (line, user, id);
-#  endif /* wtmp updating */
+#  endif
+  /* wtmp updating */
   endutent ();
-# elif defined HAVE_LOGIN /* !HAVE_PUTUTLINE */
-  (void) id;		/* Silence warnings.  */
+# elif defined HAVE_LOGIN	/* !HAVE_PUTUTLINE */
+  (void) id;			/* Silence warnings.  */
   login (&utx);
-# endif /* HAVE_LOGIN && !HAVE_PUTUTLINE */
+# endif/* HAVE_LOGIN && !HAVE_PUTUTLINE */
 #endif /* !HAVE_UTMPX_H */
 }
 

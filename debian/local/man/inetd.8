@@ -27,8 +27,8 @@
 .\"
 .\"     @(#)inetd.8	8.4 (Berkeley) 6/1/94
 .\"
-.Dd February 9, 2019
-.Dt INETD 8 SMM
+.Dd August 7, 2023
+.Dt inetd 8 SMM
 .Os "GNU Network Utilities"
 .Sh NAME
 .Nm inetd
@@ -66,8 +66,10 @@ reducing load on the system.
 The options available for
 .Nm inetd :
 .Bl -tag -width Ds
+.It Fl -foreground
+Runs in foreground mode.
 .It Fl d, -debug
-Turns on debugging.
+Turns on debugging, and runs in foreground mode.
 .It Fl -environment
 Pass local and remote address data via environment variables. See
 \fBENVIRONMENT\fP below.
@@ -108,7 +110,7 @@ service name
 socket type
 protocol
 wait/nowait[.max]
-user
+user[:group]
 server program
 server program arguments
 .Ed
@@ -282,7 +284,11 @@ within an interval of 60 seconds.  It overrides the settings of the
 .Pp
 The
 .Em user
-entry should contain the user name of the user as whom the server
+entry should contain the user name, and the optional
+.Em group
+name (separated from
+.Dq user
+by a semicolon or a dot) of the user (and group) as whom the server
 should run.  This allows for servers to be given less permission
 than root.
 .Pp

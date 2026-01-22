@@ -1,3 +1,233 @@
+inetutils (2:2.7-2) unstable; urgency=medium
+
+  * Fix remote authentication by-pass in telnetd.
+    GNU InetUtils Security Advisory:
+    <https://lists.gnu.org/archive/html/bug-inetutils/2026-01/msg00004.html>
+  * Switch to Standards-Version 4.7.3 (no changes needed).
+
+ -- Guillem Jover <guillem@debian.org>  Tue, 20 Jan 2026 15:53:22 +0100
+
+inetutils (2:2.7-1) unstable; urgency=medium
+
+  * New upstream release.
+    - Refresh patches.
+  * Switch to debian/watch version 5.
+
+ -- Guillem Jover <guillem@debian.org>  Wed, 17 Dec 2025 03:53:07 +0100
+
+inetutils (2:2.6-4) unstable; urgency=medium
+
+  * Use URL instead of FSF postal address for GPL in debian/copyright.
+  * Remove «Rules-Requires-Root: no», which is the current default.
+  * Remove «Priority: optional», which is the current default.
+  * Switch to Standards-Version 4.7.2 (no changes needed).
+  * Add Builde-Depends on libcrypt-dev. (Closes: #1106935)
+  * Refresh debian/upstream/signing-key.asc (update expiry dates).
+
+ -- Guillem Jover <guillem@debian.org>  Mon, 11 Aug 2025 00:25:19 +0200
+
+inetutils (2:2.6-3) unstable; urgency=medium
+
+  * Make libsystemd-dev support linux-any specific.
+
+ -- Guillem Jover <guillem@debian.org>  Sun, 22 Jun 2025 16:59:29 +0200
+
+inetutils (2:2.6-2) unstable; urgency=medium
+
+  * Enable libsystemd support to restore utmp functionality in
+    syslogd and talkd, on systems running systemd.
+  * Remove bogus test for unsorted file listing, causing indeterministic
+    build failures on some systems.
+
+ -- Guillem Jover <guillem@debian.org>  Fri, 20 Jun 2025 03:39:26 +0200
+
+inetutils (2:2.6-1) unstable; urgency=medium
+
+  * New upstream release.
+    - Update debian/upstream/signing-key.asc.
+    - Update copyright years.
+    - Remove 0006-Fix-C23-build-issues.patch, fixed upstream.
+    - Update 0001-build-Disable-GFDL-info-files-and-useless-man-pages.patch
+      to remove makeinfo and help2man dependencies from bootstrap.conf.
+    - Refresh patches.
+    - Remove debian/upstream/bootstrap.conf, now in upstream tarball.
+    - Do not copy bootstrap script from gnulib, now in upstream tarball.
+    - Stop cleaning bootstrap and bootstrap.conf in debian/clean.
+  * Switch to Standards-Version 4.7.1 (no changes needed).
+
+ -- Guillem Jover <guillem@debian.org>  Sat, 22 Feb 2025 00:43:32 +0100
+
+inetutils (2:2.5-6) unstable; urgency=medium
+
+  * Place each command line option in debian/rules on its own line.
+  * Fix man pages:
+    - Lowercase titles to match their referred object.
+    - Lowercase whois reference.
+    - Do not markup comma in bold for option separators.
+    - Do not use non-breaking space for options specification.
+    - Markup option arguments in italic.
+    - Markup domain names in bold.
+    - Do not quote SEE ALSO.
+  * Fix C23 build issues with gcc-15. (Closes: #1096837)
+
+ -- Guillem Jover <guillem@debian.org>  Tue, 18 Feb 2025 03:18:03 +0100
+
+inetutils (2:2.5-5) unstable; urgency=medium
+
+  * Add a Depends on login to inetutils-telnetd, now that login switched from
+    Essential:yes to Protected:yes. (Closes: #1074100)
+  * Add systemd-sysv as an alternative dependency for a syslog provider.
+    (Closes: #1072022, #1072023, #1072024, #1072025)
+  * Switch to Standards-Version 4.7.0 (no changes needed).
+
+ -- Guillem Jover <guillem@debian.org>  Sun, 23 Jun 2024 13:14:12 +0200
+
+inetutils (2:2.5-4) unstable; urgency=medium
+
+  * Move license location in Debian systems into a Comment field.
+  * Regenerate gnulib files at build time:
+    - Add upstream bootstrap.conf into debian/upstream/, but remove makeinfo
+      and help2man from its dependencies which we have disabled in patches.
+    - Add gnulib to Build-Depends.
+    - Copy the gnulib build-aux/bootstrap file during build.
+    - Override dh_autoreconf and call bootstrap with no network access and in
+      copy and force mode.
+
+ -- Guillem Jover <guillem@debian.org>  Thu, 02 May 2024 19:54:11 +0200
+
+inetutils (2:2.5-3) unstable; urgency=medium
+
+  * Take DPKG_ROOT into account in maintainer scripts.
+
+ -- Guillem Jover <guillem@debian.org>  Tue, 16 Jan 2024 04:48:45 +0100
+
+inetutils (2:2.5-2) experimental; urgency=medium
+
+  * Move ping programs to their canonical location under /usr, and setup
+    backward compatibility symlinks if necessary.
+
+ -- Guillem Jover <guillem@debian.org>  Sun, 07 Jan 2024 04:07:07 +0100
+
+inetutils (2:2.5-1) unstable; urgency=medium
+
+  * New upstream release.
+    - Remove patches merged upstream.
+    - Update debian/upstream/signing-key.asc.
+
+ -- Guillem Jover <guillem@debian.org>  Fri, 29 Dec 2023 20:08:36 +0100
+
+inetutils (2:2.4-3) unstable; urgency=medium
+
+  * Remove support for Linux devfs from syslogd init script.
+  * Use "$()" instead of `` in syslogd init script.
+  * Register inetutils-ftpd with inetd.
+  * Add new --foreground option to inetutils-inetd.
+  * Add a mention to /etc/ftpchroot in ftpd(8).
+  * Add new /etc/ftpusers and /etc/ftpchroot in inetutils-ftpd package.
+  * Add systemd service files for inetutils-syslogd and inetutils-inetd,
+    and a systemd tmpfiles for /dev/xconsole. (Closes: #1030079)
+  * Reorganize patch queue and move metadata into the commit trailer.
+  * Add patch from upstream to check return values for set*id() functions.
+    Fixes CVE-2023-40303. (Closes: #1049365)
+
+ -- Guillem Jover <guillem@debian.org>  Sun, 20 Aug 2023 15:38:46 +0200
+
+inetutils (2:2.4-2) unstable; urgency=medium
+
+  * Add support for new RFC4443 ICMPv6 destination unreachable codes.
+    (Closes: #1027778)
+  * Do not trim debian/changelog.
+  * Update debian/patches metadata.
+  * Update lintian overrides.
+  * Replace Depends on lsb-base with sysvinit-utils >= 3.05-4~.
+  * Switch to Standards-Version 4.6.2 (no changes needed).
+  * Remove obsolete Build-Conflicts.
+
+ -- Guillem Jover <guillem@debian.org>  Wed, 18 Jan 2023 00:23:52 +0100
+
+inetutils (2:2.4-1) unstable; urgency=medium
+
+  * New upstream release.
+    - Remove patches merged upstream.
+    - Update debian/upstream/signing-key.asc.
+
+ -- Guillem Jover <guillem@debian.org>  Wed, 26 Oct 2022 00:35:29 +0200
+
+inetutils (2:2.3-6) unstable; urgency=medium
+
+  * Add CVE references to changelog entries and patches.
+  * Place Source field next to Format in debian/copyright.
+  * Improve metadata and description for old patch taken from FreeBSD.
+  * Refer to telnet-ssl and telnetd-ssl instead of netkit-telnet and
+    netkit-telnetd as implementation reverts, now that the latter have
+    been slated for removal from Debian, as they were essentially the same
+    except for the SSL/TLS support. (Closes: #1020542)
+    Thanks to Bastian Germann <bage@debian.org>.
+
+ -- Guillem Jover <guillem@debian.org>  Sat, 24 Sep 2022 21:16:43 +0200
+
+inetutils (2:2.3-5) unstable; urgency=high
+
+  * Fix remote DoS vulnerability in inetutils-telnetd, caused by a crash by
+    a NULL pointer dereference when sending the byte sequences «0xff 0xf7»
+    or «0xff 0xf8». Found by Pierre Kim and Alexandre Torres. Patch
+    adapted by Erik Auerswald <auerswal@unix-ag.uni-kl.de>.
+    Fixes CVE-2022-39028.
+
+ -- Guillem Jover <guillem@debian.org>  Sun, 28 Aug 2022 15:08:06 +0200
+
+inetutils (2:2.3-4) unstable; urgency=medium
+
+  * Set telnet and telnetd Section to oldlibs.
+  * Use krb5_auth_con_getsendsubkey() instead of deprecated
+    krb5_auth_con_getlocalsubkey(). Warned by the buildd log scanner.
+
+ -- Guillem Jover <guillem@debian.org>  Wed, 10 Aug 2022 02:13:29 +0200
+
+inetutils (2:2.3-3) unstable; urgency=medium
+
+  * Switch from conditional dh_install invocation to use a glob to install
+    the not always present ping6. This fixes a build failure on arch-indep
+    only builds.
+
+ -- Guillem Jover <guillem@debian.org>  Tue, 09 Aug 2022 14:00:02 +0200
+
+inetutils (2:2.3-2) unstable; urgency=medium
+
+  * Bump inetutils-telnet alternatives priority from 100 to 150, to take
+    precedence over the netkit-telnet implementation, as we are now the
+    default and preferred implementation in Debian.
+  * Remove unnecessary -a restriction for debhelper commands.
+  * Make inetutils-telnet and inetutils-telnetd the default implementations in
+    Debian (Closes: #987729):
+    - Bump inetutils-telnet Priority to standard.
+    - Add telnet to inetutils-telnet Provides.
+    - Add telnetd to inetutils-telnetd Provides.
+    - Add a versioned telnetd Breaks to inetutils-telnetd.
+    - Add a telnet transitional dummy package that depends on
+      inetutils-telnet and removes the netkit-telnet alternative on preinst.
+    - Add a telnetd transitional dummy package that depends on
+      inetutils-telnetd and removes the netkit-telnetd inetd entry on preinst.
+    - Set the telnet and telnetd binary package versions to
+      0.17+$(DEB_VERSION_UPSTREAM_REVISION), to avoid introducing an epoch and
+      leave room for a possible revert, even though the plan is to get rid of
+      these packages after Debian's bookworm release.
+
+ -- Guillem Jover <guillem@debian.org>  Tue, 09 Aug 2022 13:18:23 +0200
+
+inetutils (2:2.3-1) unstable; urgency=medium
+
+  * New upstream release.
+    - Remove patches merged upstream.
+    - Update debian/upstream/signing-key.asc.
+  * Remove libreadline6-dev | libreadline5-dev obsolete alternatives from
+    Build-Depends.
+  * Document group support in «user[:group]» in inetd(8) man page.
+  * Update lintian overrides for renamed tag names and format.
+  * Switch to Standards-Version 4.6.1 (no changes needed).
+
+ -- Guillem Jover <guillem@debian.org>  Fri, 08 Jul 2022 20:59:04 +0200
+
 inetutils (2:2.2-2) unstable; urgency=medium
 
   * Use «command -v» instead of «which».
@@ -13,7 +243,7 @@ inetutils (2:2.2-1) unstable; urgency=medium
 
   * New upstream release.
     - Fix inetutils-ftp security bug trusting FTP PASV responses.
-      Closes: #993476
+      Fixes CVE-2021-40491. Closes: #993476
 
  -- Guillem Jover <guillem@debian.org>  Thu, 02 Sep 2021 07:02:33 +0200
 

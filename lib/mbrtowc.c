@@ -1,5 +1,5 @@
 /* Convert multibyte character to wide character.
-   Copyright (C) 1999-2002, 2005-2021 Free Software Foundation, Inc.
+   Copyright (C) 1999-2002, 2005-2025 Free Software Foundation, Inc.
    Written by Bruno Haible <bruno@clisp.org>, 2008.
 
    This file is free software: you can redistribute it and/or modify
@@ -28,7 +28,11 @@
 # include <stdint.h>
 # include <stdlib.h>
 
-# if defined _WIN32 && !defined __CYGWIN__
+# if AVOID_ANY_THREADS
+
+/* The option '--disable-threads' explicitly requests no locking.  */
+
+# elif defined _WIN32 && !defined __CYGWIN__
 
 #  define WIN32_LEAN_AND_MEAN  /* avoid including junk */
 #  include <windows.h>
@@ -51,11 +55,10 @@
 # endif
 
 # include "attribute.h"
-# include "verify.h"
 # include "lc-charset-dispatch.h"
 # include "mbtowc-lock.h"
 
-verify (sizeof (mbstate_t) >= 4);
+static_assert (sizeof (mbstate_t) >= 4);
 static char internal_state[4];
 
 size_t
@@ -81,7 +84,7 @@ rpl_mbrtowc (wchar_t *pwc, const char *s, size_t n, mbstate_t *ps)
   size_t ret;
   wchar_t wc;
 
-# if MBRTOWC_NULL_ARG2_BUG || MBRTOWC_RETVAL_BUG || MBRTOWC_EMPTY_INPUT_BUG
+# if MBRTOWC_RETVAL_BUG || MBRTOWC_EMPTY_INPUT_BUG
   if (s == NULL)
     {
       pwc = NULL;

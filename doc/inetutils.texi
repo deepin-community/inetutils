@@ -59,9 +59,7 @@
 This manual documents version @value{VERSION} of the @sc{gnu} networking
 utilities.
 
-Copyright @copyright{} 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019,
-2020, 2021 Free Software Foundation, Inc.
+Copyright @copyright{} 2000--2025 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -143,7 +141,7 @@ Appendix
 @chapter Introduction
 @cindex introduction
 
-The GNU Network Utilities is a distribution of common networking
+The GNU Networking Utilities is a distribution of common networking
 utilities and servers, including for example ping, traceroute and ftp.
 
 This manual is a work in progress: many sections make no attempt to
@@ -387,7 +385,7 @@ Deactivate the selected interface.
 @opindex -F
 @opindex --flags
 Change those interface flags mentioned in @var{list}.
-The argument is a comma separated list of one ore more
+The argument is a comma separated list of one or more
 flag names to be set, or in case the name is prepended
 with @samp{no}, the corresponding flag is cleared.
 The output of @command{ifconfig} with the option @option{--help}
@@ -555,7 +553,7 @@ Use IPv6 as transport when logging to a host.  The option is present
 also on systems without support for IPv6, but will then issue a warning
 and then fall back to IPv4 when delivering the message.
 
-Both options are most influencial when the target host is named using
+Both options are most influential when the target host is named using
 a symbolic name, but numerical addresses for host or source must also
 match if either of @option{--ipv4} or @option{--ipv6} is stated.
 
@@ -737,7 +735,7 @@ Selection of packet type is handled by these first options:
 @item --address
 @opindex --address
 Send ICMP_ADDRESS packets, thus requesting the address netmask
-in use by the targetted host.
+in use by the targeted host.
 
 @item --echo
 @opindex --echo
@@ -751,7 +749,7 @@ Identical to @option{--address}.
 @item --timestamp
 @opindex --timestamp
 Send ICMP_TIMESTAMP packets, thereby requesting a timed response
-from the targetted host.
+from the targeted host.
 
 In successful cases three time values are returned.
 All are expected to state the number of milliseconds since
@@ -1253,7 +1251,7 @@ at some routing distance is the outcome.
 @opindex --gateways
 Set intermediary hosts used in loose source routing.
 The argument @var{gates} is a list of gateways,
-using spaces, commata, or semicola as separators.
+using space, comma, or semicolon as separators.
 These hosts must be traversed in the given order
 before the intended host receives any datagram.
 At most eight host names or addresses may be specified.
@@ -1882,6 +1880,10 @@ A backslash @samp{\} followed by any character is replaced by that
 character.  Use the backslash @samp{\} to prevent special treatment
 of the dollar sign @samp{$}, as was just explained.
 
+A macro can execute a macro, allowing recursion.  In order to avoid
+exhausting the stack and thus crashing @command{ftp}, the nesting
+depth of macro execution is limited to a compile time constant.
+
 @item mdelete [@var{remote-files}]
 Delete all @var{remote-files} on the remote machine.
 
@@ -2114,7 +2116,7 @@ Delete a directory on the remote machine.
 
 @item runique
 Toggle the storing of files on the local system with unique filenames.
-If a file already exists with a name equal to the inteded local file
+If a file already exists with a name equal to the intended local file
 name for a @code{get} or @code{mget} command,
 then a string @samp{.1} is appended to the name.
 If the resulting name matches another existing file,
@@ -3255,7 +3257,7 @@ minute; the default is 1000.
 
 Upon execution, inetd reads its configuration information from
 configuration files and directories named on the command line.
-By default these are @file{/etc/inetd.conf} and @file{/etc/initd.d}.
+By default these are @file{/etc/inetd.conf} and @file{/etc/inetd.d}.
 If the configuration pathname is a directory, all files in the
 directory are read and interpreted like a configuration file.
 All of the configuration files are read and the results are merged.
@@ -3350,7 +3352,7 @@ accepted by inetd, and the server is given only the newly-accepted
 socket connected to a client of the service.  Most stream-based
 services and all TCPMUX services operate in this manner.  For such
 services, the number of running instances of the server can be
-limitied by specifying optional @samp{max} suffix (a decimal number),
+limited by specifying optional @samp{max} suffix (a decimal number),
 e.g.: @samp{nowait.15}.
 
 Stream-based servers that use @samp{wait} are started with the
@@ -3509,7 +3511,7 @@ several reasons:
 @end enumerate
 
 Use the @option{-R} option, as described above, to change the rate
-limit.  Once the limit is reached, the service will be reenabled
+limit.  Once the limit is reached, the service will be re-enabled
 automatically in 10 minutes.
 
 @item service/protocol: No such user 'user', service ignored
@@ -3717,7 +3719,7 @@ The facility as well as the level are case insensitive.
 
 The facility describes the part of the system generating the message,
 and is one of the following keywords: @samp{auth}, @samp{authpriv},
-@samp{cron}, @samp{daemon}, @samp{kern}, @samp{lpr}, @samp{mail},
+@samp{cron}, @samp{daemon}, @samp{ftp}, @samp{kern}, @samp{lpr}, @samp{mail},
 @samp{mark}, @samp{news}, @samp{syslog}, @samp{user}, @samp{uucp} and
 @samp{local0} through @samp{local7}.  These keywords (with the
 exception of @samp{mark}) correspond to the similar @samp{LOG_} values
@@ -3727,8 +3729,8 @@ details.
 
 The level describes the severity of the message, and is a keyword from
 the following ordered list (higher to lower): @samp{emerg},
-@samp{alert}, @samp{crit}, @samp{err, warning}, @samp{notice} and
-@samp{debug}.  These keywords correspond to the similar @samp{LOG_}
+@samp{alert}, @samp{crit}, @samp{err, warning}, @samp{notice}, @samp{info}
+and @samp{debug}.  These keywords correspond to the similar @samp{LOG_}
 values specified to the syslog library routine.
 
 @xref{syslog; vsyslog, , syslog and vsyslog, libc, The GNU C Library
@@ -4076,7 +4078,11 @@ provided by the client before any file operations can be performed.
 The login name must not appear in the file @file{/etc/ftpusers}.
 
 @item
-The user must have a standard shell.
+The user must have a standard shell.  If the file @file{/etc/shells}
+exists and is readable, only programs listed there are considered standard
+shells.  @command{ftpd} uses the C library function @code{getusershell}
+to enumerate standard shells.  Standard shells are also known as valid
+login shells, valid user shells, or permitted user shells.
 
 @item
 If the user name is @samp{anonymous} or @samp{ftp}, an anonymous ftp
@@ -4999,7 +5005,7 @@ The only recognised value is otherwise @samp{nokludge}.
 @itemx --no-keepalive
 @opindex -n
 @opindex --no-keepalive
-Disable TCP keep-alives.
+Disable TCP keep-alive.
 
 @item -S @var{principal}
 @itemx --server-principal=@var{principal}
@@ -5105,7 +5111,7 @@ environment not provide a value.
 
 In addition, a conditional construct is able to take one action
 in case a variable has an assigned value, and optionally to take
-another action in the opposite case.  The contruct is
+another action in the opposite case.  The construct is
 
 @example
 %?<var>@{true-stmt@}[@{false-stmt@}]
@@ -5173,7 +5179,7 @@ Enable logging.
 @itemx --nonexistent
 @opindex -n
 @opindex --nonexistent
-Supress negative acknowledgement of requests for nonexistent relative
+Suppress negative acknowledgement of requests for nonexistent relative
 filenames.
 
 @item -s @var{dir}
@@ -5268,8 +5274,8 @@ get /etc/motd
 
 @noindent
 given that @file{/tftpboot/kernel} and @file{/altboot/kernel.alt} exist.
-Observe that also @file{/etc/motd} is accessible, inspite there being
-no explicit mention of standard file locations.
+Observe that also @file{/etc/motd} is accessible, in spite of there
+being no explicit mention of standard file locations.
 
 A stronger mode of running a TFTP server is to use the `secure mode',
 meaning that the serving process is running in a chrooted mode.

@@ -1,8 +1,5 @@
 /*
-  Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
-  2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013,
-  2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021 Free Software
-  Foundation, Inc.
+  Copyright (C) 1994-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -104,7 +101,7 @@
 #include <progname.h>
 #include <libinetutils.h>
 #include "extern.h"
-#include "unused-parameter.h"
+#include "attribute.h"
 
 #ifndef LINE_MAX
 # define LINE_MAX 2048
@@ -116,11 +113,6 @@
 
 #ifndef MAP_FAILED
 # define MAP_FAILED (void*)-1
-#endif
-
-#if !HAVE_DECL_FCLOSE
-/* Some systems don't declare fclose in <stdio.h>, so do it ourselves.  */
-extern int fclose (FILE *);
 #endif
 
 /* Exported to ftpcmd.h.  */
@@ -264,76 +256,77 @@ const char doc[] =
   "File Transfer Protocol daemon.";
 #endif
 
-enum {
+enum
+{
   OPT_NONRFC2577 = CHAR_MAX + 1,
 };
 
 static struct argp_option options[] = {
 #define GRID 0
-  { "anonymous-only", 'A', NULL, 0,
-    "server configured for anonymous service only",
-    GRID+1 },
-  { "daemon", 'D', NULL, 0,
-    "start the ftpd standalone",
-    GRID+1 },
-  { "debug", 'd', NULL, 0,
-    "debug mode",
-    GRID+1 },
-  { "ipv4", '4', NULL, 0,
-    "restrict daemon to IPv4",
-    GRID+1 },
-  { "ipv6", '6', NULL, 0,
-    "restrict daemon to IPv6",
-    GRID+1 },
-  { "logging", 'l', NULL, 0,
-    "increase verbosity of syslog messages",
-    GRID+1 },
-  { "pidfile", 'p', "PIDFILE", OPTION_ARG_OPTIONAL,
-    "change default location of pidfile",
-    GRID+1 },
-  { "no-version", 'q', NULL, 0,
-    "do not display version in banner",
-    GRID+1 },
-  { "timeout", 't', "TIMEOUT", 0,
-    "set default idle timeout",
-    GRID+1 },
-  { "max-timeout", 'T', "MAX_TIMEOUT", 0,
-    "set maximum value of timeout allowed",
-    GRID+1 },
-  { "non-rfc2577", OPT_NONRFC2577, NULL, 0,
-    "neglect RFC 2577 by giving info on missing users",
-    GRID+1 },
-  { "umask", 'u', "VAL", 0,
-    "set default umask",
-    GRID+1 },
-  { "auth", 'a', "AUTH", 0,
-    "use AUTH for authentication",
-    GRID+1 },
-  { NULL, 0, NULL, 0, "AUTH can be one of the following:", GRID+2 },
-  { "  default", 0, NULL, OPTION_DOC|OPTION_NO_TRANS,
-    "passwd authentication",
-    GRID+3 },
+  {"anonymous-only", 'A', NULL, 0,
+   "server configured for anonymous service only",
+   GRID + 1},
+  {"daemon", 'D', NULL, 0,
+   "start the ftpd standalone",
+   GRID + 1},
+  {"debug", 'd', NULL, 0,
+   "debug mode",
+   GRID + 1},
+  {"ipv4", '4', NULL, 0,
+   "restrict daemon to IPv4",
+   GRID + 1},
+  {"ipv6", '6', NULL, 0,
+   "restrict daemon to IPv6",
+   GRID + 1},
+  {"logging", 'l', NULL, 0,
+   "increase verbosity of syslog messages",
+   GRID + 1},
+  {"pidfile", 'p', "PIDFILE", OPTION_ARG_OPTIONAL,
+   "change default location of pidfile",
+   GRID + 1},
+  {"no-version", 'q', NULL, 0,
+   "do not display version in banner",
+   GRID + 1},
+  {"timeout", 't', "TIMEOUT", 0,
+   "set default idle timeout",
+   GRID + 1},
+  {"max-timeout", 'T', "MAX_TIMEOUT", 0,
+   "set maximum value of timeout allowed",
+   GRID + 1},
+  {"non-rfc2577", OPT_NONRFC2577, NULL, 0,
+   "neglect RFC 2577 by giving info on missing users",
+   GRID + 1},
+  {"umask", 'u', "VAL", 0,
+   "set default umask",
+   GRID + 1},
+  {"auth", 'a', "AUTH", 0,
+   "use AUTH for authentication",
+   GRID + 1},
+  {NULL, 0, NULL, 0, "AUTH can be one of the following:", GRID + 2},
+  {"  default", 0, NULL, OPTION_DOC | OPTION_NO_TRANS,
+   "passwd authentication",
+   GRID + 3},
 #ifdef WITH_PAM
-  { "  pam", 0, NULL, OPTION_DOC|OPTION_NO_TRANS,
-    "using PAM service 'ftp'",
-    GRID+3 },
+  {"  pam", 0, NULL, OPTION_DOC | OPTION_NO_TRANS,
+   "using PAM service 'ftp'",
+   GRID + 3},
 #endif
 #ifdef WITH_KERBEROS
-  { "  kerberos", 0, NULL, OPTION_DOC|OPTION_NO_TRANS,
-    "",
-    GRID+3 },
+  {"  kerberos", 0, NULL, OPTION_DOC | OPTION_NO_TRANS,
+   "",
+   GRID + 3},
 #endif
 #ifdef WITH_KERBEROS5
-  { "  kerberos5", 0, NULL, OPTION_DOC|OPTION_NO_TRANS,
-    "",
-    GRID+3 },
+  {"  kerberos5", 0, NULL, OPTION_DOC | OPTION_NO_TRANS,
+   "",
+   GRID + 3},
 #endif
 #ifdef WITH_OPIE
-  { "  opie", 0, NULL, OPTION_DOC|OPTION_NO_TRANS,
-    "",
-    GRID+3 },
+  {"  opie", 0, NULL, OPTION_DOC | OPTION_NO_TRANS,
+   "",
+   GRID + 3},
 #endif
-  { NULL, 0, NULL, 0, NULL, 0 }
+  {NULL, 0, NULL, 0, NULL, 0}
 };
 
 static error_t
@@ -409,13 +402,13 @@ parse_opt (int key, char *arg, struct argp_state *state)
 	maxtimeout = timeout;
       break;
 
-    case 'T':		/* Maximum timeout allowed.  */
+    case 'T':			/* Maximum timeout allowed.  */
       maxtimeout = atoi (arg);
       if (timeout > maxtimeout)
 	timeout = maxtimeout;
       break;
 
-    case 'u':		/* Set umask.  */
+    case 'u':			/* Set umask.  */
       {
 	long val = 0;
 
@@ -463,7 +456,7 @@ main (int argc, char *argv[], char **envp)
   /* Save start and extent of argv for setproctitle.  */
   initsetproctitle (argc, argv, envp);
 #else /* !HAVE_INITSETPROCTITLE */
-  (void) envp;		/* Silence warnings.  */
+  (void) envp;			/* Silence warnings.  */
 #endif
 
   /* Parse the command line */
@@ -472,8 +465,8 @@ main (int argc, char *argv[], char **envp)
 
   /* Bail out, wrong usage */
   if (argc - index != 0)
-    error (EXIT_FAILURE, 0, "surplus arguments; try `%s --help' for more info",
-	   program_name);
+    error (EXIT_FAILURE, 0,
+	   "surplus arguments; try `%s --help' for more info", program_name);
 
   /* LOG_NDELAY sets up the logging connection immediately,
      necessary for anonymous ftp's that chroot and can't do it later.  */
@@ -498,7 +491,7 @@ main (int argc, char *argv[], char **envp)
 #endif
       his_addrlen = sizeof (his_addr);
       if (server_mode (pid_file, (struct sockaddr *) &his_addr,
-			&his_addrlen, argv) < 0)
+		       &his_addrlen, argv) < 0)
 	exit (EXIT_FAILURE);
     }
   else
@@ -538,7 +531,7 @@ main (int argc, char *argv[], char **envp)
     {
       int tos = IPTOS_LOWDELAY;
       if (setsockopt (STDIN_FILENO, IPPROTO_IP, IP_TOS,
-		    (char *) &tos, sizeof (int)) < 0)
+		      (char *) &tos, sizeof (int)) < 0)
 	syslog (LOG_WARNING, "setsockopt (IP_TOS): %m");
     }
 #endif
@@ -634,7 +627,7 @@ sigquit (int signo)
 
 
 static void
-lostconn (int signo _GL_UNUSED_PARAMETER)
+lostconn (int signo MAYBE_UNUSED)
 {
   if (debug)
     syslog (LOG_DEBUG, "lost connection");
@@ -761,7 +754,7 @@ complete_login (struct credentials *pcred)
   return;
 bad:
   /* Forget all about it... */
-  end_login (pcred);	/* Resets pcred->logged_in.  */
+  end_login (pcred);		/* Resets pcred->logged_in.  */
 }
 
 /* USER command.
@@ -838,7 +831,7 @@ user (const char *name)
       char *msg = strrchr (cred.message, '\n');
 
       if (msg)
-	msg++;		/* Step over separator.  */
+	msg++;			/* Step over separator.  */
       else
 	msg = cred.message;
 
@@ -865,7 +858,9 @@ end_login (struct credentials *pcred)
   char *remotehost = pcred->remotehost;
   int atype = pcred->auth_type;
 
-  seteuid ((uid_t) 0);
+  if (seteuid ((uid_t) 0) == -1)
+    _exit (EXIT_FAILURE);
+
   if (pcred->logged_in)
     {
       logwtmp_keep_open (ttyline, "", "");
@@ -957,7 +952,7 @@ pass (const char *passwd)
 	  cred.message = NULL;
 	}
     }
-  cred.logged_in = 1;		/* Everything seems to be allright.  */
+  cred.logged_in = 1;		/* Everything seems to be all right.  */
   complete_login (&cred);
   if (cred.logged_in)
     login_attempts = 0;		/* This time successful.  */
@@ -1068,12 +1063,12 @@ store (const char *name, const char *mode, int unique)
       const char *name_unique = gunique (name);
 
       if (name_unique)
-        name = name_unique;
+	name = name_unique;
       else
-        {
-          LOGCMD (*mode == 'w' ? "put" : "append", name);
-          return;
-        }
+	{
+	  LOGCMD (*mode == 'w' ? "put" : "append", name);
+	  return;
+	}
     }
 
   if (restart_point)
@@ -1154,7 +1149,8 @@ getdatasock (const char *mode)
 
   if (data >= 0)
     return fdopen (data, mode);
-  seteuid ((uid_t) 0);
+  if (seteuid ((uid_t) 0) == -1)
+    _exit (EXIT_FAILURE);
   s = socket (ctrl_addr.ss_family, SOCK_STREAM, 0);
   if (s < 0)
     goto bad;
@@ -1181,7 +1177,7 @@ getdatasock (const char *mode)
       ((struct sockaddr_in *) &data_source)->sin_port = 0;
       break;
     default:
-      break;	/* Do nothing; should not happen!  */
+      break;			/* Do nothing; should not happen!  */
     }
 
   for (tries = 1;; tries++)
@@ -1286,8 +1282,7 @@ dataconn (const char *name, off_t size, const char *mode)
       int oerrno = errno;
       (void) getnameinfo ((struct sockaddr *) &data_source, data_source_len,
 			  addrstr, sizeof (addrstr),
-			  portstr, sizeof (portstr),
-			  NI_NUMERICSERV);
+			  portstr, sizeof (portstr), NI_NUMERICSERV);
       reply (425, "Can't create data socket (%s,%s): %s.",
 	     addrstr, portstr, strerror (oerrno));
       return NULL;
@@ -1313,12 +1308,12 @@ dataconn (const char *name, off_t size, const char *mode)
 
 #define IU_MMAP_SIZE 0x800000	/* 8 MByte */
 
-/* Tranfer the contents of "instr" to "outstr" peer using the appropriate
+/* Transfer the contents of "instr" to "outstr" peer using the appropriate
    encapsulation of the data subject * to Mode, Structure, and Type.
 
    NB: Form isn't handled.  */
 static void
-send_data (FILE * instr, FILE * outstr, off_t blksize)
+send_data (FILE *instr, FILE *outstr, off_t blksize)
 {
   int c, cnt, filefd, netfd;
   char *buf = MAP_FAILED, *bp;
@@ -1343,8 +1338,7 @@ send_data (FILE * instr, FILE * outstr, off_t blksize)
     {
       curpos = lseek (filefd, 0, SEEK_CUR);
       if (debug)
-	syslog (LOG_DEBUG, "Position is %jd. Attempting mmap call.",
-		curpos);
+	syslog (LOG_DEBUG, "Position is %jd. Attempting mmap call.", curpos);
       if (curpos >= 0)
 	{
 	  filesize = file_size - curpos;
@@ -1442,14 +1436,14 @@ send_data (FILE * instr, FILE * outstr, off_t blksize)
 	    syslog (LOG_DEBUG, "Starting at position %jd.", curpos);
 	}
 
-      buf = malloc ((u_int) blksize);
+      buf = malloc ((unsigned int) blksize);
       if (buf == NULL)
 	{
 	  transflag = 0;
 	  perror_reply (451, "Local resource failure: malloc");
 	  return;
 	}
-      while ((cnt = read (filefd, buf, (u_int) blksize)) > 0 &&
+      while ((cnt = read (filefd, buf, (unsigned int) blksize)) > 0 &&
 	     write (netfd, buf, cnt) == cnt)
 	byte_count += cnt;
 
@@ -1484,7 +1478,7 @@ file_err:
 
    N.B.: Form isn't handled.  */
 static int
-receive_data (FILE * instr, FILE * outstr, off_t blksize)
+receive_data (FILE *instr, FILE *outstr, off_t blksize)
 {
   int c;
   int cnt, bare_lfs = 0;
@@ -1500,7 +1494,7 @@ receive_data (FILE * instr, FILE * outstr, off_t blksize)
     {
     case TYPE_I:
     case TYPE_L:
-      buf = malloc ((u_int) blksize);
+      buf = malloc ((unsigned int) blksize);
       if (buf == NULL)
 	{
 	  transflag = 0;
@@ -1668,8 +1662,8 @@ statcmd (void)
       printf ("     PORT");
       sin = &data_dest;
     printaddr:
-      a = (unsigned char *) & ((struct sockaddr_in *) sin)->sin_addr;
-      p = (unsigned char *) & ((struct sockaddr_in *) sin)->sin_port;
+      a = (unsigned char *) &((struct sockaddr_in *) sin)->sin_addr;
+      p = (unsigned char *) &((struct sockaddr_in *) sin)->sin_port;
 #define UC(b) (((int) b) & 0xff)
       printf (" (%d,%d,%d,%d,%d,%d)\r\n", UC (a[0]),
 	      UC (a[1]), UC (a[2]), UC (a[3]), UC (p[0]), UC (p[1]));
@@ -1746,7 +1740,7 @@ lreply_multiline (int n, const char *text)
       do
 	{
 	  p2 = strchrnul (p1, '\n');
-	  stop = (*p2 == '\0');		/* End of input string?  */
+	  stop = (*p2 == '\0');	/* End of input string?  */
 	  *p2 = '\0';
 	  printf ("%d- ", n);
 	  printf ("%s\r\n", p1);
@@ -1755,7 +1749,7 @@ lreply_multiline (int n, const char *text)
 	      syslog (LOG_DEBUG, "<--- %d- ", n);
 	      syslog (LOG_DEBUG, "%s", p1);
 	    }
-	  p1 = ++p2;			/* P1 is used within bounds.  */
+	  p1 = ++p2;		/* P1 is used within bounds.  */
 	}
       while (!stop);
       free (line);
@@ -1919,7 +1913,7 @@ dologout (int status)
 }
 
 static void
-myoob (int signo _GL_UNUSED_PARAMETER)
+myoob (int signo MAYBE_UNUSED)
 {
   char *cp;
 
@@ -1978,10 +1972,11 @@ passive (int epsv, int af)
   /* Erase the port number.  */
   if (pasv_addr.ss_family == AF_INET6)
     ((struct sockaddr_in6 *) &pasv_addr)->sin6_port = 0;
-  else	/* !AF_INET6 */
+  else				/* !AF_INET6 */
     ((struct sockaddr_in *) &pasv_addr)->sin_port = 0;
 
-  seteuid ((uid_t) 0);
+  if (seteuid ((uid_t) 0) == -1)
+    _exit (EXIT_FAILURE);
   if (bind (pdata, (struct sockaddr *) &pasv_addr, pasv_addrlen) < 0)
     {
       if (seteuid ((uid_t) cred.uid))
@@ -2000,12 +1995,12 @@ passive (int epsv, int af)
     {
       /* EPSV for IPv4 and IPv6.  */
       reply (229, "Entering Extended Passive Mode (|||%u|)",
-	     ntohs((pasv_addr.ss_family == AF_INET)
+	     ntohs ((pasv_addr.ss_family == AF_INET)
 		    ? ((struct sockaddr_in *) &pasv_addr)->sin_port
 		    : ((struct sockaddr_in6 *) &pasv_addr)->sin6_port));
       return;
     }
-  else /* !EPSV */
+  else				/* !EPSV */
     {
       /* PASV for IPv4, or LPSV for IPv4 or IPv6.
        *
@@ -2016,7 +2011,10 @@ passive (int epsv, int af)
 #define UC(b) (((int) b) & 0xff)
 
       if (pasv_addr.ss_family == AF_INET6
-	  && IN6_IS_ADDR_V4MAPPED (&((struct sockaddr_in6 *) &pasv_addr)->sin6_addr))
+	  &&
+	  IN6_IS_ADDR_V4MAPPED (&
+				((struct sockaddr_in6 *)
+				 &pasv_addr)->sin6_addr))
 	{
 	  a = (char *) &((struct sockaddr_in6 *) &pasv_addr)->sin6_addr;
 	  a += 3 * sizeof (struct in_addr);	/* Skip padding up to IPv4 content.  */
@@ -2028,8 +2026,7 @@ passive (int epsv, int af)
 	  a = (char *) &((struct sockaddr_in6 *) &pasv_addr)->sin6_addr;
 	  p = (char *) &((struct sockaddr_in6 *) &pasv_addr)->sin6_port;
 
-	  reply (228, "Entering Long Passive Mode "
-		 "(6,16,%d,%d,%d,%d,%d,%d,%d,%d"	/* a[0..7] */
+	  reply (228, "Entering Long Passive Mode " "(6,16,%d,%d,%d,%d,%d,%d,%d,%d"	/* a[0..7] */
 		 ",%d,%d,%d,%d,%d,%d,%d,%d"	/* a[8..15] */
 		 ",2,%d,%d)",	/* p0, p1 */
 		 UC (a[0]), UC (a[1]), UC (a[2]), UC (a[3]),

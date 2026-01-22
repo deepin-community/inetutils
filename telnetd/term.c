@@ -1,7 +1,5 @@
 /*
-  Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
-  2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021 Free
-  Software Foundation, Inc.
+  Copyright (C) 2002-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -33,7 +31,7 @@ TERMDESC termbuf, termbuf2;
 #ifdef IOCTL_INTERFACE
 
 void
-_term_setattr (int fd, TERMDESC * tp)
+_term_setattr (int fd, TERMDESC *tp)
 {
   ioctl (fd, TIOCSETN, (char *) &tp->sg);
   ioctl (fd, TIOCSETC, (char *) &tp->tc);
@@ -42,19 +40,19 @@ _term_setattr (int fd, TERMDESC * tp)
 }
 
 void
-term_send_eof ()
+term_send_eof (void)
 {
   /*nothing */
 }
 
 int
-term_change_eof ()
+term_change_eof (void)
 {
   return 0;
 }
 
 int
-tty_linemode ()
+tty_linemode (void)
 {
   return termbuf.state & TS_EXTPROC;
 }
@@ -66,30 +64,30 @@ tty_setlinemode (int on)
   set_termbuf ();
   ioctl (pty, TIOCEXT, (char *) &on);
   init_termbuf ();
-# else /* !TIOCEXT */
+# else/* !TIOCEXT */
 #  ifdef	EXTPROC
   if (on)
     termbuf.c_lflag |= EXTPROC;
   else
     termbuf.c_lflag &= ~EXTPROC;
 #  endif
-# endif	/* TIOCEXT */
+# endif/* TIOCEXT */
 }
 
 int
-tty_isecho ()
+tty_isecho (void)
 {
   return termbuf.sg.sg_flags & ECHO;
 }
 
 int
-tty_flowmode ()
+tty_flowmode (void)
 {
   return ((termbuf.tc.t_startc) > 0 && (termbuf.tc.t_stopc) > 0) ? 1 : 0;
 }
 
 int
-tty_restartany ()
+tty_restartany (void)
 {
 # ifdef	DECCTQ
   return (termbuf.lflags & DECCTQ) ? 0 : 1;
@@ -108,7 +106,7 @@ tty_setecho (int on)
 }
 
 int
-tty_israw ()
+tty_israw (void)
 {
   return termbuf.sg.sg_flags & RAW;
 }
@@ -143,25 +141,25 @@ tty_binaryout (int on)
 }
 
 int
-tty_isbinaryin ()
+tty_isbinaryin (void)
 {
   return termbuf.lflags & LPASS8;
 }
 
 int
-tty_isbinaryout ()
+tty_isbinaryout (void)
 {
   return termbuf.lflags & LLITOUT;
 }
 
 int
-tty_isediting ()
+tty_isediting (void)
 {
   return !(termbuf.sg.sg_flags & (CBREAK | RAW));
 }
 
 int
-tty_istrapsig ()
+tty_istrapsig (void)
 {
   return !(termbuf.sg.sg_flags & RAW);
 }
@@ -181,7 +179,7 @@ tty_setsig (int on)
 }
 
 int
-tty_issofttab ()
+tty_issofttab (void)
 {
   return termbuf.sg.sg_flags & XTABS;
 }
@@ -196,7 +194,7 @@ tty_setsofttab (int on)
 }
 
 int
-tty_islitecho ()
+tty_islitecho (void)
 {
   return !(termbuf.lflags & LCTLECH);
 }
@@ -211,7 +209,7 @@ tty_setlitecho (int on)
 }
 
 int
-tty_iscrnl ()
+tty_iscrnl (void)
 {
   return termbuf.sg.sg_flags & CRMOD;
 }
@@ -292,7 +290,7 @@ tty_linemode (void)
   return (termbuf.c_lflag & EXTPROC);
 # else
   return 0;			/* Can't ever set it either. */
-# endif	/* EXTPROC */
+# endif/* EXTPROC */
 }
 
 void
@@ -302,16 +300,17 @@ tty_setlinemode (int on)
   set_termbuf ();
   ioctl (pty, TIOCEXT, (char *) &on);
   init_termbuf ();
-# else /* !TIOCEXT */
+# else/* !TIOCEXT */
 #  ifdef	EXTPROC
   if (on)
     termbuf.c_lflag |= EXTPROC;
   else
     termbuf.c_lflag &= ~EXTPROC;
-#  else /* !EXTPROC */
-  (void) on;		/* Silence warnings.  */
+#  else
+  /* !EXTPROC */
+  (void) on;			/* Silence warnings.  */
 #  endif
-# endif	/* TIOCEXT */
+# endif/* TIOCEXT */
 }
 
 int
@@ -535,7 +534,7 @@ init_termbuf (void)
 /*FIXME: Hardly needed?
  * Built by OpenSolaris and BSD, though.  */
 void
-copy_termbuf ()
+copy_termbuf (void)
 {
   size_t len = 0;
   char *cp = (char *) &termbuf;
@@ -591,7 +590,7 @@ set_termbuf (void)
 			return SLC_DEFAULT;
 
 int
-spcset (int func, cc_t * valp, cc_t ** valpp)
+spcset (int func, cc_t *valp, cc_t **valpp)
 {
   switch (func)
     {
@@ -701,48 +700,47 @@ struct termspeeds
 {
   int speed;
   int value;
-} termspeeds[] =
-  {
-    {0, B0},
-    {50, B50},
-    {75, B75},
-    {110, B110},
-    {134, B134},
-    {150, B150},
-    {200, B200},
-    {300, B300},
-    {600, B600},
-    {1200, B1200},
-    {1800, B1800},
-    {2400, B2400},
-    {4800, B4800},
+} termspeeds[] = {
+  {0, B0},
+  {50, B50},
+  {75, B75},
+  {110, B110},
+  {134, B134},
+  {150, B150},
+  {200, B200},
+  {300, B300},
+  {600, B600},
+  {1200, B1200},
+  {1800, B1800},
+  {2400, B2400},
+  {4800, B4800},
 # ifdef	B7200
-    {7200, B7200},
+  {7200, B7200},
 # endif
-    {9600, B9600},
+  {9600, B9600},
 # ifdef	B14400
-    {14400, B14400},
+  {14400, B14400},
 # endif
 # ifdef	B19200
-    {19200, B19200},
+  {19200, B19200},
 # endif
 # ifdef	B28800
-    {28800, B28800},
+  {28800, B28800},
 # endif
 # ifdef	B38400
-    {38400, B38400},
+  {38400, B38400},
 # endif
 # ifdef	B57600
-    {57600, B57600},
+  {57600, B57600},
 # endif
 # ifdef	B115200
-    {115200, B115200},
+  {115200, B115200},
 # endif
 # ifdef	B230400
-    {230400, B230400},
+  {230400, B230400},
 # endif
-    {-1, 0}
-  };
+  {-1, 0}
+};
 #endif /* DECODE_BAUD */
 
 void

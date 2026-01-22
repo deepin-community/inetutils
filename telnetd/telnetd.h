@@ -1,7 +1,5 @@
 /*
-  Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-  2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015,
-  2016, 2017, 2018, 2019, 2020, 2021 Free Software Foundation, Inc.
+  Copyright (C) 1996-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -18,7 +16,6 @@
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see `http://www.gnu.org/licenses/'. */
 
-#include <config.h>
 #include <sys/types.h>
 #include <sys/time.h>
 #include <sys/stat.h>
@@ -164,7 +161,7 @@ typedef struct
 /*
  * Tricky code here.  What we want to know is if the MY_STATE_WILL
  * and MY_WANT_STATE_WILL bits have the same value.  Since the two
- * bits are adjacent, a little arithmatic will show that by adding
+ * bits are adjacent, a little arithmetic will show that by adding
  * in the lower bit, the upper bit will be set if the two bits were
  * different, and clear if they were the same.
  */
@@ -175,7 +172,7 @@ typedef struct
 			((options[opt]+MY_STATE_DO) & MY_WANT_STATE_DO)
 
 /*
- * Make everything symetrical
+ * Make everything symmetrical
  */
 
 #define HIS_STATE_WILL			MY_STATE_DO
@@ -278,7 +275,7 @@ void netflush (void);
 int pty_buffer_is_full (void);
 void pty_output_byte (int c);
 void pty_output_datalen (const void *data, size_t len);
-int pty_buffer_level ();
+int pty_buffer_level (void);
 
 /* Debugging functions */
 extern void printoption (char *, int);
@@ -328,7 +325,7 @@ extern void change_slc (char func, char flag, cc_t val);
 
 extern void cleanup (int);
 extern void clientstat (int, int, int);
-extern void copy_termbuf ();
+extern void copy_termbuf (void);
 extern void deferslc (void);
 extern void defer_terminit (void);
 extern void do_opt_slc (unsigned char *, int);

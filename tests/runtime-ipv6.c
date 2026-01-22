@@ -1,5 +1,5 @@
 /* runtime-ipv6 - Check that system is able to set IPv6 address.
-  Copyright (C) 2020, 2021 Free Software Foundation, Inc.
+  Copyright (C) 2020-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -33,9 +33,7 @@
  * message is printed also in case of successful testing.
  */
 
-#ifdef HAVE_CONFIG_H
-# include <config.h>
-#endif
+#include <config.h>
 
 #include <stdio.h>
 #include <unistd.h>

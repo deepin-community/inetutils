@@ -1,8 +1,5 @@
 /*
-  Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-  2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
-  2015, 2016, 2017, 2018, 2019, 2020, 2021 Free Software Foundation,
-  Inc.
+  Copyright (C) 1995-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -50,6 +47,7 @@
 
 struct timeval;
 struct fd_set;
+struct timespec;
 
 void abort_remote (FILE *);
 void abortpt (int sig);
@@ -82,7 +80,7 @@ int getreply (int);
 char *globulize (char *);
 char *gunique (char *);
 void help (int, char **);
-char *hookup (char *, int);
+char *hookup (char *, in_port_t);
 void site_idle (int, char **);
 int initconn (void);
 void intr (int sig);
@@ -106,7 +104,7 @@ void proxabort (int sig);
 void proxtrans (char *, char *, char *);
 void psabort (int sig);
 void pswitch (int);
-void ptransfer (char *, long long, struct timeval *, struct timeval *);
+void ptransfer (char *, long long, struct timespec *, struct timespec *);
 void put (int, char **);
 void pwd (int, char **);
 void quit (int, char **);
@@ -155,7 +153,6 @@ void site (int, char **);
 void sizecmd (int, char **);
 void status (int, char **);
 void syst (int, char **);
-void tvsub (struct timeval *, struct timeval *, struct timeval *);
 void user (int, char **);
 
 extern jmp_buf abortprox;

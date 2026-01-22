@@ -1,7 +1,5 @@
 /*
-  Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
-  2015, 2016, 2017, 2018, 2019, 2020, 2021 Free Software Foundation,
-  Inc.
+  Copyright (C) 2006-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -18,12 +16,9 @@
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see `http://www.gnu.org/licenses/'. */
 
-#ifndef HAVE_CONFIG_H
-#error "<config.h> has not been included; please included it"
-#endif
-
 #include "argp-version-etc.h"
 #include <signal.h>
+#include <sys/uio.h>
 
 sighandler_t setsig (int sig, sighandler_t handler);
 void utmp_init (char *line, char *user, char *id, char *host);
@@ -33,6 +28,7 @@ char *localhost (void);
 void logwtmp (const char *, const char *, const char *);
 void cleanup_session (char *tty, int pty_fd);
 void logwtmp_keep_open (char *line, char *name, char *host);
+char *inetutils_ttymsg (struct iovec *, int, char *, int);
 
 #ifndef HAVE_STRUCT_IF_NAMEINDEX
 struct if_nameindex

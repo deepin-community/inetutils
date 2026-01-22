@@ -28,6 +28,7 @@
     ".am",	"\001http://www.amnic.net/cgi/engine/db/whois.html",
     ".aq",	"\003",
     ".ar",	"\001http://www.nic.ar/consultas/consdom.htm",
+    ".art",	"whois.nic.art",
     ".as",	"whois.nic.as",
     ".at",	"whois.ripe.net",
     ".net.au",	"whois.connect.com.au",

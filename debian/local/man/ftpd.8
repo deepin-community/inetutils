@@ -28,7 +28,7 @@
 .\"     @(#)ftpd.8	8.3 (Berkeley) 6/1/94
 .\"
 .Dd February 9, 2019
-.Dt FTPD 8 SMM
+.Dt ftpd 8 SMM
 .Os "GNU Network Utilities"
 .Sh NAME
 .Nm ftpd
@@ -300,6 +300,8 @@ account in this directory.
 .Bl -tag -width /etc/ftpwelcome -compact
 .It Pa /etc/ftpusers
 List of unwelcome/restricted users.
+.It Pa /etc/ftpchroot
+List of users to change root to their home directory.
 .It Pa /etc/ftpwelcome
 Welcome notice.
 .It Pa /etc/motd

@@ -1,8 +1,5 @@
 /*
-  Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-  2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
-  2015, 2016, 2017, 2018, 2019, 2020, 2021 Free Software Foundation,
-  Inc.
+  Copyright (C) 1995-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -51,6 +48,7 @@
 #include <config.h>
 
 #include <ctype.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -87,13 +85,16 @@ lengthen (char **start, char **track, size_t *size, size_t add)
   return EXIT_SUCCESS;
 }
 
+#define MAX_MACRO_NESTING_DEPTH 1000
+
 void
 domacro (int argc, char *argv[])
 {
+  static int nesting_depth = 0;
   int i, j, count = 2, loopflg = 0, allocflg = 0;
   char *cp1, *cp2;
-  char *line2;		/* Saved original of `line'.  */
-  size_t line2len;	/* Its allocated length.  */
+  char *line2;			/* Saved original of `line'.  */
+  size_t line2len;		/* Its allocated length.  */
   struct cmd *c;
 
   if (argc < 2 && !another (&argc, &argv, "macro name"))
@@ -104,8 +105,7 @@ domacro (int argc, char *argv[])
     }
   for (i = 0; i < macnum; ++i)
     {
-      if (!strncmp (argv[1], macros[i].mac_name,
-		    sizeof (macros[i].mac_name)))
+      if (!strncmp (argv[1], macros[i].mac_name, sizeof (macros[i].mac_name)))
 	{
 	  break;
 	}
@@ -113,6 +113,12 @@ domacro (int argc, char *argv[])
   if (i == macnum)
     {
       printf ("'%s' macro not found.\n", argv[1]);
+      code = -1;
+      return;
+    }
+  if (nesting_depth < 0)
+    {
+      printf ("?Corrupted macro execution state.\n");
       code = -1;
       return;
     }
@@ -144,6 +150,12 @@ domacro (int argc, char *argv[])
   line = cp2;
   *line = '\0';
 
+  if (++nesting_depth > MAX_MACRO_NESTING_DEPTH)
+    {
+      printf ("?Maximum macro nesting depth reached, aborting macro.\n");
+      goto end_exec;
+    }
+
   do
     {
       cp1 = macros[i].mac_start;
@@ -172,18 +184,21 @@ domacro (int argc, char *argv[])
 		}
 	      switch (*cp1)
 		{
-		case '\\':		/* Escaping character.  */
+		case '\\':	/* Escaping character.  */
 		  *cp2++ = *++cp1;
 		  break;
-		case '$':		/* Substitution.  */
+		case '$':	/* Substitution.  */
 		  if (isdigit (*(cp1 + 1)))
 		    {
 		      /* Argument expansion.  */
 		      j = 0;
 		      while (isdigit (*++cp1))
-			j = 10 * j + *cp1 - '0';
+			{
+			  if (j <= (INT_MAX - 9) / 10)
+			    j = 10 * j + *cp1 - '0';
+			}
 		      cp1--;
-		      if (argc - 2 >= j)
+		      if (argc - 2 >= j && j >= 0)
 			{
 			  if (lengthen (&line, &cp2, &linelen,
 					strlen (argv[j + 1]) + 2))
@@ -200,7 +215,7 @@ domacro (int argc, char *argv[])
 		    {
 		      /* The loop counter "$i" was detected.  */
 		      loopflg = 1;
-		      cp1++;		/* Back to last used char.  */
+		      cp1++;	/* Back to last used char.  */
 		      if (count < argc)
 			{
 			  if (lengthen (&line, &cp2, &linelen,
@@ -230,7 +245,10 @@ domacro (int argc, char *argv[])
 	  *cp2 = '\0';
 	  makeargv ();
 	  if (margv[0] == NULL)
-	    return;
+	    {
+	      nesting_depth--;
+	      return;
+	    }
 	  c = getcmd (margv[0]);
 
 	  if (c == (struct cmd *) -1)
@@ -265,9 +283,24 @@ domacro (int argc, char *argv[])
 	      /* The arguments set at the time of invoking
 	       * the macro must be recovered, to be used
 	       * in parsing next line of macro definition.
+	       *
+	       * Executing a macro line can change "line"
+	       * to no longer provide sufficient space for
+	       * the saved line2 contents.
 	       */
-	      strcpy (line, line2);	/* Known to fit.  */
-	      makeargv ();		/* Get the arguments.  */
+	      if (strlen (line2) >= linelen)
+		{
+		  char *tmp = realloc (line, strlen (line2) + 1);
+		  if (tmp == NULL)
+		    {
+		      allocflg = 1;
+		      goto end_exec;
+		    }
+		  line = tmp;
+		  linelen = strlen (line2) + 1;
+		}
+	      strcpy (line, line2);
+	      makeargv ();	/* Get the arguments.  */
 	      argc = margc;
 	      argv = margv;
 	    }
@@ -286,4 +319,5 @@ end_exec:
   free (line);
   line = line2;
   linelen = line2len;
+  nesting_depth--;
 }

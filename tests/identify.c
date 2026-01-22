@@ -1,6 +1,5 @@
 /* identify -- Probe system and report characteristica.
-  Copyright (C) 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021
-  Free Software Foundation, Inc.
+  Copyright (C) 2013-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -24,9 +23,7 @@
  * are displayed for use in bug reporting and resolution.
  */
 
-#ifdef HAVE_CONFIG_H
-# include <config.h>
-#endif
+#include <config.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -57,7 +54,7 @@
   if (tc.a & b) printf (" %s", name);
 
 void
-do_termcap(void)
+do_termcap (void)
 {
   int pty, tty;
   struct termios tc;
@@ -65,8 +62,7 @@ do_termcap(void)
   pty = openpty (&pty, &tty, NULL, NULL, NULL);
   if (pty < 0)
     {
-      fprintf (stderr, "openpt: errno = %d, %s\n",
-	       errno, strerror (errno));
+      fprintf (stderr, "openpt: errno = %d, %s\n", errno, strerror (errno));
       return;
     }
 
@@ -116,19 +112,21 @@ do_termcap(void)
     case TAB2:
       putchar ('2');
       break;
-#  endif /* TAB2 */
+#  endif
+      /* TAB2 */
 #  ifdef TAB1
     case TAB1:
       putchar ('1');
       break;
-#  endif /* TAB1 */
+#  endif
+      /* TAB1 */
     case TAB0:
       putchar ('0');
       break;
     }
-# elif defined OXTABS /* !TABDLY */
+# elif defined OXTABS		/* !TABDLY */
   test_flag (c_oflag, OXTABS, "OXTABS");
-# endif /* OXTABS */
+# endif/* OXTABS */
 
   puts ("");
 
@@ -157,6 +155,7 @@ do_termcap(void)
 
   return;
 }
+
 # undef test_flag
 #endif /* HAVE_TCGETATTR */
 
@@ -175,8 +174,7 @@ main (void)
     }
 
   /* Identify the hardware.  */
-  printf ("Running system: %s, %s\n",
-	  uts.sysname, uts.machine);
+  printf ("Running system: %s, %s\n", uts.sysname, uts.machine);
   printf (" Variant: %s\n", uts.release);
   printf (" Variant: %s\n", uts.version);
   puts ("");
@@ -236,7 +234,7 @@ main (void)
 	  sizeof (su.sun_path));
 
 #if HAVE_TCGETATTR
-  puts("");
+  puts ("");
   do_termcap ();
 #endif
 

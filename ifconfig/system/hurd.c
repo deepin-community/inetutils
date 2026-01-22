@@ -1,6 +1,5 @@
 /* hurd.c -- Code for ifconfig specific to GNU/Hurd.
-  Copyright (C) 2015, 2016, 2017, 2018, 2019, 2020, 2021 Free Software
-  Foundation, Inc.
+  Copyright (C) 2015-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -25,15 +24,130 @@
 #include <stdlib.h>
 #include <sys/ioctl.h>
 #include <net/if_arp.h>
+#include <hurd.h>
+#include <hurd/paths.h>
+#include <hurd/fsys.h>
+#include <argz.h>
 #include "../ifconfig.h"
 
-#include <unused-parameter.h>
+#include <attribute.h>
 
 
 /* Output format stuff.  */
 
 const char *system_default_format = "gnu";
 
+
+/* Check that pfinet is driving the given interface name.  */
+static int
+check_driving (const char *name)
+{
+  file_t node;
+  fsys_t fsys;
+  error_t err;
+
+  char *argz = 0, *new_argz = 0;
+  size_t argz_len = 0;
+  mach_msg_type_number_t argz_len_for_fs_get_options = 0;
+  char *entry = 0;
+  const char *socket = _SERVERS_SOCKET "/2";
+
+  int ret = 0;
+
+  if (strcmp (name, "lo") == 0)
+    /* Always configured.  */
+    return 1;
+
+  node = file_name_lookup (socket, 0, 0666);
+  if (node == MACH_PORT_NULL)
+    {
+      error (0, 0, "Interface name %s does not exist", name);
+      return 0;
+    }
+
+  err = file_get_fs_options (node, &argz, &argz_len_for_fs_get_options);
+  if (err)
+    {
+      error (0, err, "Could not get fs options of %s", socket);
+      return 0;
+    }
+
+  argz_len = argz_len_for_fs_get_options;
+
+  for (entry = argz; entry; entry = argz_next (argz, argz_len, entry))
+    {
+      if (strcmp (entry, "-i") == 0)
+	{
+	  char *ifname = argz_next (argz, argz_len, entry);
+
+	  if (strcmp (ifname, name) == 0)
+	    {
+	      /* Already there.  */
+	      ret = 1;
+	      goto out;
+	    }
+	}
+
+      else if (strncmp (entry, "--interface=", 12) == 0)
+	{
+	  if (strcmp (entry + 12, name) == 0)
+	    {
+	      /* Already there.  */
+	      ret = 1;
+	      goto out;
+	    }
+	}
+    }
+
+  /* Not already there.  */
+
+  err = file_getcontrol (node, &fsys);
+  if (err)
+    {
+      if (err == EPERM)
+	error (0, err, "Could not make pfinet %s drive %s", socket, name);
+      else
+	error (0, err, "Could not get control of %s", socket);
+      goto out;
+    }
+
+  new_argz = malloc (argz_len);
+  memcpy (new_argz, argz, argz_len);
+
+  err = argz_insert (&new_argz, &argz_len, new_argz, name);
+  if (err)
+    {
+      error (0, err, "Could not prepend name %s to '%s' for %s", name,
+	     new_argz, socket);
+      goto out;
+    }
+
+  err = argz_insert (&new_argz, &argz_len, new_argz, "-i");
+  if (err)
+    {
+      argz_stringify (new_argz, argz_len, ' ');
+      error (0, err, "Could not prepend -i to '%s' for %s", new_argz, socket);
+      goto out;
+    }
+
+  err = fsys_set_options (fsys, new_argz, argz_len, 1);
+  if (err)
+    {
+      argz_stringify (new_argz, argz_len, ' ');
+      error (0, err, "Could not make pfinet %s drive %s with '%s'", socket,
+	     name, new_argz);
+      goto out;
+    }
+
+  ret = 1;
+
+out:
+  free (new_argz);
+  vm_deallocate (mach_task_self (), (vm_offset_t) argz, argz_len);
+  mach_port_deallocate (mach_task_self (), node);
+
+  return ret;
+}
 
 /* Argument parsing stuff.  */
 
@@ -44,9 +158,8 @@ const char *system_help = "NAME [ADDR]\
 struct argp_child system_argp_child;
 
 int
-system_parse_opt (struct ifconfig **ifp _GL_UNUSED_PARAMETER,
-		  char option _GL_UNUSED_PARAMETER,
-		  char *optarg _GL_UNUSED_PARAMETER)
+system_parse_opt (struct ifconfig **ifp MAYBE_UNUSED,
+		  char option MAYBE_UNUSED, char *optarg MAYBE_UNUSED)
 {
   return 0;
 }
@@ -55,7 +168,8 @@ int
 system_parse_opt_rest (struct ifconfig **ifp, int argc, char *argv[])
 {
   int i = 0, mask, rev;
-  enum {
+  enum
+  {
     EXPECT_NOTHING,
     EXPECT_AF,
     EXPECT_BROADCAST,
@@ -82,10 +196,10 @@ system_parse_opt_rest (struct ifconfig **ifp, int argc, char *argv[])
 	  parse_opt_set_mtu (*ifp, argv[i]);
 	  break;
 
-	/* XXX: 2015-07-18, GNU/Hurd does not yet support
-		ioctl(SIOCSIFMETRIC), but we let the code
-		handle this standard ability anyway!
-	 */
+	  /* XXX: 2015-07-18, GNU/Hurd does not yet support
+	     ioctl(SIOCSIFMETRIC), but we let the code
+	     handle this standard ability anyway!
+	   */
 	case EXPECT_METRIC:
 	  parse_opt_set_metric (*ifp, argv[i]);
 	  break;
@@ -158,18 +272,25 @@ system_parse_opt_rest (struct ifconfig **ifp, int argc, char *argv[])
 }
 
 int
-system_configure (int sfd _GL_UNUSED_PARAMETER,
-		  struct ifreq *ifr _GL_UNUSED_PARAMETER,
-		  struct system_ifconfig *ifs _GL_UNUSED_PARAMETER)
+system_preconfigure (int sfd MAYBE_UNUSED, struct ifreq *ifr MAYBE_UNUSED)
+{
+  if (!check_driving (ifr->ifr_name))
+    return -1;
+  return 0;
+}
+
+int
+system_configure (int sfd MAYBE_UNUSED,
+		  struct ifreq *ifr MAYBE_UNUSED,
+		  struct system_ifconfig *ifs MAYBE_UNUSED)
 {
   return 0;
 }
 
-struct if_nameindex* (*system_if_nameindex) (void) = if_nameindex;
+struct if_nameindex *(*system_if_nameindex) (void) = if_nameindex;
 
 static void
-print_hwaddr_ether (format_data_t form _GL_UNUSED_PARAMETER,
-		    unsigned char *data)
+print_hwaddr_ether (format_data_t form MAYBE_UNUSED, unsigned char *data)
 {
   *column += printf ("%02X:%02X:%02X:%02X:%02X:%02X",
 		     data[0], data[1], data[2], data[3], data[4], data[5]);
@@ -192,16 +313,15 @@ struct arphrd_symbol
   const char *title;
   int value;
   void (*print_hwaddr) (format_data_t form, unsigned char *data);
-} arphrd_symbols[] =
-  {
+} arphrd_symbols[] = {
 #ifdef ARPHRD_ETHER		/* Ethernet 10/100Mbps.  */
-    { "ETHER", "Ethernet", ARPHRD_ETHER & _ARP_MASK, print_hwaddr_ether},
+  {"ETHER", "Ethernet", ARPHRD_ETHER & _ARP_MASK, print_hwaddr_ether},
 #endif
 #ifdef ARPHRD_LOOPBACK		/* Loopback device.  */
-    { "LOOPBACK", "Local Loopback", ARPHRD_LOOPBACK & _ARP_MASK, NULL},
+  {"LOOPBACK", "Local Loopback", ARPHRD_LOOPBACK & _ARP_MASK, NULL},
 #endif
-    { NULL, NULL, 0, NULL}
-  };
+  {NULL, NULL, 0, NULL}
+};
 
 struct arphrd_symbol *
 arphrd_findvalue (int value)
@@ -236,14 +356,13 @@ system_fh_hwaddr_query (format_data_t form, int argc, char *argv[])
 }
 
 void
-system_fh_hwaddr (format_data_t form, int argc _GL_UNUSED_PARAMETER,
-		  char *argv[] _GL_UNUSED_PARAMETER)
+system_fh_hwaddr (format_data_t form, int argc MAYBE_UNUSED,
+		  MAYBE_UNUSED char *argv[])
 {
 #ifdef SIOCGIFHWADDR
   if (ioctl (form->sfd, SIOCGIFHWADDR, form->ifr) < 0)
     error (EXIT_FAILURE, errno,
-	   "SIOCGIFHWADDR failed for interface `%s'",
-	   form->ifr->ifr_name);
+	   "SIOCGIFHWADDR failed for interface `%s'", form->ifr->ifr_name);
   else
     {
       struct arphrd_symbol *arp;
@@ -273,14 +392,13 @@ system_fh_hwtype_query (format_data_t form, int argc, char *argv[])
 }
 
 void
-system_fh_hwtype (format_data_t form, int argc _GL_UNUSED_PARAMETER,
-		  char *argv[] _GL_UNUSED_PARAMETER)
+system_fh_hwtype (format_data_t form, int argc MAYBE_UNUSED,
+		  MAYBE_UNUSED char *argv[])
 {
 #ifdef SIOCGIFHWADDR
   if (ioctl (form->sfd, SIOCGIFHWADDR, form->ifr) < 0)
     error (EXIT_FAILURE, errno,
-	   "SIOCGIFHWADDR failed for interface `%s'",
-	   form->ifr->ifr_name);
+	   "SIOCGIFHWADDR failed for interface `%s'", form->ifr->ifr_name);
   else
     {
       struct arphrd_symbol *arp;

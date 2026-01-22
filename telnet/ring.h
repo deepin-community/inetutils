@@ -1,8 +1,5 @@
 /*
-  Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-  2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
-  2015, 2016, 2017, 2018, 2019, 2020, 2021 Free Software Foundation,
-  Inc.
+  Copyright (C) 1995-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -70,7 +67,7 @@ typedef struct
   unsigned char *encryyptedto;	/* Data is encrypted to here */
 #endif				/* ENCRYPTION */
   int size;			/* size in bytes of buffer */
-  unsigned long consumetime,		/* help us keep straight full, empty, etc. */
+  unsigned long consumetime,	/* help us keep straight full, empty, etc. */
     supplytime;
 } Ring;
 
@@ -95,7 +92,8 @@ ring_full_count (Ring * ring), ring_full_consecutive (Ring * ring);
 
 #ifdef	ENCRYPTION
 extern void
-ring_encrypt (Ring * ring, void (*func) ()), ring_clearto (Ring * ring);
+ring_encrypt (Ring * ring, void (*encryptor) (unsigned char *, int)),
+ring_clearto (Ring * ring);
 #endif /* ENCRYPTION */
 
 extern void ring_clear_mark (Ring *);

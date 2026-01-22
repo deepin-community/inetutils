@@ -1,7 +1,5 @@
 /*
-  Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-  2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015,
-  2016, 2017, 2018, 2019, 2020, 2021 Free Software Foundation, Inc.
+  Copyright (C) 1996-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -73,11 +71,11 @@ static char *normalize_path (char *path, const char *delim);
  * ignored (exclusive-use, lack of permission, etc.).
  */
 char *
-ttymsg (struct iovec *iov, int iovcnt, char *line, int tmout)
+inetutils_ttymsg (struct iovec *iov, int iovcnt, char *line, int tmout)
 {
   static char errbuf[MAX_ERRBUF];
   char *device;
-  register int cnt, fd, left, wret;
+  int cnt, fd, left, wret;
   struct iovec localiov[6];
   int forked = 0;
 
@@ -111,6 +109,17 @@ ttymsg (struct iovec *iov, int iovcnt, char *line, int tmout)
     {
       if (errno == EBUSY || errno == EACCES)
 	return (NULL);
+#ifdef READUTMP_USE_SYSTEMD
+      /*
+       * GNU/Linux systems without utmp file but with utmp emulation
+       * provided via Gnulib's read_utmp() function regularly return
+       * non-existing TTYs for some active user sessions.  This is a
+       * limitation of the utmp emulation.  Thus ignore this error on
+       * such systems, but not others.
+       */
+      if (errno == ENOENT)
+	return (NULL);
+#endif
       snprintf (errbuf, sizeof (errbuf), "%s: %s", device, strerror (errno));
       free (device);
       return errbuf;
@@ -182,7 +191,7 @@ ttymsg (struct iovec *iov, int iovcnt, char *line, int tmout)
 #else
 	  sigsetmask (0);
 #endif
-	  alarm ((u_int) tmout);
+	  alarm ((unsigned int) tmout);
 	  fcntl (fd, O_NONBLOCK, &off);
 	  continue;
 	}

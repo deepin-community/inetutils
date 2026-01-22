@@ -1,8 +1,5 @@
 /*
-  Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-  2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
-  2015, 2016, 2017, 2018, 2019, 2020, 2021 Free Software Foundation,
-  Inc.
+  Copyright (C) 1995-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -58,7 +55,7 @@
 #define USE_TERMIO
 
 /*
- * ucb stdio.h defines BSD as something wierd
+ * ucb stdio.h defines BSD as something weird
  */
 #if defined sun && defined __svr4__
 # define BSD 43
@@ -200,7 +197,7 @@ extern int (*decrypt_input) (int);
 #define set_my_want_state_wont(opt)	{options[opt] &= ~MY_WANT_STATE_WILL;}
 
 /*
- * Make everything symetrical
+ * Make everything symmetrical
  */
 
 #define HIS_STATE_WILL			MY_STATE_DO
@@ -231,7 +228,9 @@ extern int (*decrypt_input) (int);
 
 extern FILE *NetTrace;		/* Where debugging output goes */
 extern unsigned char NetTraceFile[];	/* Name of file where debugging output goes */
-extern void SetNetTrace (char *);	/* Function to change where debugging goes */
+
+/* utilities.c */
+void SetNetTrace (const char *);	/* Function to change where debugging goes */
 
 extern jmp_buf peerdied, toplevel;	/* For error conditions. */
 
@@ -278,7 +277,7 @@ extern void init_network (void);
 extern void init_telnet (void);
 extern void init_sys (void);
 
-extern void set_escape_char (char*);
+extern void set_escape_char (char *);
 extern int tn (int argc, char **argv);
 
 extern void
@@ -295,7 +294,17 @@ extern void env_init (void);
 /* FIXME: Not needed */
 int SetSockOpt (int fd, int level, int option, int yesno);
 
-extern int quit (void);
+/* commands.c */
+struct env_lst *env_define (const char *, char *);
+struct env_lst *env_undefine (const char *, char *);
+struct env_lst *env_export (const char *, char *);
+struct env_lst *env_unexport (const char *, char *);
+struct env_lst *env_send (const char *, char *);
+struct env_lst *env_list (const char *, char *);
+#if defined OLD_ENVIRON && defined ENV_HACK
+struct env_lst *env_varval (const char *, char *),
+#endif
+int quit (int, char *[]);
 
 extern void
 lm_will (unsigned char *, int),
@@ -303,18 +312,19 @@ lm_wont (unsigned char *, int),
 lm_do (unsigned char *, int),
 lm_dont (unsigned char *, int), lm_mode (unsigned char *, int, int);
 
-extern void
-slc_init (void),
-slcstate (void),
-slc_mode_export (void),
-slc_mode_import (int),
-slc_import (int),
-slc_export (void),
-slc (unsigned char *, int),
-slc_check (void),
-slc_start_reply (void),
-slc_add_reply (unsigned char, unsigned char, cc_t), slc_end_reply (void);
-extern int slc_update (void);
+/* telnet.c */
+void slc_init (void);
+void slcstate (void);
+void slc_mode_export (int);
+void slc_mode_import (int);
+void slc_import (int);
+void slc_export (void);
+void slc (unsigned char *, int);
+void slc_check (void);
+void slc_start_reply (void);
+void slc_add_reply (unsigned int, unsigned int, cc_t);
+void slc_end_reply (void);
+int slc_update (void);
 
 extern void
 env_opt (unsigned char *, int),
@@ -323,7 +333,8 @@ env_opt_start_info (void), env_opt_add (unsigned char *), env_opt_end (int);
 
 extern unsigned char *env_default (int, int), *env_getvalue (const char *);
 
-extern int get_status (void), dosynch (void);
+int dosynch (const char *);
+int get_status (const char *);
 
 extern cc_t *tcval (int);
 

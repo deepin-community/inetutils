@@ -1,7 +1,5 @@
 /* localhost.c - A slightly more convenient wrapper for gethostname
-  Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-  2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015,
-  2016, 2017, 2018, 2019, 2020, 2021 Free Software Foundation, Inc.
+  Copyright (C) 1996-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -38,7 +36,7 @@
    If something goes wrong, 0 is returned, and errno is set.
  */
 /* We no longer use static buffers, as it is too dangerous and
-   it causes subtile bugs.  */
+   it causes subtle bugs.  */
 char *
 localhost (void)
 {
@@ -91,8 +89,7 @@ localhost (void)
 	{
 	  /* Back resolving as official host name.  */
 	  rc = getnameinfo (res->ai_addr, res->ai_addrlen,
-			    fqdn, sizeof (fqdn), NULL, 0,
-			    NI_NAMEREQD);
+			    fqdn, sizeof (fqdn), NULL, 0, NI_NAMEREQD);
 	  if (!rc)
 	    {
 	      free (buf);

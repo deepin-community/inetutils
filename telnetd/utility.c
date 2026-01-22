@@ -1,8 +1,5 @@
 /*
-  Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
-  2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012,
-  2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021 Free Software
-  Foundation, Inc.
+  Copyright (C) 1993-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -77,9 +74,9 @@ readstream (int p, char *ibuf, int bufsize)
   int flags = 0;
   int ret = 0;
   struct termios *tsp;
-#ifdef HAVE_TERMIO_H
+# ifdef HAVE_TERMIO_H
   struct termio *tp;
-#endif
+# endif
   struct iocblk *ip;
   char vstop, vstart;
   int ixon;
@@ -137,7 +134,7 @@ readstream (int p, char *ibuf, int bufsize)
 	  ixon = tsp->c_iflag & IXON;
 	  break;
 
-#ifdef HAVE_TERMIO_H
+# ifdef HAVE_TERMIO_H
 	case TCSETA:
 	case TCSETAW:
 	case TCSETAF:
@@ -146,7 +143,7 @@ readstream (int p, char *ibuf, int bufsize)
 	  vstart = tp->c_cc[VSTART];
 	  ixon = tp->c_iflag & IXON;
 	  break;
-#endif /* HAVE_TERMIO_H */
+# endif/* HAVE_TERMIO_H */
 
 	default:
 	  errno = EAGAIN;
@@ -378,7 +375,7 @@ pty_input_putback (const char *str, size_t len)
 /* pty_read()
  *
  * Read errors EWOULDBLOCK, EAGAIN, and EIO are
- * tweeked into reporting zero bytes input.
+ * tweaked into reporting zero bytes input.
  * In particular, EIO is known to appear when
  * reading off the master side, before having
  * an active slave side.
@@ -395,7 +392,8 @@ pty_read (void)
     pcc = 0;
   ptyip = ptyibuf;
 
-  DEBUG (debug_report, 1, debug_output_data ("td: ptyread %d chars\r\n", pcc));
+  DEBUG (debug_report, 1,
+	 debug_output_data ("td: ptyread %d chars\r\n", pcc));
   DEBUG (debug_pty_data, 1, printdata ("pd", ptyip, pcc));
   return pcc;
 }
@@ -421,9 +419,9 @@ io_drain (void)
   if (nfrontp - nbackp > 0)
     netflush ();
 
-  FD_ZERO(&rfds);
-  FD_SET(net, &rfds);
-  if (1 != select(net + 1, &rfds, NULL, NULL, NULL))
+  FD_ZERO (&rfds);
+  FD_SET (net, &rfds);
+  if (1 != select (net + 1, &rfds, NULL, NULL, NULL))
     {
       syslog (LOG_INFO, "ttloop:  select: %m\n");
       exit (EXIT_FAILURE);
@@ -509,7 +507,8 @@ nextitem (char *current, const char *endp)
 	char *look = current + 2;
 
 	while (look < endp)
-	  if ((*look++ & 0xff) == IAC && look < endp && (*look++ & 0xff) == SE)
+	  if ((*look++ & 0xff) == IAC && look < endp
+	      && (*look++ & 0xff) == SE)
 	    return look;
 
 	return NULL;
@@ -682,7 +681,7 @@ fatal (int f, char *msg)
 #endif /* ENCRYPTION */
   write (f, buf, (int) strlen (buf));
   sleep (1);
-  /*FIXME*/ exit (EXIT_FAILURE);
+   /*FIXME*/ exit (EXIT_FAILURE);
 }
 
 void
@@ -725,9 +724,9 @@ getterminaltype (char *uname, size_t len)
    * Handle the Authentication option before we do anything else.
    * Distinguish the available modes by level:
    *
-   *   off:			Authentication is forbidden.
-   *   none:			Volontary authentication.
-   *   user, valid, other:	Mandatory authentication only.
+   *   off:                     Authentication is forbidden.
+   *   none:                    Voluntary authentication.
+   *   user, valid, other:      Mandatory authentication only.
    */
   if (auth_level < 0)
     send_wont (TELOPT_AUTHENTICATION, 1);
@@ -744,8 +743,8 @@ getterminaltype (char *uname, size_t len)
 	retval = auth_wait (uname, len);
     }
 #else /* !AUTHENTICATION */
-  (void) uname;	/* Silence warning.  */
-  (void) len;	/* Silence warning.  */
+  (void) uname;			/* Silence warning.  */
+  (void) len;			/* Silence warning.  */
 #endif
 
 #ifdef	ENCRYPTION
@@ -1217,12 +1216,10 @@ printsub (int direction, unsigned char *pointer, int length)
 	       * Recursive mode needs both steps as written here.
 	       */
 	      if ((pointer[i + SLC_VALUE] == IAC) &&
-		  (pointer[i + SLC_VALUE + 1] == IAC) &&
-		  (direction != '<'))
+		  (pointer[i + SLC_VALUE + 1] == IAC) && (direction != '<'))
 		i++;
 	      if ((pointer[i + SLC_VALUE] == IAC) &&
-		  (pointer[i + SLC_VALUE + 1] == IAC) &&
-		  !direction)
+		  (pointer[i + SLC_VALUE + 1] == IAC) && !direction)
 		i += 2;
 	    }
 
@@ -1418,12 +1415,12 @@ printsub (int direction, unsigned char *pointer, int length)
 		  default:
 		    if (isprint (pointer[i]) && pointer[i] != '"')
 		      {
-                        if (strcmp (quote, "") == 0)
+			if (strcmp (quote, "") == 0)
 			  {
 			    debug_output_data ("\"");
 			    quote = "\" ";
 			  }
-			debug_output_datalen ((char*) &pointer[i], 1);
+			debug_output_datalen ((char *) &pointer[i], 1);
 		      }
 		    else
 		      {
@@ -1479,8 +1476,7 @@ printsub (int direction, unsigned char *pointer, int length)
 	  debug_output_data (" SEND ");
 	  while (i < length)
 	    {
-	      if (AUTHTYPE_NAME_OK (pointer[i])
-		  && AUTHTYPE_NAME (pointer[i]))
+	      if (AUTHTYPE_NAME_OK (pointer[i]) && AUTHTYPE_NAME (pointer[i]))
 		debug_output_data ("%s ", AUTHTYPE_NAME (pointer[i]));
 	      else
 		debug_output_data ("%d ", pointer[i]);
@@ -1644,18 +1640,18 @@ net_write (unsigned char *str, int len)
 }
 
 void
-net_encrypt ()
+net_encrypt (void)
 {
 # ifdef	ENCRYPTION
   char *s = (nclearto > nbackp) ? nclearto : nbackp;
   if (s < nfrontp && encrypt_output)
     (*encrypt_output) ((unsigned char *) s, nfrontp - s);
   nclearto = nfrontp;
-# endif	/* ENCRYPTION */
+# endif/* ENCRYPTION */
 }
 
 int
-telnet_spin ()
+telnet_spin (void)
 {
   io_drain ();
   return 0;
@@ -1751,7 +1747,7 @@ _var_short_name (struct line_expander *exp)
 char *
 _var_long_name (struct line_expander *exp, char *start, int length)
 {
-  (void) start;		/* Silence warnings until implemented.  */
+  (void) start;			/* Silence warnings until implemented.  */
   (void) length;
   exp->state = EXP_STATE_ERROR;
   return NULL;

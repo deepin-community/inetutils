@@ -1,7 +1,5 @@
 #
-# Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-# 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021
-# Free Software Foundation, Inc.
+# Copyright (C) 2001-2025 Free Software Foundation, Inc.
 #
 # This file is part of GNU Inetutils.
 #
@@ -34,5 +32,7 @@ bin_PROGRAMS = $(ifconfig_BUILD)
 EXTRA_PROGRAMS = ifconfig
 
 ifconfig_SOURCES = ifconfig.c flags.c changeif.c options.c printif.c system.c
+ifconfig_LDADD = $(LDADD) $(LIBSOCKET) $(HOSTENT_LIB) $(LIBINTL) \
+	$(GETADDRINFO_LIB) $(LIBRESOLV)
 
 noinst_HEADERS = ifconfig.h flags.h options.h printif.h system.h

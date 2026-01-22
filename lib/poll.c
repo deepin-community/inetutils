@@ -1,7 +1,7 @@
 /* Emulation for poll(2)
    Contributed by Paolo Bonzini.
 
-   Copyright 2001-2003, 2006-2021 Free Software Foundation, Inc.
+   Copyright 2001-2003, 2006-2025 Free Software Foundation, Inc.
 
    This file is part of gnulib.
 
@@ -17,11 +17,6 @@
 
    You should have received a copy of the GNU Lesser General Public License
    along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
-
-/* Tell gcc not to warn about the (nfd < 0) tests, below.  */
-#if (__GNUC__ == 4 && 3 <= __GNUC_MINOR__) || 4 < __GNUC__
-# pragma GCC diagnostic ignored "-Wtype-limits"
-#endif
 
 #include <config.h>
 #include <alloca.h>
@@ -172,7 +167,7 @@ typedef DWORD (WINAPI *PNtQueryInformationFile)
 static int
 windows_compute_revents (HANDLE h, int *p_sought)
 {
-  int i, ret, happened;
+  int ret, happened;
   INPUT_RECORD *irbuffer;
   DWORD avail, nbuffer;
   BOOL bRet;
@@ -245,7 +240,7 @@ windows_compute_revents (HANDLE h, int *p_sought)
           if (!bRet || avail == 0)
             return POLLHUP;
 
-          for (i = 0; i < avail; i++)
+          for (int i = 0; i < avail; i++)
             if (irbuffer[i].EventType == KEY_EVENT)
               return *p_sought;
           return 0;
@@ -396,14 +391,15 @@ poll (struct pollfd *pfd, nfds_t nfd, int timeout)
   if (timeout == 0)
     {
       ptv = &tv;
-      ptv->tv_sec = 0;
-      ptv->tv_usec = 0;
+      tv = (struct timeval) {0};
     }
   else if (timeout > 0)
     {
       ptv = &tv;
-      ptv->tv_sec = timeout / 1000;
-      ptv->tv_usec = (timeout % 1000) * 1000;
+      tv = (struct timeval) {
+        .tv_sec = timeout / 1000,
+        .tv_usec = (timeout % 1000) * 1000
+      };
     }
   else if (timeout == INFTIM)
     /* wait forever */
@@ -419,28 +415,29 @@ poll (struct pollfd *pfd, nfds_t nfd, int timeout)
   FD_ZERO (&rfds);
   FD_ZERO (&wfds);
   FD_ZERO (&efds);
-  for (i = 0; i < nfd; i++)
+  for (int i = 0; i < nfd; i++)
     {
-      if (pfd[i].fd < 0)
-        continue;
-      if (maxfd < pfd[i].fd)
+      if (pfd[i].fd >= 0)
         {
-          maxfd = pfd[i].fd;
-          if (FD_SETSIZE <= maxfd)
+          if (maxfd < pfd[i].fd)
             {
-              errno = EINVAL;
-              return -1;
+              maxfd = pfd[i].fd;
+              if (FD_SETSIZE <= maxfd)
+                {
+                  errno = EINVAL;
+                  return -1;
+                }
             }
+          if (pfd[i].events & (POLLIN | POLLRDNORM))
+            FD_SET (pfd[i].fd, &rfds);
+          /* see select(2): "the only exceptional condition detectable
+             is out-of-band data received on a socket", hence we push
+             POLLWRBAND events onto wfds instead of efds. */
+          if (pfd[i].events & (POLLOUT | POLLWRNORM | POLLWRBAND))
+            FD_SET (pfd[i].fd, &wfds);
+          if (pfd[i].events & (POLLPRI | POLLRDBAND))
+            FD_SET (pfd[i].fd, &efds);
         }
-      if (pfd[i].events & (POLLIN | POLLRDNORM))
-        FD_SET (pfd[i].fd, &rfds);
-      /* see select(2): "the only exceptional condition detectable
-         is out-of-band data received on a socket", hence we push
-         POLLWRBAND events onto wfds instead of efds. */
-      if (pfd[i].events & (POLLOUT | POLLWRNORM | POLLWRBAND))
-        FD_SET (pfd[i].fd, &wfds);
-      if (pfd[i].events & (POLLPRI | POLLRDBAND))
-        FD_SET (pfd[i].fd, &efds);
     }
 
   /* examine fd sets */
@@ -450,7 +447,7 @@ poll (struct pollfd *pfd, nfds_t nfd, int timeout)
 
   /* establish results */
   rc = 0;
-  for (i = 0; i < nfd; i++)
+  for (int i = 0; i < nfd; i++)
     {
       pfd[i].revents = (pfd[i].fd < 0
                         ? 0
@@ -470,7 +467,6 @@ poll (struct pollfd *pfd, nfds_t nfd, int timeout)
   BOOL poll_again;
   MSG msg;
   int rc = 0;
-  nfds_t i;
 
   if (nfd > INT_MAX || timeout < -1)
     {
@@ -489,53 +485,52 @@ restart:
   FD_ZERO (&xfds);
 
   /* Classify socket handles and create fd sets. */
-  for (i = 0; i < nfd; i++)
+  for (nfds_t i = 0; i < nfd; i++)
     {
       int sought = pfd[i].events;
       pfd[i].revents = 0;
-      if (pfd[i].fd < 0)
-        continue;
-      if (!(sought & (POLLIN | POLLRDNORM | POLLOUT | POLLWRNORM | POLLWRBAND
-                      | POLLPRI | POLLRDBAND)))
-        continue;
-
-      h = (HANDLE) _get_osfhandle (pfd[i].fd);
-      assure (h != NULL);
-      if (IsSocketHandle (h))
+      if (pfd[i].fd >= 0
+          && (sought & (POLLIN | POLLRDNORM | POLLOUT | POLLWRNORM | POLLWRBAND
+                        | POLLPRI | POLLRDBAND)))
         {
-          int requested = FD_CLOSE;
+          h = (HANDLE) _get_osfhandle (pfd[i].fd);
+          assure (h != NULL);
+          if (IsSocketHandle (h))
+            {
+              int requested = FD_CLOSE;
 
-          /* see above; socket handles are mapped onto select.  */
-          if (sought & (POLLIN | POLLRDNORM))
-            {
-              requested |= FD_READ | FD_ACCEPT;
-              FD_SET ((SOCKET) h, &rfds);
-            }
-          if (sought & (POLLOUT | POLLWRNORM | POLLWRBAND))
-            {
-              requested |= FD_WRITE | FD_CONNECT;
-              FD_SET ((SOCKET) h, &wfds);
-            }
-          if (sought & (POLLPRI | POLLRDBAND))
-            {
-              requested |= FD_OOB;
-              FD_SET ((SOCKET) h, &xfds);
-            }
+              /* see above; socket handles are mapped onto select.  */
+              if (sought & (POLLIN | POLLRDNORM))
+                {
+                  requested |= FD_READ | FD_ACCEPT;
+                  FD_SET ((SOCKET) h, &rfds);
+                }
+              if (sought & (POLLOUT | POLLWRNORM | POLLWRBAND))
+                {
+                  requested |= FD_WRITE | FD_CONNECT;
+                  FD_SET ((SOCKET) h, &wfds);
+                }
+              if (sought & (POLLPRI | POLLRDBAND))
+                {
+                  requested |= FD_OOB;
+                  FD_SET ((SOCKET) h, &xfds);
+                }
 
-          if (requested)
-            WSAEventSelect ((SOCKET) h, hEvent, requested);
-        }
-      else
-        {
-          /* Poll now.  If we get an event, do not poll again.  Also,
-             screen buffer handles are waitable, and they'll block until
-             a character is available.  windows_compute_revents eliminates
-             bits for the "wrong" direction. */
-          pfd[i].revents = windows_compute_revents (h, &sought);
-          if (sought)
-            handle_array[nhandles++] = h;
-          if (pfd[i].revents)
-            timeout = 0;
+              if (requested)
+                WSAEventSelect ((SOCKET) h, hEvent, requested);
+            }
+          else
+            {
+              /* Poll now.  If we get an event, do not poll again.  Also,
+                 screen buffer handles are waitable, and they'll block until
+                 a character is available.  windows_compute_revents eliminates
+                 bits for the "wrong" direction. */
+              pfd[i].revents = windows_compute_revents (h, &sought);
+              if (sought)
+                handle_array[nhandles++] = h;
+              if (pfd[i].revents)
+                timeout = 0;
+            }
         }
     }
 
@@ -580,46 +575,45 @@ restart:
   /* Place a sentinel at the end of the array.  */
   handle_array[nhandles] = NULL;
   nhandles = 1;
-  for (i = 0; i < nfd; i++)
+  for (nfds_t i = 0; i < nfd; i++)
     {
       int happened;
 
-      if (pfd[i].fd < 0)
-        continue;
-      if (!(pfd[i].events & (POLLIN | POLLRDNORM |
-                             POLLOUT | POLLWRNORM | POLLWRBAND)))
-        continue;
-
-      h = (HANDLE) _get_osfhandle (pfd[i].fd);
-      if (h != handle_array[nhandles])
+      if (pfd[i].fd >= 0
+          && (pfd[i].events & (POLLIN | POLLRDNORM |
+                               POLLOUT | POLLWRNORM | POLLWRBAND)))
         {
-          /* It's a socket.  */
-          WSAEnumNetworkEvents ((SOCKET) h, NULL, &ev);
-          WSAEventSelect ((SOCKET) h, 0, 0);
+          h = (HANDLE) _get_osfhandle (pfd[i].fd);
+          if (h != handle_array[nhandles])
+            {
+              /* It's a socket.  */
+              WSAEnumNetworkEvents ((SOCKET) h, NULL, &ev);
+              WSAEventSelect ((SOCKET) h, 0, 0);
 
-          /* If we're lucky, WSAEnumNetworkEvents already provided a way
-             to distinguish FD_READ and FD_ACCEPT; this saves a recv later.  */
-          if (FD_ISSET ((SOCKET) h, &rfds)
-              && !(ev.lNetworkEvents & (FD_READ | FD_ACCEPT)))
-            ev.lNetworkEvents |= FD_READ | FD_ACCEPT;
-          if (FD_ISSET ((SOCKET) h, &wfds))
-            ev.lNetworkEvents |= FD_WRITE | FD_CONNECT;
-          if (FD_ISSET ((SOCKET) h, &xfds))
-            ev.lNetworkEvents |= FD_OOB;
+              /* If we're lucky, WSAEnumNetworkEvents already provided a way
+                 to distinguish FD_READ and FD_ACCEPT; this saves a recv later.  */
+              if (FD_ISSET ((SOCKET) h, &rfds)
+                  && !(ev.lNetworkEvents & (FD_READ | FD_ACCEPT)))
+                ev.lNetworkEvents |= FD_READ | FD_ACCEPT;
+              if (FD_ISSET ((SOCKET) h, &wfds))
+                ev.lNetworkEvents |= FD_WRITE | FD_CONNECT;
+              if (FD_ISSET ((SOCKET) h, &xfds))
+                ev.lNetworkEvents |= FD_OOB;
 
-          happened = windows_compute_revents_socket ((SOCKET) h, pfd[i].events,
-                                                     ev.lNetworkEvents);
+              happened = windows_compute_revents_socket ((SOCKET) h, pfd[i].events,
+                                                         ev.lNetworkEvents);
+            }
+          else
+            {
+              /* Not a socket.  */
+              int sought = pfd[i].events;
+              happened = windows_compute_revents (h, &sought);
+              nhandles++;
+            }
+
+          if ((pfd[i].revents |= happened) != 0)
+            rc++;
         }
-      else
-        {
-          /* Not a socket.  */
-          int sought = pfd[i].events;
-          happened = windows_compute_revents (h, &sought);
-          nhandles++;
-        }
-
-       if ((pfd[i].revents |= happened) != 0)
-        rc++;
     }
 
   if (!rc && timeout == INFTIM)

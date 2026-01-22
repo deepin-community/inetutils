@@ -1,7 +1,5 @@
 /*
-  Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011,
-  2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021 Free
-  Software Foundation, Inc.
+  Copyright (C) 2003-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -33,7 +31,7 @@
 # include <ctype.h>
 # include <syslog.h>
 # include <string.h>
-# include <unused-parameter.h>
+# include <attribute.h>
 
 # include "auth.h"
 # include "misc.h"
@@ -64,7 +62,7 @@ Shishi_ap *auth_handle;
 extern void printsub (char, unsigned char *, int);
 
 static int
-Data (TN_Authenticator * ap, int type, void * d, int c)
+Data (TN_Authenticator *ap, int type, void *d, int c)
 {
   unsigned char *p = str_data + 4;
   unsigned char *cd = (unsigned char *) d;
@@ -102,8 +100,7 @@ Shishi *shishi_telnet = NULL;
 
 /* FIXME: Reverse return code! */
 int
-krb5shishi_init (TN_Authenticator * ap _GL_UNUSED_PARAMETER,
-		 int server)
+krb5shishi_init (TN_Authenticator *ap MAYBE_UNUSED, int server)
 {
   if (server)
     str_data[3] = TELQUAL_REPLY;
@@ -137,7 +134,7 @@ delayed_shishi_init (void)
 }
 
 void
-krb5shishi_cleanup (TN_Authenticator * ap _GL_UNUSED_PARAMETER)
+krb5shishi_cleanup (TN_Authenticator *ap MAYBE_UNUSED)
 {
   if (shishi_handle == NULL)
     return;
@@ -147,7 +144,7 @@ krb5shishi_cleanup (TN_Authenticator * ap _GL_UNUSED_PARAMETER)
 }
 
 int
-krb5shishi_send (TN_Authenticator * ap)
+krb5shishi_send (TN_Authenticator *ap)
 {
   int ap_opts;
   char type_check[2];
@@ -297,7 +294,7 @@ krb5shishi_send (TN_Authenticator * ap)
 
 # ifdef ENCRYPTION
 static void
-shishi_init_key (Session_Key * skey, int type)
+shishi_init_key (Session_Key *skey, int type)
 {
   int32_t etype = shishi_key_type (enckey);
 
@@ -314,7 +311,7 @@ shishi_init_key (Session_Key * skey, int type)
 # endif
 
 void
-krb5shishi_reply (TN_Authenticator * ap, unsigned char *data, int cnt)
+krb5shishi_reply (TN_Authenticator *ap, unsigned char *data, int cnt)
 {
   static int mutual_complete = 0;
 # ifdef ENCRYPTION
@@ -396,7 +393,7 @@ krb5shishi_reply (TN_Authenticator * ap, unsigned char *data, int cnt)
 }
 
 int
-krb5shishi_status (TN_Authenticator * ap _GL_UNUSED_PARAMETER,
+krb5shishi_status (TN_Authenticator *ap MAYBE_UNUSED,
 		   char *name, size_t len, int level)
 {
   int status;
@@ -406,8 +403,7 @@ krb5shishi_status (TN_Authenticator * ap _GL_UNUSED_PARAMETER,
 
   if (UserNameRequested
       && shishi_authorized_p (shishi_handle,
-			      shishi_ap_tkt (auth_handle),
-			      UserNameRequested))
+			      shishi_ap_tkt (auth_handle), UserNameRequested))
     {
       /* FIXME: Check buffer length */
       strncpy (name, UserNameRequested, len);
@@ -420,7 +416,7 @@ krb5shishi_status (TN_Authenticator * ap _GL_UNUSED_PARAMETER,
 }
 
 static int
-krb5shishi_is_auth (TN_Authenticator * a, unsigned char *data, int cnt,
+krb5shishi_is_auth (TN_Authenticator *a, unsigned char *data, int cnt,
 		    char *errbuf, int errbuflen)
 {
   Shishi_key *key;
@@ -502,12 +498,13 @@ krb5shishi_is_auth (TN_Authenticator * a, unsigned char *data, int cnt,
 	}
 
       if (realm)
-	key = shishi_hostkeys_for_serverrealm (shishi_handle,
-					       server, realm);
+	key = shishi_hostkeys_for_serverrealm (shishi_handle, server, realm);
       else
 	/* Enforce a search with the known default realm.  */
 	key = shishi_hostkeys_for_serverrealm (shishi_handle,
-			server, shishi_realm_default (shishi_handle));
+					       server,
+					       shishi_realm_default
+					       (shishi_handle));
 
       free (server);
     }
@@ -568,10 +565,10 @@ krb5shishi_is_auth (TN_Authenticator * a, unsigned char *data, int cnt,
       free (der);
     }
 
-  rc = shishi_encticketpart_clientrealm (
-		shishi_handle,
-		shishi_tkt_encticketpart (shishi_ap_tkt (auth_handle)),
-		&cnamerealm, &cnamerealmlen);
+  rc = shishi_encticketpart_clientrealm (shishi_handle,
+					 shishi_tkt_encticketpart
+					 (shishi_ap_tkt (auth_handle)),
+					 &cnamerealm, &cnamerealmlen);
   if (rc != SHISHI_OK)
     {
       snprintf (errbuf, errbuflen, "Error getting authenticator name: %s",
@@ -631,7 +628,7 @@ krb5shishi_is_auth (TN_Authenticator * a, unsigned char *data, int cnt,
 }
 
 void
-krb5shishi_is (TN_Authenticator * ap, unsigned char *data, int cnt)
+krb5shishi_is (TN_Authenticator *ap, unsigned char *data, int cnt)
 {
   int r = 0;
   char errbuf[512];
@@ -685,8 +682,7 @@ req_type_str (int type)
 # define ADDC(p,l,c) if ((l) > 0) {*(p)++ = (c); --(l);}
 
 void
-krb5shishi_printsub (unsigned char *data, int cnt,
-		     char *buf, int buflen)
+krb5shishi_printsub (unsigned char *data, int cnt, char *buf, int buflen)
 {
   char *p;
   int i;

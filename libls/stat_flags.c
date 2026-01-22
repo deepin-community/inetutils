@@ -1,7 +1,5 @@
 /*
-  Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-  2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019,
-  2020, 2021 Free Software Foundation, Inc.
+  Copyright (C) 2000-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -67,7 +65,7 @@
  *	are set, return the default string.
  */
 char *
-flags_to_string (u_int flags, char *def)
+flags_to_string (unsigned int flags, char *def)
 {
   static char string[128];
   char *prefix;
@@ -95,7 +93,7 @@ flags_to_string (u_int flags, char *def)
  *	to the offending token.
  */
 int
-string_to_flags (char **stringp, u_int *setp, u_int *clrp)
+string_to_flags (char **stringp, unsigned int *setp, unsigned int *clrp)
 {
   if (setp)
     *setp = 0;

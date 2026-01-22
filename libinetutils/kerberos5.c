@@ -1,6 +1,5 @@
 /* kerberos5.c -- functions to use Heimdal's and MIT's Kerberos V
-  Copyright (C) 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021 Free
-  Software Foundation, Inc.
+  Copyright (C) 2014-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -17,9 +16,7 @@
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see `http://www.gnu.org/licenses/'. */
 
-#ifdef HAVE_CONFIG_H
-# include <config.h>
-#endif
+#include <config.h>
 
 #ifdef KRB5
 # include <stdio.h>
@@ -34,8 +31,7 @@
 int
 kerberos_auth (krb5_context *ctx, int verbose, char **cname,
 	       const char *sname, int sock, char *cmd,
-	       unsigned short port, krb5_keyblock **key,
-	       const char *realm)
+	       unsigned short port, krb5_keyblock **key, const char *realm)
 {
   int rc;
   char *out, *p;
@@ -57,17 +53,16 @@ kerberos_auth (krb5_context *ctx, int verbose, char **cname,
   krb5_auth_context auth_ctx = NULL;
   krb5_flags authopts = AP_OPTS_USE_SUBKEY;
 
-  if (krb5_sname_to_principal (*ctx, sname, "host",
-			       KRB5_NT_SRV_HST, &server))
+  if (krb5_sname_to_principal (*ctx, sname, "host", KRB5_NT_SRV_HST, &server))
     return (-1);
 
   /* If realm is null, look up from table */
   if (realm == NULL || realm[0] == '\0')
-#  ifdef KRB5_GENERAL__ /* MIT */
+# ifdef KRB5_GENERAL__		/* MIT */
     realm = (char *) krb5_princ_realm (*ctx, server);
-#  else /* Heimdal */
+# else/* Heimdal */
     realm = krb5_principal_get_realm (*ctx, server);
-#  endif
+# endif
 
   /* size of KRB5 auth message */
   krb5len = strlen (krb5sendauth) + 1;
@@ -94,7 +89,7 @@ kerberos_auth (krb5_context *ctx, int verbose, char **cname,
       if (n >= 0 && n < (ssize_t) sizeof (errormsg))
 	errormsg[n] = '\0';
       else
-	errormsg[sizeof (errormsg) -1] = '\0';
+	errormsg[sizeof (errormsg) - 1] = '\0';
 
       fprintf (stderr, "Error during server authentication : %s\n", errormsg);
       return -1;
@@ -147,10 +142,10 @@ kerberos_auth (krb5_context *ctx, int verbose, char **cname,
 		      NULL, NULL, NULL, NULL, NULL);
 
   if (rc == KRB5_SENDAUTH_REJECTED)
-  {
-    fprintf (stderr, "server rejected authentication");
-    return rc;
-  }
+    {
+      fprintf (stderr, "server rejected authentication");
+      return rc;
+    }
 
   krb5_free_principal (*ctx, server);
 # if 0
@@ -173,7 +168,7 @@ kerberos_auth (krb5_context *ctx, int verbose, char **cname,
 
   read (sock, &rc, sizeof (rc));
   if (rc)
-    return -1 /* SHISHI_APREP_VERIFY_FAILED */;
+    return -1 /* SHISHI_APREP_VERIFY_FAILED */ ;
 
   /* For mutual authentication, wait for server reply. */
 
@@ -243,8 +238,7 @@ get_auth (int infd, krb5_context *ctx, krb5_auth_context *actx,
       if (p && (p != server))
 	sprintf (servername, "%s", server);	/* Non-empty prefix.  */
       else
-	sprintf (servername, "%s/%s", SERVICE,
-		 server + (p ? 1 : 0));	/* Remove initial slash.  */
+	sprintf (servername, "%s/%s", SERVICE, server + (p ? 1 : 0));	/* Remove initial slash.  */
     }
   else
     servername = shishi_server_for_local_service (*handle, SERVICE);
@@ -400,7 +394,7 @@ get_auth (int infd, krb5_context *ctx, krb5_auth_context *actx,
   if (rc != SHISHI_OK)
     return rc;
 
-# ifdef ENCRYPTION
+#  ifdef ENCRYPTION
 
   /* extract subkey if present from ap exchange for secure connection */
   if (*protoversion == 2)
@@ -410,7 +404,7 @@ get_auth (int infd, krb5_context *ctx, krb5_auth_context *actx,
 				       shishi_ap_authenticator (*ap), enckey);
     }
 
-# endif
+#  endif
 
   /* Get authenticator checksum */
   rc = shishi_authenticator_cksum (*handle,
@@ -456,7 +450,7 @@ get_auth (int infd, krb5_context *ctx, krb5_auth_context *actx,
       /* We are authenticated to client */
     }
 
-# ifdef ENCRYPTION
+#  ifdef ENCRYPTION
   if (*protoversion == 1)
     {
       Shishi_tkt *tkt;
@@ -474,7 +468,8 @@ get_auth (int infd, krb5_context *ctx, krb5_auth_context *actx,
       if (rc != SHISHI_OK)
 	return rc;
     }
-# endif /* ENCRYPTION */
+#  endif
+  /* ENCRYPTION */
 
   return 0;
 # else

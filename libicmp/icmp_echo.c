@@ -1,7 +1,5 @@
 /*
-  Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-  2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021
-  Free Software Foundation, Inc.
+  Copyright (C) 2001-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -32,8 +30,8 @@
 #include <icmp.h>
 
 int
-icmp_generic_encode (unsigned char * buffer, size_t bufsize, int type, int ident,
-		     int seqno)
+icmp_generic_encode (unsigned char *buffer, size_t bufsize, int type,
+		     int ident, int seqno)
 {
   icmphdr_t *icmp;
 
@@ -51,8 +49,8 @@ icmp_generic_encode (unsigned char * buffer, size_t bufsize, int type, int ident
 }
 
 int
-icmp_generic_decode (unsigned char * buffer, size_t bufsize,
-		     struct ip **ipp, icmphdr_t ** icmpp)
+icmp_generic_decode (unsigned char *buffer, size_t bufsize,
+		     struct ip **ipp, icmphdr_t **icmpp)
 {
   size_t hlen;
   unsigned short cksum;
@@ -82,14 +80,14 @@ icmp_generic_decode (unsigned char * buffer, size_t bufsize,
 }
 
 int
-icmp_echo_encode (unsigned char * buffer, size_t bufsize, int ident, int seqno)
+icmp_echo_encode (unsigned char *buffer, size_t bufsize, int ident, int seqno)
 {
   return icmp_generic_encode (buffer, bufsize, ICMP_ECHO, ident, seqno);
 }
 
 int
-icmp_echo_decode (unsigned char * buffer, size_t bufsize,
-		  struct ip **ipp, icmphdr_t ** icmpp)
+icmp_echo_decode (unsigned char *buffer, size_t bufsize,
+		  struct ip **ipp, icmphdr_t **icmpp)
 {
   return icmp_generic_decode (buffer, bufsize, ipp, icmpp);
 }

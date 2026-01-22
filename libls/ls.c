@@ -1,7 +1,5 @@
 /*
-  Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-  2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019,
-  2020, 2021 Free Software Foundation, Inc.
+  Copyright (C) 2000-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -151,7 +149,7 @@ ls_main (int argc, char **argv)
   if (!getuid ())
     f_listdot = 1;
 
-  optind = 1;	/* Reset for reentrant scanning.  */
+  optind = 1;			/* Reset for reentrant scanning.  */
 
   fts_options = FTS_PHYSICAL | FTS_NOCHDIR;
   while ((ch = getopt (argc, argv, "1ACFLRSTWacdfgiklmnopqrstux")) != -1)
@@ -447,7 +445,7 @@ display (FTSENT *p, FTSENT *list)
   int entries, needstats;
   char *user = NULL, *group = NULL, buf[INT_BUFSIZE_BOUND (uintmax_t)];
   char nuser[INT_BUFSIZE_BOUND (uintmax_t)],
-       ngroup[INT_BUFSIZE_BOUND (uintmax_t)];
+    ngroup[INT_BUFSIZE_BOUND (uintmax_t)];
   char *flags = NULL;
 
   /*
@@ -627,11 +625,11 @@ mastercmp (const FTSENT **a, const FTSENT **b)
   if (a_info == FTS_NS || b_info == FTS_NS)
     {
       if (b_info != FTS_NS)
-        return (1);
+	return (1);
       else if (a_info != FTS_NS)
-        return (-1);
+	return (-1);
       else
-        return (namecmp (*a, *b));
+	return (namecmp (*a, *b));
     }
 
   if (a_info != b_info && (*a)->fts_level == FTS_ROOTLEVEL && !f_listdir)

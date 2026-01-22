@@ -1,8 +1,5 @@
 /*
-  Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-  2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
-  2015, 2016, 2017, 2018, 2019, 2020, 2021 Free Software Foundation,
-  Inc.
+  Copyright (C) 1995-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -74,7 +71,7 @@ int HaveInput,			/* There is input available to scan */
 
 char tline[200];
 char *transcom = 0;		/* transparent mode command (default: none) */
-# endif	/* unix || __unix || __unix__ */
+# endif/* unix || __unix || __unix__ */
 
 char Ibuf[8 * BUFSIZ], *Ifrontp, *Ibackp;
 
@@ -98,7 +95,7 @@ init_3270 (void)
 # if defined unix || defined __unix || defined __unix__
   HaveInput = 0;
   sigiocount = 0;
-# endif	/* unix || __unix || __unix__ */
+# endif/* unix || __unix || __unix__ */
   Sent3270TerminalType = 0;
   Ifrontp = Ibackp = Ibuf;
   init_ctlr ();			/* Initialize some things */
@@ -120,13 +117,13 @@ init_3270 (void)
  * only client needs for us to do that.
  */
 
-/*register char *buffer; where the data is */
-/* register int  count;	 how much to send */
+/*char *buffer; where the data is */
+/* int  count;	 how much to send */
 /* int		  done;	 is this the last of a logical block */
 int
-DataToNetwork (register char *buffer, register int count, int done)
+DataToNetwork (char *buffer, int count, int done)
 {
-  register int loop, c;
+  int loop, c;
   int origCount;
 
   origCount = count;
@@ -192,10 +189,10 @@ inputAvailable (int signo)
   HaveInput = 1;
   sigiocount++;
 }
-# endif	/* unix || __unix || __unix__ */
+# endif/* unix || __unix || __unix__ */
 
 void
-outputPurge ()
+outputPurge (void)
 {
   ttyflush (1);
 }
@@ -213,12 +210,12 @@ outputPurge ()
  * *all* the data at one time (thus the select).
  */
 
-/* register char *buffer;where the data is */
-/* register int	count;	 how much to send */
+/* char *buffer;where the data is */
+/* int	count;	 how much to send */
 int
-DataToTerminal (register char *buffer, register int count)
+DataToTerminal (char *buffer, int count)
 {
-  register int c;
+  int c;
   int origCount;
 
   origCount = count;
@@ -231,7 +228,7 @@ DataToTerminal (register char *buffer, register int count)
 	  fd_set o;
 
 	  FD_ZERO (&o);
-# endif	/* unix || __unix || __unix__ */
+# endif/* unix || __unix || __unix__ */
 	  ttyflush (0);
 	  while (TTYROOM () == 0)
 	    {
@@ -239,7 +236,7 @@ DataToTerminal (register char *buffer, register int count)
 	      FD_SET (tout, &o);
 	      select (tout + 1, (fd_set *) 0, &o, (fd_set *) 0,
 		      (struct timeval *) 0);
-# endif	/* unix || __unix || __unix__ */
+# endif/* unix || __unix || __unix__ */
 	      ttyflush (0);
 	    }
 	}
@@ -261,7 +258,7 @@ DataToTerminal (register char *buffer, register int count)
  */
 
 int
-Push3270 ()
+Push3270 (void)
 {
   int save = ring_full_count (&netiring);
 
@@ -291,13 +288,13 @@ Push3270 ()
  */
 
 void
-Finish3270 ()
+Finish3270 (void)
 {
   while (Push3270 () || !DoTerminalOutput ())
     {
 # if defined unix || defined __unix || defined __unix__
       HaveInput = 0;
-# endif	/* unix || __unix || __unix__ */
+# endif/* unix || __unix || __unix__ */
       ;
     }
 }
@@ -328,7 +325,8 @@ _putchar (char c)
 {
 #  if defined sun		/* SunOS 4.0 bug */
   c &= 0x7f;
-#  endif /* defined(sun) */
+#  endif
+  /* defined(sun) */
   if (cursesdata)
     {
       Dump ('>', &c, 1);
@@ -342,10 +340,10 @@ _putchar (char c)
       TTYADD (c);
     }
 }
-# endif	/* ((!defined(NOT43)) || defined(PUTCHAR)) */
+# endif/* ((!defined(NOT43)) || defined(PUTCHAR)) */
 
 void
-SetIn3270 ()
+SetIn3270 (void)
 {
   if (Sent3270TerminalType && my_want_state_is_will (TELOPT_BINARY)
       && my_want_state_is_do (TELOPT_BINARY) && !donebinarytoggle)
@@ -380,7 +378,7 @@ SetIn3270 ()
  */
 
 int
-tn3270_ttype ()
+tn3270_ttype (void)
 {
   /*
    * Try to send a 3270 type terminal name.  Decide which one based
@@ -455,6 +453,6 @@ settranscom (int argc, char *argv[])
     }
   return 1;
 }
-# endif	/* unix || __unix || __unix__ */
+# endif/* unix || __unix || __unix__ */
 
 #endif /* defined(TN3270) */

@@ -1,6 +1,5 @@
 #
-# Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015,
-# 2016, 2017, 2018, 2019, 2020, 2021 Free Software Foundation, Inc.
+# Copyright (C) 2007-2025 Free Software Foundation, Inc.
 #
 # This file is part of GNU Inetutils.
 #
@@ -21,15 +20,25 @@ AM_CPPFLAGS = $(iu_INCLUDES)
 
 LDADD = $(iu_LIBRARIES)
 
+EXTRA_DIST = tools.sh.in ifconfig_modes.sh crash-tftp-msg2021-12_18.bin \
+	crash-ftp-msg2021-12_03.bin crash-ftp-msg2021-12_16.bin \
+	crash-ftp-msg2021-12_04.bin crash-ftp-msg2021-12_05.bin
+
 noinst_PROGRAMS = identify
 identify_LDADD = $(top_builddir)/lib/libgnu.a $(LIBUTIL) $(PTY_LIB)
 
 check_PROGRAMS = localhost readutmp runtime-ipv6 test-snprintf waitdaemon
 
+localhost_LDADD = $(LDADD) $(LIBSOCKET) $(LIBINTL) $(GETADDRINFO_LIB)
+readutmp_LDADD = $(iu_LIBRARIES) $(READUTMP_LIB)
+runtime_ipv6_LDADD = $(LDADD) $(LIBSOCKET) $(LIBINTL) $(GETADDRINFO_LIB)
+
 dist_check_SCRIPTS = utmp.sh
 
 if ENABLE_inetd
 check_PROGRAMS += addrpeek tcpget
+addrpeek_LDADD = $(LDADD) $(LIBSOCKET) $(LIBINTL) $(GETADDRINFO_LIB)
+tcpget_LDADD = $(LDADD) $(LIBSOCKET) $(LIBINTL) $(GETADDRINFO_LIB)
 endif
 
 if ENABLE_libls
@@ -43,6 +52,9 @@ dist_check_SCRIPTS += ping-localhost.sh
 endif
 if ENABLE_traceroute
 dist_check_SCRIPTS += traceroute-localhost.sh
+endif
+if ENABLE_tftpd
+dist_check_SCRIPTS += tftp-regressions.sh
 endif
 if ENABLE_inetd
 if ENABLE_tftpd
@@ -58,7 +70,7 @@ endif
 endif
 
 if ENABLE_ftp
-dist_check_SCRIPTS += ftp-parser.sh
+dist_check_SCRIPTS += ftp-parser.sh ftp-regressions.sh
 endif
 
 if ENABLE_inetd
@@ -90,8 +102,6 @@ endif
 TESTS = localhost test-snprintf waitdaemon $(dist_check_SCRIPTS)
 
 TESTS_ENVIRONMENT = EXEEXT=$(EXEEXT)
-
-EXTRA_DIST = tools.sh.in ifconfig_modes.sh
 
 BUILT_SOURCES = tools.sh
 

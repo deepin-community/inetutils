@@ -1,6 +1,5 @@
 /* ls - program buildable from libls
-  Copyright (C) 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021 Free
-  Software Foundation, Inc.
+  Copyright (C) 2014-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -24,5 +23,5 @@ extern int ls_main (int, char **);
 int
 main (int argc, char *argv[])
 {
-  return ls_main(argc, argv);
+  return ls_main (argc, argv);
 }

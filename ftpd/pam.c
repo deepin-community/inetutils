@@ -1,7 +1,5 @@
 /*
-  Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-  2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019,
-  2020, 2021 Free Software Foundation, Inc.
+  Copyright (C) 2000-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -25,7 +23,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <syslog.h>
-#include <unused-parameter.h>
+#include <attribute.h>
 #include "extern.h"
 
 #ifdef HAVE_SECURITY_PAM_APPL_H
@@ -102,7 +100,7 @@ PAM_conv (int num_msg, const struct pam_message **msg,
 	    {
 	      savemsg = 1;
 # ifdef PAM_CONV_AGAIN
-	      retval = PAM_CONV_AGAIN;		/* Linux-PAM */
+	      retval = PAM_CONV_AGAIN;	/* Linux-PAM */
 # elif !defined WITH_LINUX_PAM
 	      /*
 	       * Simulate PAM_CONV_AGAIN.
@@ -110,7 +108,7 @@ PAM_conv (int num_msg, const struct pam_message **msg,
 	       * an expected return value here, so it will
 	       * leave an audit trail.  */
 	      retval = PAM_CRED_INSUFFICIENT;
-# else /* !PAM_CONV_AGAIN && !WITH_LINUX_PAM */
+# else/* !PAM_CONV_AGAIN && !WITH_LINUX_PAM */
 	      retval = PAM_CONV_ERR;
 # endif
 	    }
@@ -134,7 +132,7 @@ PAM_conv (int num_msg, const struct pam_message **msg,
       if (savemsg)
 	{
 	  /* FIXME:  This is a serious problem.  If the PAM message
-	     is multilines, the reply _must_ be formated correctly.
+	     is multilines, the reply _must_ be formatted correctly.
 	     The way to do this would be to consider \n as a boundary then
 	     in the ftpd.c:user() or ftpd.c:pass() check for it and send
 	     a lreply().  But I'm not sure the RFCs allow mutilines replies
@@ -215,8 +213,8 @@ pam_doit (struct credentials *pcred)
        * incomplete state reported by our PAM_conv().
        */
       || (error == PAM_CRED_INSUFFICIENT && pcred->pass == NULL)
-# endif /* !WITH_LINUX_PAM */
-     )
+# endif/* !WITH_LINUX_PAM */
+    )
     {
       /* Avoid overly terse passwd messages and let the people
          upstairs do something sane.  */
@@ -257,7 +255,7 @@ pam_doit (struct credentials *pcred)
   return (error != PAM_SUCCESS);
 }
 
-#define TTY_FORMAT "/dev/ftp%d"
+# define TTY_FORMAT "/dev/ftp%d"
 
 /* Non-zero return means failure. */
 int
@@ -277,7 +275,7 @@ pam_user (const char *username, struct credentials *pcred)
   free (pcred->message);
   pcred->message = NULL;
 
-  (void) snprintf (tty_name, sizeof (tty_name), TTY_FORMAT, (int) getpid());
+  (void) snprintf (tty_name, sizeof (tty_name), TTY_FORMAT, (int) getpid ());
 
   /* Arrange our creditive.  */
   PAM_conversation.appdata_ptr = (void *) pcred;
@@ -314,7 +312,7 @@ pam_pass (const char *passwd, struct credentials *pcred)
 }
 
 void
-pam_end_login (struct credentials * pcred _GL_UNUSED_PARAMETER)
+pam_end_login (struct credentials *pcred MAYBE_UNUSED)
 {
   int error;
 

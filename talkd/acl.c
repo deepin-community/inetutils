@@ -1,7 +1,5 @@
 /*
-  Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-  2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021
-  Free Software Foundation, Inc.
+  Copyright (C) 2001-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -151,7 +149,7 @@ read_acl (char *config_file, int system)
 	  syslog (LOG_ERR, "Cannot open config file %s: %m", config_file);
 	  exit (EXIT_FAILURE);
 	}
-      return;	/* User setting may fail to exist.  Just ignore.  */
+      return;			/* User setting may fail to exist.  Just ignore.  */
     }
 
   if (system < 0)
@@ -292,7 +290,7 @@ read_acl (char *config_file, int system)
 static acl_t *
 open_users_acl (char *name)
 {
-  int level = 0;	/* Private file, not mandatory.  */
+  int level = 0;		/* Private file, not mandatory.  */
   int rc;
   char *filename;
   struct passwd *pw;
@@ -322,15 +320,14 @@ open_users_acl (char *name)
   rc = stat (filename, &st);
   if (rc < 0)
     return NULL;
-  if (!S_ISREG(st.st_mode)
+  if (!S_ISREG (st.st_mode)
       || st.st_uid != pw->pw_uid
       || st.st_gid != pw->pw_gid
-      || st.st_mode & S_IWGRP
-      || st.st_mode & S_IWOTH)
+      || st.st_mode & S_IWGRP || st.st_mode & S_IWOTH)
     {
       if (logging || debug)
 	syslog (LOG_WARNING, "Discarding '%s': insecure access.", filename);
-      level = -1;	/* Enforce a deny rule.  */
+      level = -1;		/* Enforce a deny rule.  */
     }
 
   mark = acl_tail;
@@ -341,7 +338,7 @@ open_users_acl (char *name)
 }
 
 static void
-netdef_free (netdef_t * netdef)
+netdef_free (netdef_t *netdef)
 {
   netdef_t *next;
 
@@ -354,7 +351,7 @@ netdef_free (netdef_t * netdef)
 }
 
 static void
-acl_free (acl_t * acl)
+acl_free (acl_t *acl)
 {
   acl_t *next;
 
@@ -369,7 +366,7 @@ acl_free (acl_t * acl)
 }
 
 static void
-discard_acl (acl_t * mark)
+discard_acl (acl_t *mark)
 {
   if (mark)
     {
@@ -382,7 +379,7 @@ discard_acl (acl_t * mark)
 }
 
 int
-acl_match (CTL_MSG * msg, struct sockaddr_in *sa_in)
+acl_match (CTL_MSG *msg, struct sockaddr_in *sa_in)
 {
   acl_t *acl, *mark;
   in_addr_t ip;
@@ -430,7 +427,7 @@ acl_match (CTL_MSG * msg, struct sockaddr_in *sa_in)
     return user_action;
 
   if (strict_policy)
-    return ACL_DENY;	/* Equal to `system_action'.  */
+    return ACL_DENY;		/* Equal to `system_action'.  */
 
   /* At this point it is known that last activated site-wide
    * ACL rule has set SYSTEM_ACTION to ACL_DENY.  Do we

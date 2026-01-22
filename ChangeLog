@@ -1,189 +1,209 @@
-2021-09-01  Simon Josefsson  <simon@josefsson.org>
+2025-12-14  Simon Josefsson  <simon@josefsson.org>
 
-	version 2.2
-	* NEWS: Record release date.
+	version 2.7
+	* NEWS.md: Record release date.
 
-	ftp: check that PASV/LSPV addresses match.
+2025-12-06  Simon Josefsson  <simon@josefsson.org>
+
+	maint: Run './bootstrap  --bootstrap-sync'
+
+	maint: Bump GNULIB_REVISION
+	* bootstrap.conf (GNULIB_REVISION): Use b3518f60173c907453ee5c7d439f967342de6d0c.
+
+	doc: Mention use of markdown in NEWS
+	* NEWS.md: Add.
+
+	maint: Drop xz tarballs to reduce maintainer QA
+	* configure.ac (AM_INIT_AUTOMAKE): Remove dist-xz.
+	* README-alpha: Don't mention xz.
+	* bootstrap.conf (buildreq): Drop xz.
+
+2025-12-03  Erik Auerswald  <auerswal@unix-ag.uni-kl.de>
+
+	syslod, talkd: GNU/Linux w/o utmp compatibility
+	Some newer GNU/Linux systems no longer have a "utmp" file.
+	This file is used by both syslogd and talkd to find the
+	TTY device files of active user sessions in order to send
+	messages to specific or all users.
+
+	Gnulib can emulate a utmp file via the read_utmp() function
+	from the readutmp module.  This emulation is activated by
+	defining "READUTMP_USE_SYSTEMD", triggered via configure's
+	"--enable-systemd" option on systems without utmp and with
+	systemd.
+
+	But, this emulation reports non-existing TTY device files
+	for active user sessions.  Attempting to send a message to a
+	non-existing TTY produces an error, but that is normal behavior
+	for such a system.  Thus, ignore this error on such systems,
+	but not others.
+
+	* NEWS.md: Mention enhancement.
+	* libinetutils/ttymsg.c (inetutils_ttymsg): Ignore errors for
+	  non-existings TTY files reported in emulated utmp entries.
+
+2025-11-26  Simon Josefsson  <simon@josefsson.org>
+
+	doc: Add NEWS->NEWS.md symlink
+
+	doc: Fix codespell nits
+
+	doc: Rename NEWS to NEWS.md and markdownify.
+
+	maint: Run './bootstrap  --bootstrap-sync'.
+
+	maint: Bump GNULIB_REVISION.
+	* bootstrap.conf (GNULIB_REVISION): Use be6027b468.
+	* gl/top/README-release.diff: Update according to changes in the Gnulib
+	file.
+
+2025-11-23  Erik Auerswald  <auerswal@unix-ag.uni-kl.de>
+
+	tests: check read_utmp as used in syslogd & talkd
+	Both syslogd and talkd use the Gnulib read_utmp options
+	READ_UTMP_USER_PROCESS | READ_UTMP_CHECK_PIDS, but the
+	test file tests/readutmp.c only used READ_UTMP_USER_PROCESS.
+	But tests/readutmp.c is intended to check if syslogd and
+	talkd can read utmp information, so use the same options.
+
+	* tests/readutmp.c (main): Add READ_UTMP_CHECK_PIDS to options
+	  used with Gnulib's read_utmp() function.
+
+2025-11-23  Erik Auerswald  <auerswal@unix-ag.uni-kl.de>
+
+	syslogd: log ASCII 'DEL' as '^?'
+	DEL is a non-printable control character.  Make it visible in
+	syslogd log files by transliterating it in the same way as most
+	other ASCII control characters (TAB and NL are transliterated
+	as SP).
+
 	* NEWS: Mention change.
-	* ftp/ftp.c (initconn): Validate returned addresses.
+	* src/syslogd.c (printline): Transliterate the ASCII DEL control
+	  character the same way as most other ASCII control characters.
 
-2021-08-26  Simon Josefsson  <simon@josefsson.org>
+2025-11-23  Erik Auerswald  <auerswal@unix-ag.uni-kl.de>
 
-	rlogind: Code for non-getaddrinfo removed.
-	* NEWS: Mention change.
-	* src/rlogind.c [!HAVE_DECL_GETADDRINFO]: Remove.
+	syslogd: fix a stack-based buffer overflow
+	When logging a message, ASCII control characters are transliterated.
+	This transliteration uses two printable characters for each control
+	character.  If the last character that fits into the destination
+	buffer is a control character, the buffer needs place for two
+	characters in addition to the string terminator.  This was missing
+	from the code, resulting in a stack-based buffer overflow weakness
+	(CWE-121).
 
-2021-07-26  Simon Josefsson  <simon@josefsson.org>
+	* NEWS: Mention fix.
+	* src/syslogd.c (printline): Allocate an additional byte in the
+	  "line" buffer to account for control character transliteration.
 
-	logger: Code for non-getaddrinfo removed.
-	* NEWS: Mention change.
-	* src/logger.c [!HAVE_DECL_GETADDRINFO]: Remove.
+2025-11-08  Erik Auerswald  <auerswal@unix-ag.uni-kl.de>
 
-	doc: Document recent fixes.
-	* NEWS: Add.
+	doc: explain what "standard shell" means for ftpd
+	One part of ftpd user authentication is to check if the user has
+	a so called "standard shell".  But, it is no longer obvious what
+	that actually is.  The Linux man-pages project uses different
+	names to designate a "standard shell", i.e., "valid login shell"
+	when documenting /etc/shells, "permitted user shells" and "valid
+	user shell" when documenting getusershell(), making it harder to
+	figure this out.
 
-2021-07-25  Simon Josefsson  <simon@josefsson.org>
+	Expand ftpd user authentication step 3 by adding information about
+	/etc/shells and getusershell(), and the different names used for
+	"standard shell".
 
-	tests: Don't fail ftp-localhost.sh when sysctl is missing.
-	* tests/ftp-localhost.sh: Silent fail.
+	* NEWS: Mention ftpd documentation improvement.
+	* doc/inetutils.texi (ftpd invocation): Explain "standard shell"
+	  as used in the ftpd authentication rules.
 
-2021-07-24  Simon Josefsson  <simon@josefsson.org>
+2025-08-04  Simon Josefsson  <simon@josefsson.org>
 
-	Don't check for getopt_long, no longer used anywhere.
-	* configure.ac: Remove check.
+	doc: Use latest GPLv3 COPYING file.  Rework README.
+	* COPYING: Sync with gnulib.
+	* README, README.md: Reflow text and symlink for readability/markdown.
 
-	Don't check for getpass, getusershell, and poll (gnulib modules already imported).
-	* configure.ac: Remove checks.
+2025-07-21  Collin Funk  <collin.funk1@gmail.com>
 
-	Don't check for memcmp, memcpy, memmove, memset and strdup (no gnulib module needed).
-	* configure.ac: Remove checks.
+	maint: Bump GNULIB_REVISION.
+	* bootstrap.conf (GNULIB_REVISION): Use 91aacb5536.
+	* gl/top/README-release.diff: Update according to changes in the Gnulib
+	file.
 
-	Drop AC_C_CONST (obsolete).
-	* configure.ac: Remove it.
+2025-07-10  Collin Funk  <collin.funk1@gmail.com>
 
-	Use gnulib module socklen.
-	* bootstrap.conf (gnulib_modules): Add it.
-	* configure.ac: Don't look for it.
+	maint: Add the vasprintf-posix module.
+	This module provides the asprintf function that is needed by Inetutils
+	but is missing on many platforms. Found on AIX 7.3.
 
-	Use gnulib modules stdarg, stdlib and string.
-	* bootstrap.conf (gnulib_modules): Add them.
-	* configure.ac: Don't look for them.
+	* NEWS: Mention the change.
+	* bootstrap.conf (gnulib_modules): Add vasprintf-posix.
 
-	Use gnulib environ module.
-	* bootstrap.conf (gnulib_modules): Add environ.
-	* configure.ac: Don't look for environ.
+2025-07-08  Simon Josefsson  <simon@josefsson.org>
 
-	Use gnulib errno module.
-	* bootstrap.conf (gnulib_modules): Add errno.
-	* configure.ac: Don't look for errno.h.
+	NEWS: Mention Solaris 11 OmniOS link fix.
 
-	Use gnulib getpeername module.
-	* bootstrap.conf (gnulib_modules): Add getpeername.
-	* configure.ac: Don't look for getpeername.
+	maint: Use non-deprecated gnulib module names.
+	* bootstrap.conf (gnulib_modules): Update per ./bootstrap output.
 
-	Refresh some release-related build rules.
-	* cfg.mk: Update.
+	maint: Bump GNULIB_REVISION.
+	* bootstrap.conf (GNULIB_REVISION): Use 92977490.
+
+	talkd: Fix indentation in last commit.
+	* talkd/table.c (lookup_request): Indent.
+
+2025-07-02  Bruno Haible  <bruno@clisp.org>
+
+	talkd: Fix use-after-free bug.
+	* talkd/table.c (lookup_request): Fetch ptr->next before possibly deleting the
+	object at ptr.
+
+2025-04-19  Collin Funk  <collin.funk1@gmail.com>
+
+	Revert "maint: Distribute help2man script."
+	This reverts commit 4511e4a193c150f409006d023bde72203d2d448d.
+
+	maint: Distribute help2man script.
+	* .x-update-copyright: New file.
+	* bootstrap.conf (buildreq): Remove help2man.
+	* configure.ac: Fallback to distributed help2man if it is not installed.
+	* man/Makefile.am (EXTRA_DIST): Add help2man.
+	* man/help2man: Import file.
+
+2025-02-26  Collin Funk  <collin.funk1@gmail.com>
+
+	maint: Fix link errors on Solaris 11 OmniOS.
+	* bootstrap.conf (gnulib_modules): Add hostent and socket.
+	* ftp/Makefile.am (ftp_LDADD): New variable.
+	* ftpd/Makefile.am (ftpd_LDADD): New variable.
+	* ifconfig/Makefile.am (ifconfig_LDADD): New variable.
+	* ping/Makefile.am (ping_LDADD): Add $(LIBSOCKET), $(HOSTENT_LIB),
+	$(LIBINTL), and $(GETADDRINFO_LIB).
+	(ping6_LDADD): New variable.
+	* src/Makefile.am (hostname_LDADD, rlogin_LDADD, rsh_LDADD): Add
+	$(HOSTENT_LIB).
+	(tftp_LDADD, rexecd_LDADD): Add $(LIBSOCKET).
+	(rexec_LDADD, dnsdomainname_LDADD, logger_LDADD, inetd_LDADD)
+	(tftpd_LDADD): New variables.
+	(rlogind_LDADD): Add $(LIBSOCKET), $(LIBINTL), and $(GETADDRINFO_LIB).
+	(rshd_LDADD): Add $(HOSTENT_LIB), $(LIBINTL), and $(GETADDRINFO_LIB).
+	(syslogd_LDADD): Add $(LIBSOCKET), $(HOSTENT_LIB), $(LIBINTL), and
+	$(GETADDRINFO_LIB).
+	(uucpd_LDADD): Add $(LIBSOCKET) and $(HOSTENT_LIB).
+	* talk/Makefile.am (talk_LDADD): New variable.
+	* talkd/Makefile.am (talkd_LDADD): New variable.
+	* telnet/Makefile.am (telnet_LDADD): New variable.
+	* telnetd/Makefile.am (telnetd_LDADD): New variable.
+	* tests/Makefile.am (localhost_LDADD, runtime_ipv6_LDADD)
+	(addrpeek_LDADD, tcpget_LDADD): New variables.
+	* whois/Makefile.am (whois_LDADD): New variable.
+
+2025-02-21  Simon Josefsson  <simon@josefsson.org>
 
 	maint: post-release administrivia
 	* NEWS: Add header line for next release.
 	* .prev-version: Record previous version.
 	* cfg.mk (old_NEWS_hash): Auto-update.
 
-	version 2.1
+	version 2.6
 	* NEWS: Record release date.
 
-	Really try to fix gnulib fts usage.
-	* libls/ls.c (ls_main): Use FTS_NOCHDIR.
-
-	Fix gnulib fts usage.
-	* libls/cmp.c: Include fts_.h instead of fts.h.
-	* libls/ls.c: Likewise.
-	* libls/print.c: Likewise.
-	* libls/util.c: Likewise.
-
-	Use gnulib's fts code instead of custom libls/ version.
-	* bootstrap.conf (gnulib_modules): Add fts.
-	* libls/fts.h, libls/fts.c: Remove files.
-	* NEWS: Mention change.
-	* configure.ac: Drop fchdir test.
-
-	Remove tests obsoleted by gnulib.
-	* configure.ac (poll.h, HAVE_SNPRINTF, HAVE_VSNPRINTF, strerror): Drop tests.
-
-	Drop old or unnecessary build rules.
-	* Makefile.am (DISTCLEANFILES): Remove inetutils*.tar*.
-	(snapshot): Remove rule.
-	* bootstrap.conf (bootstrap_sync): Remove, causes unnecessary *-dirty
-	version number if bootstrap changes in gnulib.
-	(.bootstrap): Remove custom code.
-	* configure.ac: Remove no-op comments about old systems.
-
-	doc: Improve README-release.
-	* bootstrap.conf (bootstrap_epilogue): Remove.
-	* gl/top/README-release.diff: Update.
-
-	Depend on .version instead of configure.ac (for version number changes).
-	man/Makefile.am: Fix *.1 dependencies.
-
-	Reorganize NEWS entries.
-	* NEWS: Update.
-
-2021-07-20  Simon Josefsson  <simon@josefsson.org>
-
-	doc: Remove completed TODO item.
-
-2021-05-26  Simon Josefsson  <simon@josefsson.org>
-
-	Sync bootstrap with gnulib.
-	* bootstrap: Update.
-
-	ftp: Fix usage under Emacs AngeFTP on Mac OS.
-	* NEWS: Doc fix.
-	* doc/inetutils.texi (ftp invocation): Improve --no-edit.
-	* ftp/main.c (main): Disable readline when TERM unset or dumb,
-	inspired by trivial patch from Alex Bochannek <alex@bochannek.com>.
-
-2021-05-25  Simon Josefsson  <simon@josefsson.org>
-
-	Mention 'whois' fixes.
-	* NEWS: Add.
-
-	Use gitlog-to-changelog.
-	* bootstrap.conf (gnulib_modules): Add gitlog-to-changelog.
-	(bootstrap_post_import_hook): Create ChangeLog, for automake.
-	* Makefile.am (gen-ChangeLog): New rule.
-	(dist-hook): Depend on gen-ChangeLog.
-	(EXTRA_DIST): Distribute ChangeLog.1.
-	* THANKS: Refer to version control logs too.
-	* ChangeLog: Renamed to ChangeLog.1.
-	* NEWS: Mention change.
-
-2021-05-03  Alfred M. Szmidt  <ams@gnu.org>
-
-	README: Update.
-
-2021-04-28  Simon Josefsson  <simon@josefsson.org>
-
-	telnet: Support --bind (-b) for NetKit compatibility.
-	* NEWS: Add.
-	* doc/inetutils.texi (telnet invocation): Add --bind (-b).
-	* telnet/commands.c (tn): New variables hostaddr and srchostp.
-	Parse -b parameter.  Update usage string.  If -b is set, call
-	getaddrinfo on it and pass that ai_addr on to bind.
-	* telnet/main.c (srcaddr): New global variable.
-	(argp_options): Add --bind (-b).
-	(parse_opt): Set srcaddr to -b value.
-	(main): Propagate -b value to tn function.
-
-2021-04-26  Ashish SHUKLA  <ashish.is@lostca.se>
-
-	whois: Update whois server for .IN
-
-	whois: .ORG is not handled by InterNIC anymore
-	See https://www.iana.org/domains/root/db/org.html
-
-2021-02-11  Simon Josefsson  <simon@josefsson.org>
-
-	TODO: Add items discussed on mailing list.
-
-2021-02-05  Simon Josefsson  <simon@josefsson.org>
-
-	Use gnulib sys_types module so we can assume sys/types.h.
-	* tests/waitdaemon.c, tests/runtime-ipv6.c, tests/readutmp.c: Drop
-	HAVE_SYS_TYPES_H test.
-	* bootstrap.conf (gnulib_modules): Add explicit sys_types.
-
-	Fix some autoreconf 2.71 warnings.
-	configure.ac: Remove obsolete AC_HEADER_STDC, AC_HEADER_TIME,
-	AC_FUNC_SETVBUF_REVERSED, and AC_DECL_SYS_SIGLIST.  Don't check
-	for sys/time.h, we never use the test result.
-
-	Fix last commit.
-
-	maint: post-release administrivia
-	* NEWS: Add header line for next release.
-	* .prev-version: Record previous version.
-	* cfg.mk (old_NEWS_hash): Auto-update.
-
-	version 2.0
-	* NEWS: Record release date.
+See ChangeLog.? for older entries

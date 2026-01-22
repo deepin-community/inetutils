@@ -1,7 +1,5 @@
 /*
-  Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-  2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015,
-  2016, 2017, 2018, 2019, 2020, 2021 Free Software Foundation, Inc.
+  Copyright (C) 1996-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -27,7 +25,7 @@ int find_user (char *name, char *tty);
 void do_announce (CTL_MSG * mp, CTL_RESPONSE * rp);
 
 int
-process_request (CTL_MSG * msg, struct sockaddr_in *sa_in, CTL_RESPONSE * rp)
+process_request (CTL_MSG *msg, struct sockaddr_in *sa_in, CTL_RESPONSE *rp)
 {
   CTL_MSG *ptr;
 
@@ -42,7 +40,7 @@ process_request (CTL_MSG * msg, struct sockaddr_in *sa_in, CTL_RESPONSE * rp)
       return 0;
     }
 
-  /* Convert the machine independent represention
+  /* Convert the machine independent representation
    * of the talk protocol to the present architecture.
    * In particular, `msg->addr.sa_family' will be
    * valid for socket initialization.
@@ -100,10 +98,9 @@ process_request (CTL_MSG * msg, struct sockaddr_in *sa_in, CTL_RESPONSE * rp)
 	syslog (LOG_INFO, "%s@%s called by %s@%s",
 		msg->r_name,
 		(msg->r_tty[0]
-		  ? msg->r_tty
-		  : inet_ntoa (sa_in->sin_addr)),
-		msg->l_name,
-		inet_ntoa (os2sin_addr (msg->addr)));
+		 ? msg->r_tty
+		 : inet_ntoa (sa_in->sin_addr)),
+		msg->l_name, inet_ntoa (os2sin_addr (msg->addr)));
       break;
 
     case LEAVE_INVITE:
@@ -127,7 +124,7 @@ process_request (CTL_MSG * msg, struct sockaddr_in *sa_in, CTL_RESPONSE * rp)
 	  rp->answer = SUCCESS;
 	  if (logging)
 	    syslog (LOG_INFO, "%s talks to %s@%s",
-		msg->r_name, msg->l_name, inet_ntoa (sa_in->sin_addr));
+		    msg->r_name, msg->l_name, inet_ntoa (sa_in->sin_addr));
 	}
       else
 	rp->answer = NOT_HERE;
@@ -149,7 +146,7 @@ process_request (CTL_MSG * msg, struct sockaddr_in *sa_in, CTL_RESPONSE * rp)
 }
 
 void
-do_announce (CTL_MSG * mp, CTL_RESPONSE * rp)
+do_announce (CTL_MSG *mp, CTL_RESPONSE *rp)
 {
   struct hostent *hp;
   CTL_MSG *ptr;
@@ -212,6 +209,7 @@ find_user (char *name, char *tty)
   status = NOT_HERE;
   strcpy (ftty, PATH_TTY_PFX);
 
+/* *INDENT-OFF* */
 #ifdef HAVE_GETUTXUSER
   setutxent ();
 
@@ -225,44 +223,46 @@ find_user (char *name, char *tty)
     {
       if (!strncmp (UT_USER (uptr), name, sizeof (UT_USER (uptr))))
 #endif /* !HAVE_GETUTXUSER */
-	{
-	  if (notty)
-	    {
-	      /* no particular tty was requested */
-	      strncpy (ftty + sizeof (PATH_TTY_PFX) - 1,
-		       uptr->ut_line,
-		       sizeof (ftty) - sizeof (PATH_TTY_PFX) - 1);
-	      ftty[sizeof (ftty) - 1] = 0;
+/* *INDENT-ON* */
+  {
+    if (notty)
+      {
+	/* no particular tty was requested */
+	strncpy (ftty + sizeof (PATH_TTY_PFX) - 1,
+		 uptr->ut_line, sizeof (ftty) - sizeof (PATH_TTY_PFX) - 1);
+	ftty[sizeof (ftty) - 1] = 0;
 
-	      if (stat (ftty, &statb) == 0)
-		{
-		  if (!(statb.st_mode & S_IWGRP))
-		    {
-		      if (status != SUCCESS)
-			status = PERMISSION_DENIED;
-		      continue;
-		    }
-		  if (statb.st_atime > last_time)
-		    {
-		      last_time = statb.st_atime;
-		      strcpy (tty, uptr->ut_line);
-		      status = SUCCESS;
-		    }
-		  continue;
-		}
-	    }
-	  if (!strcmp (uptr->ut_line, tty))
-	    {
-	      status = SUCCESS;
-	      break;
-	    }
-	}
+	if (stat (ftty, &statb) == 0)
+	  {
+	    if (!(statb.st_mode & S_IWGRP))
+	      {
+		if (status != SUCCESS)
+		  status = PERMISSION_DENIED;
+		continue;
+	      }
+	    if (statb.st_atime > last_time)
+	      {
+		last_time = statb.st_atime;
+		strcpy (tty, uptr->ut_line);
+		status = SUCCESS;
+	      }
+	    continue;
+	  }
+      }
+    if (!strcmp (uptr->ut_line, tty))
+      {
+	status = SUCCESS;
+	break;
+      }
+  }
+/* *INDENT-OFF* */
 #ifndef HAVE_GETUTXUSER
     }
   free (utmpbuf);
 #else /* HAVE_GETUTXUSER */
   endutxent ();
 #endif
+/* *INDENT-ON* */
 
   return status;
 }

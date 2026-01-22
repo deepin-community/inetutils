@@ -12,6 +12,7 @@ SUIDMODE = "-m 4755"
 ifeq ($(DEB_HOST_ARCH_OS),linux)
   syslogd_provides = linux-kernel-log-daemon
   confflags += --with-path-procnet-dev=/proc/net/dev
+  confflags += --enable-systemd
 endif
 ifeq ($(DEB_HOST_ARCH_OS),hurd)
   tools_provides = net-tools
@@ -29,6 +30,15 @@ man8dir = $(mandir)/man8
 
 override_dh_auto_clean:
 	[ ! -f Makefile ] || dh_auto_clean
+
+override_dh_autoreconf:
+	dh_autoreconf ./bootstrap -- \
+	  --gnulib-srcdir=/usr/share/gnulib \
+	  --no-git \
+	  --skip-po \
+	  --copy \
+	  --force \
+	  # EOL
 
 override_dh_auto_configure:
 	dh_auto_configure -- \
@@ -51,7 +61,8 @@ override_dh_auto_configure:
 	  --with-path-login=/bin/login \
 	  --with-krb5 \
 	  --with-wrap \
-	  --with-pam
+	  --with-pam \
+	  # EOL
 
 override_dh_auto_install:
 	dh_auto_install -- SUIDMODE=$(SUIDMODE)
@@ -60,10 +71,6 @@ override_dh_auto_install:
 	mkdir -p $(D)/$(man1dir)
 	mkdir -p $(D)/$(man5dir)
 	mkdir -p $(D)/$(man8dir)
-	
-	# Move ping to /bin
-	mkdir -p $(D)/bin
-	mv $(D)/usr/bin/ping $(D)/bin/
 	
 	# Rename ifconfig to not break existing systems using net-tools
 	mv $(D)/usr/bin/ifconfig $(D)/usr/bin/inetutils-ifconfig
@@ -92,25 +99,27 @@ override_dh_auto_install:
 	mv $(D)/usr/bin/traceroute $(D)/usr/bin/inetutils-traceroute
 	cp $(M)/traceroute.1 $(D)/$(man1dir)/inetutils-traceroute.1
 
-override_dh_install:
-	dh_install -a
-	# Install ping6 only if built
-	if [ -x $(D)/usr/bin/ping6 ]; then \
-	  dh_install -p inetutils-ping /usr/bin/ping6 /bin; \
-	fi
+override_dh_installchangelogs:
+	dh_installchangelogs --no-trim
 
 override_dh_installdocs:
-	dh_installdocs -a -A NEWS AUTHORS THANKS
+	dh_installdocs -A NEWS AUTHORS THANKS
 
 override_dh_installpam:
 	dh_installpam -pinetutils-ftpd --name ftp
 
 override_dh_fixperms:
 	# pings and traceroute are setuid
-	dh_fixperms -a -Xbin/ping -Xbin/ping6 -Xusr/bin/inetutils-traceroute
+	dh_fixperms \
+	  -Xusr/bin/ping \
+	  -Xusr/bin/ping6 \
+	  -Xusr/bin/inetutils-traceroute \
+	  # EOL
 
 override_dh_gencontrol:
-	dh_gencontrol -a -pinetutils-syslogd -- \
+	dh_gencontrol -ptelnet -ptelnetd -- \
+	  -v0.17+$(DEB_VERSION_UPSTREAM_REVISION)
+	dh_gencontrol -pinetutils-syslogd -- \
 	  -Vsyslogd:Provides="$(syslogd_provides)"
-	dh_gencontrol -a -Ninetutils-syslogd -- \
+	dh_gencontrol -Ninetutils-syslogd -Ntelnet -Ntelnetd -- \
 	  -Vtools:Provides="$(tools_provides)"

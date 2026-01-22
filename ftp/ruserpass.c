@@ -1,8 +1,5 @@
 /*
-  Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-  2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
-  2015, 2016, 2017, 2018, 2019, 2020, 2021 Free Software Foundation,
-  Inc.
+  Copyright (C) 1995-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -69,7 +66,7 @@
 static int token (void);
 static FILE *cfile;
 
-/* protect agains os headers */
+/* protect against os headers */
 #undef	DEFAULT
 #define DEFAULT	1
 #undef	LOGIN
@@ -91,24 +88,23 @@ static struct toktab
 {
   char *tokstr;
   int tval;
-} toktab[] =
-{
+} toktab[] = {
   {
-  "default", DEFAULT},
+   "default", DEFAULT},
   {
-  "login", LOGIN},
+   "login", LOGIN},
   {
-  "password", PASSWD},
+   "password", PASSWD},
   {
-  "passwd", PASSWD},
+   "passwd", PASSWD},
   {
-  "account", ACCOUNT},
+   "account", ACCOUNT},
   {
-  "machine", MACHINE},
+   "machine", MACHINE},
   {
-  "macdef", MACDEF},
+   "macdef", MACDEF},
   {
-  NULL, 0}
+   NULL, 0}
 };
 
 int
@@ -170,7 +166,7 @@ remote_userpass (char *host, char **aname, char **apass, char **aacct)
   if (mydomain == NULL)
     mydomain = "";
 
- next:
+next:
   while ((t = token ()))
     switch (t)
       {
@@ -211,18 +207,18 @@ remote_userpass (char *host, char **aname, char **apass, char **aacct)
 	    {
 	    case LOGIN:
 	      if (token ())
-                {
-                  if (*aname == 0)
-                    {
-                      *aname = xmalloc ((unsigned) strlen (tokval) + 1);
-                      strcpy (*aname, tokval);
-                    }
-                  else
-                    {
-                      if (strcmp (*aname, tokval))
-                        goto next;
-                    }
-                }
+		{
+		  if (*aname == 0)
+		    {
+		      *aname = xmalloc ((unsigned) strlen (tokval) + 1);
+		      strcpy (*aname, tokval);
+		    }
+		  else
+		    {
+		      if (strcmp (*aname, tokval))
+			goto next;
+		    }
+		}
 	      break;
 	    case PASSWD:
 	      if ((*aname == NULL || strcmp (*aname, "anonymous"))
@@ -274,8 +270,7 @@ remote_userpass (char *host, char **aname, char **apass, char **aacct)
 	      tmp = macros[macnum].mac_name;
 	      *tmp++ = c;
 	      for (i = 0; i < (sizeof (macros[macnum].mac_name) - 1)
-			  && (c = getc (cfile)) != EOF && !isspace (c);
-		   ++i)
+		   && (c = getc (cfile)) != EOF && !isspace (c); ++i)
 		{
 		  *tmp++ = c;
 		}

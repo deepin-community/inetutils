@@ -1,7 +1,5 @@
 /*
-  Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-  2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019,
-  2020, 2021 Free Software Foundation, Inc.
+  Copyright (C) 2000-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -39,7 +37,7 @@
 #endif
 
 #include <libinetutils.h>
-#include "unused-parameter.h"
+#include "attribute.h"
 
 int usefamily = AF_UNSPEC;	/* Address family for daemon.  */
 
@@ -48,7 +46,7 @@ static void reapchild (int);
 #ifndef DEFPORT
 # ifdef IPPORT_FTP
 #  define DEFPORT IPPORT_FTP
-# else /* !IPPORT_FTP */
+# else/* !IPPORT_FTP */
 #  define DEFPORT 21
 # endif
 #endif /* !DEFPORT */
@@ -69,18 +67,16 @@ check_host (struct sockaddr *sa, socklen_t len)
   char addr[INET6_ADDRSTRLEN];
   char name[NI_MAXHOST];
 
-  if (sa->sa_family != AF_INET
-      && sa->sa_family != AF_INET6)
+  if (sa->sa_family != AF_INET && sa->sa_family != AF_INET6)
     return 1;
 
-  (void) getnameinfo(sa, len, addr, sizeof (addr), NULL, 0, NI_NUMERICHOST);
-  err = getnameinfo(sa, len, name, sizeof (name), NULL, 0, NI_NAMEREQD);
+  (void) getnameinfo (sa, len, addr, sizeof (addr), NULL, 0, NI_NUMERICHOST);
+  err = getnameinfo (sa, len, name, sizeof (name), NULL, 0, NI_NAMEREQD);
   if (!err)
     {
       if (!hosts_ctl ("ftpd", name, addr, STRING_UNKNOWN))
 	{
-	  syslog (deny_severity, "tcpwrappers rejected: %s [%s]",
-		  name, addr);
+	  syslog (deny_severity, "tcpwrappers rejected: %s [%s]", name, addr);
 	  return 0;
 	}
     }
@@ -97,7 +93,7 @@ check_host (struct sockaddr *sa, socklen_t len)
 #endif /* WITH_WRAP */
 
 static void
-reapchild (int signo _GL_UNUSED_PARAMETER)
+reapchild (int signo MAYBE_UNUSED)
 {
   int save_errno = errno;
 
@@ -240,7 +236,7 @@ server_mode (const char *pidfile, struct sockaddr *phis_addr,
 #ifndef HAVE_FORK
   _exit (execvp (argv[0], argv));
 #else
-  (void) argv;		/* Silence warnings.  */
+  (void) argv;			/* Silence warnings.  */
 #endif
 
   return fd;

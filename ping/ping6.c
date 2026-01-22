@@ -1,7 +1,5 @@
 /*
-  Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013,
-  2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021 Free Software
-  Foundation, Inc.
+  Copyright (C) 2005-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -21,7 +19,7 @@
 #include <config.h>
 
 #ifdef __sun
-#  define _XPG4_2	1	/* OpenSolaris: msg_control */
+# define _XPG4_2	1	/* OpenSolaris: msg_control */
 #endif /* __sun */
 
 #include <sys/socket.h>
@@ -52,10 +50,21 @@
 # include <idna.h>
 #endif
 
-#include <unused-parameter.h>
+#include <attribute.h>
 #include <xalloc.h>
+#include <timespec.h>
 #include "ping6.h"
 #include "libinetutils.h"
+
+/* RFC 4443 addition not yet available in libc headers */
+#ifndef ICMP6_DST_UNREACH_POLICYFAIL
+# define ICMP6_DST_UNREACH_POLICYFAIL 5
+#endif
+
+/* RFC 4443 addition not yet available in libc headers */
+#ifndef ICMP6_DST_UNREACH_REJECTROUTE
+# define ICMP6_DST_UNREACH_REJECTROUTE 6
+#endif
 
 static PING *ping;
 bool is_root = false;
@@ -72,7 +81,7 @@ int hoplimit = 0;
 unsigned int options;
 static unsigned long preload = 0;
 #ifdef IPV6_TCLASS
-int tclass = -1;	/* Kernel sets default: -1, RFC 3542.  */
+int tclass = -1;		/* Kernel sets default: -1, RFC 3542.  */
 #endif
 #ifdef IPV6_FLOWINFO
 int flowinfo;
@@ -84,47 +93,47 @@ static int send_echo (PING * ping);
 
 const char args_doc[] = "HOST ...";
 const char doc[] = "Send ICMP ECHO_REQUEST packets to network hosts."
-                   "\vOptions marked with (root only) are available only to "
-                   "superuser.";
+  "\vOptions marked with (root only) are available only to " "superuser.";
 const char *program_authors[] = {
-	"Jeroen Dekkers",
-	NULL
+  "Jeroen Dekkers",
+  NULL
 };
 
-enum {
+enum
+{
   ARG_HOPLIMIT = 256,
 };
 
 static struct argp_option argp_options[] = {
 #define GRP 0
   {NULL, 0, NULL, 0, "Options valid for all request types:", GRP},
-  {"count", 'c', "NUMBER", 0, "stop after sending NUMBER packets", GRP+1},
-  {"debug", 'd', NULL, 0, "set the SO_DEBUG option", GRP+1},
+  {"count", 'c', "NUMBER", 0, "stop after sending NUMBER packets", GRP + 1},
+  {"debug", 'd', NULL, 0, "set the SO_DEBUG option", GRP + 1},
 #ifdef IPV6_FLOWINFO
-  {"flowinfo", 'F', "N", 0, "set N as flow identifier", GRP+1},
+  {"flowinfo", 'F', "N", 0, "set N as flow identifier", GRP + 1},
 #endif
-  {"hoplimit", ARG_HOPLIMIT, "N", 0, "specify N as hop-limit", GRP+1},
+  {"hoplimit", ARG_HOPLIMIT, "N", 0, "specify N as hop-limit", GRP + 1},
   {"interval", 'i', "NUMBER", 0, "wait NUMBER seconds between sending each "
-   "packet", GRP+1},
-  {"numeric", 'n', NULL, 0, "do not resolve host addresses", GRP+1},
+   "packet", GRP + 1},
+  {"numeric", 'n', NULL, 0, "do not resolve host addresses", GRP + 1},
   {"ignore-routing", 'r', NULL, 0, "send directly to a host on an attached "
-   "network", GRP+1},
+   "network", GRP + 1},
 #ifdef IPV6_TCLASS
-  {"tos", 'T', "N", 0, "set traffic class to N", GRP+1},
+  {"tos", 'T', "N", 0, "set traffic class to N", GRP + 1},
 #endif
-  {"timeout", 'w', "N", 0, "stop after N seconds", GRP+1},
-  {"ttl", ARG_HOPLIMIT, "N", 0, "synonym for --hoplimit", GRP+1},
-  {"verbose", 'v', NULL, 0, "verbose output", GRP+1},
+  {"timeout", 'w', "N", 0, "stop after N seconds", GRP + 1},
+  {"ttl", ARG_HOPLIMIT, "N", 0, "synonym for --hoplimit", GRP + 1},
+  {"verbose", 'v', NULL, 0, "verbose output", GRP + 1},
 #undef GRP
 #define GRP 10
   {NULL, 0, NULL, 0, "Options valid for --echo requests:", GRP},
-  {"flood", 'f', NULL, 0, "flood ping (root only)", GRP+1},
+  {"flood", 'f', NULL, 0, "flood ping (root only)", GRP + 1},
   {"preload", 'l', "NUMBER", 0, "send NUMBER packets as fast as possible "
-   "before falling into normal mode of behavior (root only)", GRP+1},
+   "before falling into normal mode of behavior (root only)", GRP + 1},
   {"pattern", 'p', "PATTERN", 0, "fill ICMP packet with given pattern (hex)",
-   GRP+1},
-  {"quiet", 'q', NULL, 0, "quiet output", GRP+1},
-  {"size", 's', "NUMBER", 0, "send NUMBER data octets", GRP+1},
+   GRP + 1},
+  {"quiet", 'q', NULL, 0, "quiet output", GRP + 1},
+  {"size", 's', "NUMBER", 0, "send NUMBER data octets", GRP + 1},
 #undef GRP
   {NULL, 0, NULL, 0, NULL, 0}
 };
@@ -147,7 +156,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
 
     case 'f':
       if (!is_root)
-        error (EXIT_FAILURE, 0, "flooding needs root privilege");
+	error (EXIT_FAILURE, 0, "flooding needs root privilege");
 
       options |= OPT_FLOOD;
       setbuf (stdout, (char *) NULL);
@@ -170,11 +179,11 @@ parse_opt (int key, char *arg, struct argp_state *state)
 
     case 'l':
       if (!is_root)
-        error (EXIT_FAILURE, 0, "preloading needs root privilege");
+	error (EXIT_FAILURE, 0, "preloading needs root privilege");
 
       preload = strtoul (arg, &endptr, 0);
       if (*endptr || preload > INT_MAX)
-        error (EXIT_FAILURE, 0, "preload size too large");
+	error (EXIT_FAILURE, 0, "preload size too large");
 
       break;
 
@@ -230,7 +239,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
 }
 
 static struct argp argp =
-  {argp_options, parse_opt, args_doc, doc, NULL, NULL, NULL};
+  { argp_options, parse_opt, args_doc, doc, NULL, NULL, NULL };
 
 int
 main (int argc, char **argv)
@@ -240,9 +249,9 @@ main (int argc, char **argv)
 
   set_program_name (argv[0]);
 
-# ifdef HAVE_SETLOCALE
+#ifdef HAVE_SETLOCALE
   setlocale (LC_ALL, "");
-# endif
+#endif
 
   if (getuid () == 0)
     is_root = true;
@@ -256,7 +265,8 @@ main (int argc, char **argv)
     /* ping_init() prints our error message.  */
     exit (EXIT_FAILURE);
 
-  setsockopt (ping->ping_fd, SOL_SOCKET, SO_BROADCAST, (char *) &one, sizeof (one));
+  setsockopt (ping->ping_fd, SOL_SOCKET, SO_BROADCAST, (char *) &one,
+	      sizeof (one));
 
   /* Reset root privileges */
   if (setuid (getuid ()) != 0)
@@ -310,19 +320,19 @@ main (int argc, char **argv)
 static volatile int stop = 0;
 
 static void
-sig_int (int signal _GL_UNUSED_PARAMETER)
+sig_int (int signal MAYBE_UNUSED)
 {
   stop = 1;
 }
 
 static int
-ping_run (PING * ping, int (*finish) ())
+ping_run (PING *ping, int (*finish) (void))
 {
   fd_set fdset;
   int fdmax;
-  struct timeval resp_time;
-  struct timeval last, intvl, now;
-  struct timeval *t = NULL;
+  struct timespec resp_time;
+  struct timespec last, intvl, now;
+  struct timespec *t = NULL;
   int finishing = 0;
   size_t nresp = 0;
   unsigned long i;
@@ -331,26 +341,18 @@ ping_run (PING * ping, int (*finish) ())
 
   fdmax = ping->ping_fd + 1;
 
-  /* Some systems use `struct timeval' of size 16.  As these are
-   * not initialising `timeval' properly by assignment alone, let
-   * us play safely here.  gettimeofday() is always sufficient.
-   */
-  memset (&resp_time, 0, sizeof (resp_time));
-  memset (&intvl, 0, sizeof (intvl));
-  memset (&now, 0, sizeof (now));
-
   for (i = 0; i < preload; i++)
     send_echo (ping);
 
   if (options & OPT_FLOOD)
     {
       intvl.tv_sec = 0;
-      intvl.tv_usec = 10000;
+      intvl.tv_nsec = 1e7;
     }
   else
     PING_SET_INTERVAL (intvl, ping->ping_interval);
 
-  gettimeofday (&last, NULL);
+  last = current_timespec ();
   send_echo (ping);
 
   while (!stop)
@@ -360,29 +362,17 @@ ping_run (PING * ping, int (*finish) ())
       FD_ZERO (&fdset);
       FD_SET (ping->ping_fd, &fdset);
 
-      gettimeofday (&now, NULL);
-      resp_time.tv_sec = last.tv_sec + intvl.tv_sec - now.tv_sec;
-      resp_time.tv_usec = last.tv_usec + intvl.tv_usec - now.tv_usec;
+      now = current_timespec ();
+      resp_time = timespec_sub (timespec_add (last, intvl), now);
 
-      while (resp_time.tv_usec < 0)
-	{
-	  resp_time.tv_usec += 1000000;
-	  resp_time.tv_sec--;
-	}
-      while (resp_time.tv_usec >= 1000000)
-	{
-	  resp_time.tv_usec -= 1000000;
-	  resp_time.tv_sec++;
-	}
+      if (timespec_sign (resp_time) == -1)
+	resp_time.tv_sec = resp_time.tv_nsec = 0;
 
-      if (resp_time.tv_sec < 0)
-	resp_time.tv_sec = resp_time.tv_usec = 0;
-
-      n = select (fdmax, &fdset, NULL, NULL, &resp_time);
+      n = pselect (fdmax, &fdset, NULL, NULL, &resp_time, NULL);
       if (n < 0)
 	{
 	  if (errno != EINTR)
-	    error (EXIT_FAILURE, errno, "select failed");
+	    error (EXIT_FAILURE, errno, "pselect failed");
 	  continue;
 	}
       else if (n == 1)
@@ -391,7 +381,7 @@ ping_run (PING * ping, int (*finish) ())
 	    nresp++;
 	  if (t == 0)
 	    {
-	      gettimeofday (&now, NULL);
+	      now = current_timespec ();
 	      t = &now;
 	    }
 
@@ -422,7 +412,7 @@ ping_run (PING * ping, int (*finish) ())
 
 	      intvl.tv_sec = MAXWAIT;
 	    }
-	  gettimeofday (&last, NULL);
+	  last = current_timespec ();
 	}
     }
 
@@ -434,15 +424,18 @@ ping_run (PING * ping, int (*finish) ())
 }
 
 static int
-send_echo (PING * ping)
+send_echo (PING *ping)
 {
   size_t off = 0;
   int rc;
 
   if (PING_TIMING (data_length))
     {
-      struct timeval tv;
-      gettimeofday (&tv, NULL);
+      struct timespec now = current_timespec ();
+      /* *INDENT-OFF* */
+      struct timeval tv = { .tv_sec = now.tv_sec,
+                            .tv_usec = now.tv_nsec / 1000 };
+      /* *INDENT-ON* */
       ping_set_data (ping, &tv, 0, sizeof (tv), USE_IPV6);
       off += sizeof (tv);
     }
@@ -537,7 +530,7 @@ ping_echo (char *hostname)
 }
 
 static void
-ping_reset (PING * p)
+ping_reset (PING *p)
 {
   p->ping_num_xmit = 0;
   p->ping_num_recv = 0;
@@ -546,32 +539,31 @@ ping_reset (PING * p)
 
 static int
 print_echo (int dupflag, int hops, struct ping_stat *ping_stat,
-	    struct sockaddr_in6 *dest _GL_UNUSED_PARAMETER,
-	    struct sockaddr_in6 *from,
-	    struct icmp6_hdr *icmp6, int datalen)
+	    struct sockaddr_in6 *dest MAYBE_UNUSED,
+	    struct sockaddr_in6 *from, struct icmp6_hdr *icmp6, int datalen)
 {
   int err;
   char buf[256];
-  struct timeval tv;
-  int timing = 0;
+  bool timing = false;
   double triptime = 0.0;
-
-  gettimeofday (&tv, NULL);
 
   /* Do timing */
   if (PING_TIMING (datalen - sizeof (struct icmp6_hdr)))
     {
-      struct timeval tv1, *tp;
+      struct timeval tv;
+      struct timespec ts;
 
-      timing++;
-      tp = (struct timeval *) (icmp6 + 1);
+      timing = true;
 
-      /* Avoid unaligned data: */
-      memcpy (&tv1, tp, sizeof (tv1));
-      tvsub (&tv, &tv1);
+      /* Avoid unaligned data.  */
+      memcpy (&tv, icmp6 + 1, sizeof (tv));
+      /* *INDENT-OFF* */
+      ts = timespec_sub (current_timespec (),
+                         (struct timespec) { .tv_sec = tv.tv_sec,
+                                             .tv_nsec = tv.tv_usec * 1000 });
+      /* *INDENT-ON* */
 
-      triptime = ((double) tv.tv_sec) * 1000.0 +
-	((double) tv.tv_usec) / 1000.0;
+      triptime = timespectod (ts) * 1000.0;
       ping_stat->tsum += triptime;
       ping_stat->tsumsq += triptime * triptime;
       if (triptime < ping_stat->tmin)
@@ -594,9 +586,9 @@ print_echo (int dupflag, int hops, struct ping_stat *ping_stat,
 #ifdef NI_IDN
 		     : NI_IDN
 #else
-		     : 0
+:		     0
 #endif
-		     );
+    );
   if (err)
     {
       const char *errmsg;
@@ -639,6 +631,9 @@ static struct icmp_code_descr icmp_dest_unreach_desc[] = {
   {ICMP6_DST_UNREACH_BEYONDSCOPE, "Beyond scope of source address"},
   {ICMP6_DST_UNREACH_ADDR, "Address unreachable"},
   {ICMP6_DST_UNREACH_NOPORT, "Port unreachable"},
+  {ICMP6_DST_UNREACH_POLICYFAIL,
+   "Source address failed ingress/egress policy"},
+  {ICMP6_DST_UNREACH_REJECTROUTE, "Reject route to destination"},
 };
 
 static void
@@ -726,9 +721,9 @@ print_ip_data (struct icmp6_hdr *icmp6)
   (void) inet_ntop (AF_INET6, &ip->ip6_src, src, sizeof (src));
 
   printf ("IP Header Dump:\n ");
-  for (j = 0; j < sizeof (*ip) - sizeof (ip->ip6_src) - sizeof (ip->ip6_dst); ++j)
-    printf ("%02x%s", *((unsigned char *) ip + j),
-	    (j % 2) ? " " : "");	/* Group bytes two by two.  */
+  for (j = 0; j < sizeof (*ip) - sizeof (ip->ip6_src) - sizeof (ip->ip6_dst);
+       ++j)
+    printf ("%02x%s", *((unsigned char *) ip + j), (j % 2) ? " " : "");	/* Group bytes two by two.  */
   printf ("(src) (dst)\n");
 
   printf ("Vr TC Flow Plen Nxt Hop Src\t\t  Dst\n");
@@ -736,8 +731,7 @@ print_ip_data (struct icmp6_hdr *icmp6)
 	  ntohl (ip->ip6_flow) >> 28,
 	  (ntohl (ip->ip6_flow) & 0x0fffffff) >> 20,
 	  ntohl (ip->ip6_flow) & 0x0fffff,
-	  ntohs (ip->ip6_plen), ip->ip6_nxt, ip->ip6_hlim,
-	  src, dst);
+	  ntohs (ip->ip6_plen), ip->ip6_nxt, ip->ip6_hlim, src, dst);
 
   switch (ip->ip6_nxt)
     {
@@ -823,7 +817,7 @@ echo_finish (void)
 }
 
 static PING *
-ping_init (int type _GL_UNUSED_PARAMETER, int ident)
+ping_init (int type MAYBE_UNUSED, int ident)
 {
   int fd, err;
   const int on = 1;
@@ -835,7 +829,7 @@ ping_init (int type _GL_UNUSED_PARAMETER, int ident)
   if (fd < 0)
     {
       if (errno == EPERM || errno == EACCES)
-        error (EXIT_FAILURE, errno, "raw socket");
+	error (EXIT_FAILURE, errno, "raw socket");
 
       return NULL;
     }
@@ -880,12 +874,12 @@ ping_init (int type _GL_UNUSED_PARAMETER, int ident)
   /* Make sure we use only 16 bits in this field, id for icmp is a unsigned short.  */
   p->ping_ident = ident & 0xFFFF;
   p->ping_cktab_size = PING_CKTABSIZE;
-  gettimeofday (&p->ping_start_time, NULL);
+  p->ping_start_time = current_timespec ();
   return p;
 }
 
 static int
-ping_xmit (PING * p)
+ping_xmit (PING *p)
 {
   int i, buflen;
   struct icmp6_hdr *icmp6;
@@ -923,19 +917,20 @@ ping_xmit (PING * p)
 }
 
 static int
-my_echo_reply (PING * p, struct icmp6_hdr *icmp6)
+my_echo_reply (PING *p, struct icmp6_hdr *icmp6)
 {
   struct ip6_hdr *orig_ip = (struct ip6_hdr *) (icmp6 + 1);
   struct icmp6_hdr *orig_icmp = (struct icmp6_hdr *) (orig_ip + 1);
 
-  return IN6_ARE_ADDR_EQUAL (&orig_ip->ip6_dst, &ping->ping_dest.ping_sockaddr6.sin6_addr)
+  return IN6_ARE_ADDR_EQUAL (&orig_ip->ip6_dst,
+			     &ping->ping_dest.ping_sockaddr6.sin6_addr)
     && orig_ip->ip6_nxt == IPPROTO_ICMPV6
     && orig_icmp->icmp6_type == ICMP6_ECHO_REQUEST
     && orig_icmp->icmp6_id == htons (p->ping_ident);
 }
 
 static int
-ping_recv (PING * p)
+ping_recv (PING *p)
 {
   int dupflag, n;
   int hops = -1;
@@ -989,8 +984,9 @@ ping_recv (PING * p)
 	  dupflag = 0;
 	}
 
-      print_echo (dupflag, hops, p->ping_closure, &p->ping_dest.ping_sockaddr6,
-		  &p->ping_from.ping_sockaddr6, icmp6, n);
+      print_echo (dupflag, hops, p->ping_closure,
+		  &p->ping_dest.ping_sockaddr6, &p->ping_from.ping_sockaddr6,
+		  icmp6, n);
 
     }
   else
@@ -1006,7 +1002,7 @@ ping_recv (PING * p)
 }
 
 static int
-ping_set_dest (PING * ping, const char *host)
+ping_set_dest (PING *ping, const char *host)
 {
   int err;
   struct addrinfo *result, hints;
@@ -1038,7 +1034,8 @@ ping_set_dest (PING * ping, const char *host)
       return 1;
     }
 
-  memcpy (&ping->ping_dest.ping_sockaddr6, result->ai_addr, result->ai_addrlen);
+  memcpy (&ping->ping_dest.ping_sockaddr6, result->ai_addr,
+	  result->ai_addrlen);
 
   if (result->ai_canonname)
     ping->ping_hostname = strdup (result->ai_canonname);
@@ -1046,7 +1043,7 @@ ping_set_dest (PING * ping, const char *host)
 #if defined HAVE_IDN || defined HAVE_IDN2
     ping->ping_hostname = host;
 #else
-  ping->ping_hostname = strdup (host);
+    ping->ping_hostname = strdup (host);
 #endif
   freeaddrinfo (result);
 

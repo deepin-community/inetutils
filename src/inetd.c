@@ -1,8 +1,5 @@
 /*
-  Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
-  2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013,
-  2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021 Free Software
-  Foundation, Inc.
+  Copyright (C) 1994-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -137,7 +134,7 @@
 #include "libinetutils.h"
 #include "argcv.h"
 #include "version-etc.h"
-#include "unused-parameter.h"
+#include "attribute.h"
 
 #ifndef EAI_ADDRFAMILY
 # define EAI_ADDRFAMILY 1
@@ -163,16 +160,17 @@ char *LastArg;
 
 char **config_files;
 
-static bool env_option = false;	       /* Set environment variables */
-static bool resolve_option = false;    /* Resolve IP addresses */
-static bool pidfile_option = true;     /* Record the PID in a file */
+static bool env_option = false;	/* Set environment variables */
+static bool resolve_option = false;	/* Resolve IP addresses */
+static bool pidfile_option = true;	/* Record the PID in a file */
 static const char *pid_file = PATH_INETDPID;
 
 const char args_doc[] = "[CONF-FILE [CONF-DIR]]...";
 const char doc[] = "Internet super-server.";
 
 /* Define keys for long options that do not have short counterparts. */
-enum {
+enum
+{
   OPT_ENVIRON = 256,
   OPT_RESOLVE
 };
@@ -181,29 +179,30 @@ const char *program_authors[] = {
   "Alain Magloire", "Alfred M. Szmidt", "Debarshi Ray",
   "Jakob 'sparky' Kaivo", "Jeff Bailey",
   "Jeroen Dekkers", "Marcus Brinkmann", "Sergey Poznyakoff",
-  "others", NULL };
+  "others", NULL
+};
 
 static struct argp_option argp_options[] = {
 #define GRP 0
   {"debug", 'd', NULL, 0,
-   "turn on debugging, run in foreground mode", GRP+1},
+   "turn on debugging, run in foreground mode", GRP + 1},
   {"environment", OPT_ENVIRON, NULL, 0,
-   "pass local and remote socket information in environment variables", GRP+1},
-  { "pidfile", 'p', "PIDFILE", OPTION_ARG_OPTIONAL,
-    "override pidfile (default: \"" PATH_INETDPID "\")",
-    GRP+1 },
+   "pass local and remote socket information in environment variables",
+   GRP + 1},
+  {"pidfile", 'p', "PIDFILE", OPTION_ARG_OPTIONAL,
+   "override pidfile (default: \"" PATH_INETDPID "\")",
+   GRP + 1},
   {"rate", 'R', "NUMBER", 0,
-   "maximum invocation rate (per minute)", GRP+1},
+   "maximum invocation rate (per minute)", GRP + 1},
   {"resolve", OPT_RESOLVE, NULL, 0,
    "resolve IP addresses when setting environment variables "
-   "(see --environment)", GRP+1},
+   "(see --environment)", GRP + 1},
 #undef GRP
   {NULL, 0, NULL, 0, NULL, 0}
 };
 
 static error_t
-parse_opt (int key, char *arg,
-	   struct argp_state *state _GL_UNUSED_PARAMETER)
+parse_opt (int key, char *arg, struct argp_state *state MAYBE_UNUSED)
 {
   char *p;
   int number;
@@ -229,9 +228,9 @@ parse_opt (int key, char *arg,
     case 'R':
       number = strtol (arg, &p, 0);
       if (number < 1 || *p)
-        syslog (LOG_ERR, "-R %s: bad value for service invocation rate", arg);
+	syslog (LOG_ERR, "-R %s: bad value for service invocation rate", arg);
       else
-        toomany = number;
+	toomany = number;
       break;
 
     case OPT_RESOLVE:
@@ -246,19 +245,19 @@ parse_opt (int key, char *arg,
 }
 
 static struct argp argp =
-  {argp_options, parse_opt, args_doc, doc, NULL, NULL, NULL};
-
+  { argp_options, parse_opt, args_doc, doc, NULL, NULL, NULL };
 
+
 struct servtab
 {
   const char *se_file;
   int se_line;
-  char *se_node;                /* node name */
+  char *se_node;		/* node name */
   char *se_service;		/* name of service */
   int se_socktype;		/* type of socket to use */
   char *se_proto;		/* protocol used */
   pid_t se_wait;		/* single threaded server */
-  unsigned se_max;              /* Maximum number of instances per CNT_INTVL */
+  unsigned se_max;		/* Maximum number of instances per CNT_INTVL */
   short se_checked;		/* looked at during merge */
   char *se_user;		/* user name to run as */
   char *se_group;		/* group name to run as */
@@ -273,7 +272,7 @@ struct servtab
   struct sockaddr_storage se_ctrladdr;	/* bound address */
   socklen_t se_addrlen;		/* exact address length in use */
   unsigned se_refcnt;
-  unsigned se_count;			/* number started since se_time */
+  unsigned se_count;		/* number started since se_time */
   struct timeval se_time;	/* start of se_count */
   struct servtab *se_next;
 } *servtab;
@@ -284,8 +283,8 @@ struct servtab
 #define ISMUX(sep)	(((sep)->se_type == MUX_TYPE) ||	\
 			 ((sep)->se_type == MUXPLUS_TYPE))
 #define ISMUXPLUS(sep)	((sep)->se_type == MUXPLUS_TYPE)
-
 
+
 /* Built-in services */
 void chargen_dg (int, struct servtab *);
 void chargen_stream (int, struct servtab *);
@@ -306,26 +305,25 @@ struct biltin
   short bi_fork;		/* 1 if should fork before call */
   short bi_wait;		/* 1 if should wait for child */
   void (*bi_fn) (int s, struct servtab *);	/*function which performs it */
-} biltins[] =
-  {
-    /* Echo received data */
-    {"echo", SOCK_STREAM, 1, 0, echo_stream},
-    {"echo", SOCK_DGRAM, 0, 0, echo_dg},
-    /* Internet /dev/null */
-    {"discard", SOCK_STREAM, 1, 0, discard_stream},
-    {"discard", SOCK_DGRAM, 0, 0, discard_dg},
-    /* Return 32 bit time since 1900 */
-    {"time", SOCK_STREAM, 0, 0, machtime_stream},
-    {"time", SOCK_DGRAM, 0, 0, machtime_dg},
-    /* Return human-readable time */
-    {"daytime", SOCK_STREAM, 0, 0, daytime_stream},
-    {"daytime", SOCK_DGRAM, 0, 0, daytime_dg},
-    /* Familiar character generator */
-    {"chargen", SOCK_STREAM, 1, 0, chargen_stream},
-    {"chargen", SOCK_DGRAM, 0, 0, chargen_dg},
-    {"tcpmux", SOCK_STREAM, 1, 0, tcpmux},
-    {NULL, 0, 0, 0, NULL}
-  };
+} biltins[] = {
+  /* Echo received data */
+  {"echo", SOCK_STREAM, 1, 0, echo_stream},
+  {"echo", SOCK_DGRAM, 0, 0, echo_dg},
+  /* Internet /dev/null */
+  {"discard", SOCK_STREAM, 1, 0, discard_stream},
+  {"discard", SOCK_DGRAM, 0, 0, discard_dg},
+  /* Return 32 bit time since 1900 */
+  {"time", SOCK_STREAM, 0, 0, machtime_stream},
+  {"time", SOCK_DGRAM, 0, 0, machtime_dg},
+  /* Return human-readable time */
+  {"daytime", SOCK_STREAM, 0, 0, daytime_stream},
+  {"daytime", SOCK_DGRAM, 0, 0, daytime_dg},
+  /* Familiar character generator */
+  {"chargen", SOCK_STREAM, 1, 0, chargen_stream},
+  {"chargen", SOCK_DGRAM, 0, 0, chargen_dg},
+  {"tcpmux", SOCK_STREAM, 1, 0, tcpmux},
+  {NULL, 0, 0, 0, NULL}
+};
 
 #define NUMINT	(sizeof(intab) / sizeof(struct inent))
 
@@ -340,8 +338,8 @@ bi_lookup (const struct servtab *sep)
       return bi;
   return NULL;
 }
-
 
+
 /* Signal handling */
 
 #if defined HAVE_SIGACTION
@@ -355,7 +353,7 @@ bi_lookup (const struct servtab *sep)
 #endif
 
 void
-signal_set_handler (int signo, void (*handler) ())
+signal_set_handler (int signo, void (*handler) (int))
 {
 #if defined HAVE_SIGACTION
   struct sigaction sa;
@@ -379,7 +377,7 @@ signal_set_handler (int signo, void (*handler) ())
 }
 
 void
-signal_block (SIGSTATUS * old_status)
+signal_block (SIGSTATUS *old_status)
 {
 #ifdef HAVE_SIGACTION
   sigset_t sigs;
@@ -397,7 +395,7 @@ signal_block (SIGSTATUS * old_status)
 }
 
 void
-signal_unblock (SIGSTATUS * status)
+signal_unblock (SIGSTATUS *status)
 {
 #ifdef HAVE_SIGACTION
   if (status)
@@ -490,7 +488,7 @@ run_service (int ctrl, struct servtab *sep)
 }
 
 void
-reapchild (int signo _GL_UNUSED_PARAMETER)
+reapchild (int signo MAYBE_UNUSED)
 {
   int status;
   pid_t pid;
@@ -522,8 +520,8 @@ reapchild (int signo _GL_UNUSED_PARAMETER)
 	  }
     }
 }
-
 
+
 
 char *
 newstr (const char *cp)
@@ -553,10 +551,10 @@ void
 dupstr (char **pstr)
 {
   if (*pstr)
-    dupmem ((void**)pstr, strlen (*pstr) + 1);
+    dupmem ((void **) pstr, strlen (*pstr) + 1);
 }
-
 
+
 /*
  * print_service:
  *	Dump relevant information to stderr
@@ -570,15 +568,14 @@ print_service (const char *action, struct servtab *sep)
 	   sep->se_file, sep->se_line,
 	   action,
 	   ISMUX (sep) ? (ISMUXPLUS (sep) ? "tcpmuxplus" : "tcpmux")
-		      : (sep->se_node ? sep->se_node : "*"),
+	   : (sep->se_node ? sep->se_node : "*"),
 	   sep->se_service, sep->se_proto,
 	   (int) sep->se_wait, sep->se_max,
 	   sep->se_user, sep->se_group,
-	   sep->se_bi ? sep->se_bi->bi_service : "no",
-	   sep->se_server);
+	   sep->se_bi ? sep->se_bi->bi_service : "no", sep->se_server);
 }
-
 
+
 /* Configuration */
 int
 setup (struct servtab *sep)
@@ -586,12 +583,12 @@ setup (struct servtab *sep)
   int err;
   int on = 1;
 
- tryagain:
+tryagain:
   sep->se_fd = socket (sep->se_family, sep->se_socktype, 0);
   if (sep->se_fd < 0)
     {
       /* If we don't support creating AF_INET6 sockets, create AF_INET
-	 sockets.  */
+         sockets.  */
       if (errno == EAFNOSUPPORT && sep->se_family == AF_INET6
 	  && sep->se_v4mapped)
 	{
@@ -603,17 +600,16 @@ setup (struct servtab *sep)
       if (debug)
 	fprintf (stderr, "socket failed on %s/%s: %s\n",
 		 sep->se_service, sep->se_proto, strerror (errno));
-      syslog (LOG_ERR, "%s/%s: socket: %m",
-	      sep->se_service, sep->se_proto);
+      syslog (LOG_ERR, "%s/%s: socket: %m", sep->se_service, sep->se_proto);
       return 1;
     }
 #ifdef IPV6
   if (sep->se_family == AF_INET6)
     {
       /* Reverse the value of SEP->se_v4mapped, since otherwise if
-	 using `tcp6' as a protocol type, all connections will be
-	 mapped to IPv6, and with `tcp6only', IPv4 gets mapped to
-	 IPv6.  */
+         using `tcp6' as a protocol type, all connections will be
+         mapped to IPv6, and with `tcp6only', IPv4 gets mapped to
+         IPv6.  */
       int val = sep->se_v4mapped ? 0 : 1;
       if (setsockopt (sep->se_fd, IPPROTO_IPV6, IPV6_V6ONLY,
 		      (char *) &val, sizeof (val)) < 0)
@@ -622,9 +618,7 @@ setup (struct servtab *sep)
 #endif
   if (strncmp (sep->se_proto, "tcp", 3) == 0 && (options & SO_DEBUG))
     {
-      if (setsockopt (sep->se_fd, SOL_SOCKET, SO_DEBUG,
-		      (char *) &on, sizeof (on)) < 0
-	  && errno != EACCES)	/* Ignore insufficient permission.  */
+      if (setsockopt (sep->se_fd, SOL_SOCKET, SO_DEBUG, (char *) &on, sizeof (on)) < 0 && errno != EACCES)	/* Ignore insufficient permission.  */
 	syslog (LOG_ERR, "setsockopt (SO_DEBUG): %m");
     }
 
@@ -652,7 +646,7 @@ setup (struct servtab *sep)
 	    fprintf (stderr, "bind failed for %s %s/%s: %s\n",
 		     sep->se_node, sep->se_service, sep->se_proto,
 		     strerror (errno));
-	  syslog (LOG_ERR,"%s %s/%s: bind: %m",
+	  syslog (LOG_ERR, "%s %s/%s: bind: %m",
 		  sep->se_node, sep->se_service, sep->se_proto);
 	}
       else
@@ -660,7 +654,7 @@ setup (struct servtab *sep)
 	  if (debug)
 	    fprintf (stderr, "bind failed for %s/%s: %s\n",
 		     sep->se_service, sep->se_proto, strerror (errno));
-	  syslog (LOG_ERR,"%s/%s: bind: %m", sep->se_service, sep->se_proto);
+	  syslog (LOG_ERR, "%s/%s: bind: %m", sep->se_service, sep->se_proto);
 	}
       close (sep->se_fd);
       sep->se_fd = -1;
@@ -692,7 +686,7 @@ servent_setup (struct servtab *sep)
 }
 
 void
-retry (int signo _GL_UNUSED_PARAMETER)
+retry (int signo MAYBE_UNUSED)
 {
   struct servtab *sep;
 
@@ -717,7 +711,7 @@ close_sep (struct servtab *sep)
     }
   sep->se_count = 0;
   /*
-   * Don't keep the pid of this running deamon: when reapchild()
+   * Don't keep the pid of this running daemon: when reapchild()
    * reaps this pid, it would erroneously increment nsock.
    */
   if (sep->se_wait > 1)
@@ -785,7 +779,7 @@ enter (struct servtab *cp)
   dupstr (&sep->se_user);
   dupstr (&sep->se_group);
   dupstr (&sep->se_server);
-  dupmem ((void**)&sep->se_argv, sep->se_argc * sizeof (sep->se_argv[0]));
+  dupmem ((void **) &sep->se_argv, sep->se_argc * sizeof (sep->se_argv[0]));
   for (i = 0; i < sep->se_argc; i++)
     dupstr (&sep->se_argv[i]);
 
@@ -818,11 +812,10 @@ inetd_getaddrinfo (struct servtab *sep, int proto, struct addrinfo **result)
   if (sep->se_node
       && (strspn (sep->se_node, IPV4_NUMCHARS) == strlen (sep->se_node)
 	  || (strchr (sep->se_node, ':')
-	      && strspn (sep->se_node, IPV6_NUMCHARS)) ) )
+	      && strspn (sep->se_node, IPV6_NUMCHARS))))
     numeric_address = true;
-  else
-    if (debug && sep->se_node)
-      fprintf (stderr, "Resolving address: %s\n", sep->se_node);
+  else if (debug && sep->se_node)
+    fprintf (stderr, "Resolving address: %s\n", sep->se_node);
 #endif /* IPV6 */
 
   memset (&hints, 0, sizeof (hints));
@@ -867,8 +860,7 @@ expand_enter (struct servtab *sep)
 
   err = inetd_getaddrinfo (sep, proto->p_proto, &result);
 #if IPV6
-  if (err == EAI_ADDRFAMILY
-      && sep->se_family == AF_INET6 && sep->se_v4mapped)
+  if (err == EAI_ADDRFAMILY && sep->se_family == AF_INET6 && sep->se_v4mapped)
     {
       /* Fall back to IPv4 silently.  */
       sep->se_family = AF_INET;
@@ -916,8 +908,8 @@ expand_enter (struct servtab *sep)
 
   return 0;
 }
-
 
+
 /* Configuration parser */
 char *global_serv_node;
 char *serv_node;
@@ -1002,13 +994,13 @@ getconfigent (FILE *fconfig, const char *file, size_t *line)
   if (serv_node)
     return next_node_sep (sep);
 
-  memset ((caddr_t) sep, 0, sizeof *sep);
+  memset (sep, 0, sizeof *sep);
 
   while (1)
     {
       argcv_free (argc, argv);
       freeconfig (sep);
-      memset ((caddr_t) sep, 0, sizeof *sep);
+      memset (sep, 0, sizeof *sep);
 
       do
 	{
@@ -1018,9 +1010,9 @@ getconfigent (FILE *fconfig, const char *file, size_t *line)
 	  else if (n == 0)
 	    continue;
 
-	  if (linebuf[n-1] == '\n')
-	    linebuf[n-1] = 0;
-	  ++ *line;
+	  if (linebuf[n - 1] == '\n')
+	    linebuf[n - 1] = 0;
+	  ++*line;
 	}
       while (*linebuf == '#' || *linebuf == 0);
 
@@ -1048,7 +1040,7 @@ getconfigent (FILE *fconfig, const char *file, size_t *line)
       node = argv[INETD_SERVICE];
       service = strrchr (node, ':');
       if (!service)
-        {
+	{
 	  if (global_serv_node)
 	    {
 	      node = global_serv_node;
@@ -1056,21 +1048,21 @@ getconfigent (FILE *fconfig, const char *file, size_t *line)
 	      serv_node_offset = 0;
 	    }
 	  else
-	      node = NULL;
+	    node = NULL;
 
 	  service = argv[INETD_SERVICE];
-        }
+	}
       else
-        {
-          *service++ = 0;
-          if (strcmp (node, "*") == 0)
-            node = NULL;
+	{
+	  *service++ = 0;
+	  if (strcmp (node, "*") == 0)
+	    node = NULL;
 	  else
 	    {
 	      serv_node = newstr (node);
 	      serv_node_offset = 0;
 	    }
-        }
+	}
 
       if (strncmp (service, TCPMUX_TOKEN, MUX_LEN) == 0)
 	{
@@ -1123,7 +1115,7 @@ getconfigent (FILE *fconfig, const char *file, size_t *line)
 	      sep->se_v4mapped = 0;
 	      /* Check for tcp6only and udp6only.  */
 	      if (strcmp (&sep->se_proto[3], "6only") == 0)
-	        sep->se_v4mapped = 0;
+		sep->se_v4mapped = 0;
 	    }
 	  else if (sep->se_proto[3] == '4')
 	    {
@@ -1144,7 +1136,7 @@ getconfigent (FILE *fconfig, const char *file, size_t *line)
       {
 	char *p, *q;
 
-	p = strchr(argv[INETD_WAIT], '.');
+	p = strchr (argv[INETD_WAIT], '.');
 	if (p)
 	  *p++ = 0;
 	if (strcmp (argv[INETD_WAIT], "wait") == 0)
@@ -1158,7 +1150,7 @@ getconfigent (FILE *fconfig, const char *file, size_t *line)
 	  }
 	if (p)
 	  {
-	    sep->se_max = strtoul(p, &q, 10);
+	    sep->se_max = strtoul (p, &q, 10);
 	    if (*q)
 	      syslog (LOG_WARNING, "%s:%lu: invalid number (%s)",
 		      file, (unsigned long) *line, p);
@@ -1247,7 +1239,7 @@ getconfigent (FILE *fconfig, const char *file, size_t *line)
 	    argv0++;
 	  else
 	    argv0 = sep->se_server;
-          sep->se_argv[0] = newstr (argv0);
+	  sep->se_argv[0] = newstr (argv0);
 	}
 
       sep->se_argv[i] = NULL;
@@ -1376,7 +1368,8 @@ fix_tcpmux (void)
 	  /* Should not happen */
 	  freeconfig (&serv);
 	  if (debug)
-	    fprintf (stderr, "INTERNAL ERROR: could not find tcpmux built-in");
+	    fprintf (stderr,
+		     "INTERNAL ERROR: could not find tcpmux built-in");
 	  syslog (LOG_ERR, "INTERNAL ERROR: could not find tcpmux built-in");
 	  return;
 	}
@@ -1463,8 +1456,8 @@ config (int signo)
 
   fix_tcpmux ();
 }
-
 
+
 
 void
 set_proc_title (char *a, int s)
@@ -1525,7 +1518,7 @@ echo_stream (int s, struct servtab *sep)
 
 /* Echo service -- echo data back */
 void
-echo_dg (int s, struct servtab *sep _GL_UNUSED_PARAMETER)
+echo_dg (int s, struct servtab *sep MAYBE_UNUSED)
 {
   char buffer[BUFSIZE];
   int i;
@@ -1563,7 +1556,7 @@ discard_stream (int s, struct servtab *sep)
 
 void
 /* Discard service -- ignore data */
-discard_dg (int s, struct servtab *sep _GL_UNUSED_PARAMETER)
+discard_dg (int s, struct servtab *sep MAYBE_UNUSED)
 {
   char buffer[BUFSIZE];
 
@@ -1624,7 +1617,7 @@ chargen_stream (int s, struct servtab *sep)
 
 /* Character generator */
 void
-chargen_dg (int s, struct servtab *sep _GL_UNUSED_PARAMETER)
+chargen_dg (int s, struct servtab *sep MAYBE_UNUSED)
 {
 #ifdef IPV6
   struct sockaddr_storage sa;
@@ -1686,7 +1679,7 @@ machtime (void)
 }
 
 void
-machtime_stream (int s, struct servtab *sep _GL_UNUSED_PARAMETER)
+machtime_stream (int s, struct servtab *sep MAYBE_UNUSED)
 {
   long result;
 
@@ -1695,7 +1688,7 @@ machtime_stream (int s, struct servtab *sep _GL_UNUSED_PARAMETER)
 }
 
 void
-machtime_dg (int s, struct servtab *sep _GL_UNUSED_PARAMETER)
+machtime_dg (int s, struct servtab *sep MAYBE_UNUSED)
 {
   long result;
 #ifdef IPV6
@@ -1716,7 +1709,7 @@ machtime_dg (int s, struct servtab *sep _GL_UNUSED_PARAMETER)
 
 void
 /* Return human-readable time of day */
-daytime_stream (int s, struct servtab *sep _GL_UNUSED_PARAMETER)
+daytime_stream (int s, struct servtab *sep MAYBE_UNUSED)
 {
   char buffer[256];
   time_t lclock;
@@ -1729,7 +1722,7 @@ daytime_stream (int s, struct servtab *sep _GL_UNUSED_PARAMETER)
 
 /* Return human-readable time of day */
 void
-daytime_dg (int s, struct servtab *sep _GL_UNUSED_PARAMETER)
+daytime_dg (int s, struct servtab *sep MAYBE_UNUSED)
 {
   char buffer[256];
   time_t lclock;
@@ -1868,8 +1861,8 @@ prepenv (int ctrl, struct sockaddr *sa_client, socklen_t sa_len)
   else
     {
       ret = getnameinfo ((struct sockaddr *) &sa_server, len,
-			  ip, sizeof (ip), str, sizeof (str),
-			  NI_NUMERICHOST | NI_NUMERICSERV);
+			 ip, sizeof (ip), str, sizeof (str),
+			 NI_NUMERICHOST | NI_NUMERICSERV);
       if (ret == 0)
 	{
 	  if (setenv ("TCPLOCALIP", ip, 1) < 0)
@@ -1886,7 +1879,7 @@ prepenv (int ctrl, struct sockaddr *sa_client, socklen_t sa_len)
       if (resolve_option)
 	{
 	  ret = getnameinfo ((struct sockaddr *) &sa_server, len,
-			      ip, sizeof (ip), NULL, 0, 0);
+			     ip, sizeof (ip), NULL, 0, 0);
 	  if (ret != 0)
 	    syslog (LOG_WARNING, "getnameinfo: %s", gai_strerror (ret));
 	  else if (setenv ("TCPLOCALHOST", ip, 1) < 0)
@@ -1895,7 +1888,7 @@ prepenv (int ctrl, struct sockaddr *sa_client, socklen_t sa_len)
     }
 
   ret = getnameinfo (sa_client, sa_len, ip, sizeof (ip), str, sizeof (str),
-		      NI_NUMERICHOST | NI_NUMERICSERV);
+		     NI_NUMERICHOST | NI_NUMERICSERV);
   if (ret == 0)
     {
       if (setenv ("TCPREMOTEIP", ip, 1) < 0)
@@ -1920,8 +1913,8 @@ prepenv (int ctrl, struct sockaddr *sa_client, socklen_t sa_len)
   else
     syslog (LOG_WARNING, "getnameinfo: %s", gai_strerror (ret));
 }
-
 
+
 
 int
 main (int argc, char *argv[], char *envp[])
@@ -1976,19 +1969,18 @@ main (int argc, char *argv[], char *envp[])
   openlog ("inetd", LOG_PID | LOG_NOWAIT, LOG_DAEMON);
 
   if (pidfile_option)
-  {
-    FILE *fp = fopen (pid_file, "w");
-    if (fp != NULL)
-      {
-	if (debug)
-	  fprintf(stderr, "Using pid-file at \"%s\".\n", pid_file);
-	fprintf (fp, "%d\n", (int) getpid ());
-	fclose (fp);
-      }
-    else
-      syslog (LOG_CRIT, "can't open %s: %s\n", pid_file,
-	      strerror (errno));
-  }
+    {
+      FILE *fp = fopen (pid_file, "w");
+      if (fp != NULL)
+	{
+	  if (debug)
+	    fprintf (stderr, "Using pid-file at \"%s\".\n", pid_file);
+	  fprintf (fp, "%d\n", (int) getpid ());
+	  fclose (fp);
+	}
+      else
+	syslog (LOG_CRIT, "can't open %s: %s\n", pid_file, strerror (errno));
+    }
 
   signal_set_handler (SIGALRM, retry);
   config (0);
@@ -2086,7 +2078,7 @@ main (int argc, char *argv[], char *envp[])
 				"%s/%s server failing (looping), service terminated",
 				sep->se_service, sep->se_proto);
 			close_sep (sep);
-			if (! sep->se_wait && sep->se_socktype == SOCK_STREAM)
+			if (!sep->se_wait && sep->se_socktype == SOCK_STREAM)
 			  close (ctrl);
 			signal_unblock (NULL);
 			if (!timingout)

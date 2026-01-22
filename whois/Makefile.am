@@ -1,7 +1,5 @@
 #
-# Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-# 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017,
-# 2018, 2019, 2020, 2021 Free Software Foundation, Inc.
+# Copyright (C) 1998-2025 Free Software Foundation, Inc.
 #
 # This file is part of GNU Inetutils.
 #
@@ -27,6 +25,8 @@ bin_PROGRAMS = $(whois_BUILD)
 EXTRA_PROGRAMS = whois
 
 whois_SOURCES = whois.c
+whois_LDADD = $(LDADD) $(LIBSOCKET) $(HOSTENT_LIB) $(LIBINTL) \
+  $(GETADDRINFO_LIB)
 
 EXTRA_DIST = as_del_list ip_del_list ip6_del_list tld_serv_list \
   make_as_del.pl  make_ip_del.pl make_ip6_del.pl make_tld_serv.pl \

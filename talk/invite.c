@@ -1,8 +1,5 @@
 /*
-  Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-  2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
-  2015, 2016, 2017, 2018, 2019, 2020, 2021 Free Software Foundation,
-  Inc.
+  Copyright (C) 1995-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -62,7 +59,7 @@
 #include <errno.h>
 #include <unistd.h>
 #include <setjmp.h>
-#include <unused-parameter.h>
+#include <attribute.h>
 #include "talk_ctl.h"
 #include "talk.h"
 
@@ -114,10 +111,10 @@ announce_invite (void)
 }
 
 /*
- * Routine called on interupt to re-invite the callee
+ * Routine called on interrupt to re-invite the callee
  */
 void
-re_invite (int sig _GL_UNUSED_PARAMETER)
+re_invite (int sig MAYBE_UNUSED)
 {
 
   message ("Ringing your party again");
@@ -151,7 +148,7 @@ invite_remote (void)
   announce_invite ();
   /*
    * Shut off the automatic messages for a while,
-   * so we can use the interupt timer to resend the invitation
+   * so we can use the interrupt timer to resend the invitation
    */
   end_msgs ();
   setitimer (ITIMER_REAL, &itimer, (struct itimerval *) 0);

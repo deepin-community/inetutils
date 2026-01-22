@@ -1,6 +1,181 @@
 GNU inetutils NEWS -- history of user-visible changes.
 
-* Noteworthy changes in release 2.2 (2021-09-01) [stable]
+# Noteworthy changes in release 2.7 (2025-12-14) [stable]
+
+** Systems without asprintf are now supported through the use of gnulib.
+
+** Fix link errors on Solaris 11 OmniOS.
+
+** ftpd: Expanded documentation of user authentication rules.
+Thanks to Benjamin Cathelineau, see
+<https://lists.gnu.org/archive/html/bug-inetutils/2025-10/msg00000.html>.
+
+** syslogd: Fix a stack-based buffer overflow (CWE-121).
+
+** syslogd: Log 'DEL' control characters as '^?'.
+
+** Fix codespell typos.
+
+** syslogd, talkd: Better compatibility with utmp-less GNU/Linux systems
+when configuring with --enable-systemd.
+Thanks to Valentin Haudiquet for reporting the issue and testing possible
+solutions.  For more info, see the thread starting at
+<https://lists.gnu.org/archive/html/bug-inetutils/2025-11/msg00000.html>.
+
+** README and NEWS now uses markdown syntax.
+
+# Noteworthy changes in release 2.6 (2025-02-21) [stable]
+
+** The release tarball is now reproducible.
+The following pairs are tested continuously: Trisquel 11 and Ubuntu
+22.04, PureOS 10 and Debian 11, AlmaLinux 8 and RockyLinux 8,
+AlmaLinux 9 and RockyLinux 9.
+
+** syslogd: Build fixes for macOS.
+Thanks to Rui Chen and Caleb Xu, see
+<https://savannah.gnu.org/bugs/?65093>.
+
+** Fix link errors of syslogd, talkd and tests/readutmp for --with-systemd.
+Thanks to Collin Funk:
+https://lists.gnu.org/archive/html/bug-inetutils/2024-03/msg00000.html
+
+** ifconfig: With -A, reject invalid prefix length specifications, and
+correctly handle a prefix length of 0.
+
+** ifconfig: Fix a 'dynamic-stack-buffer-overflow' detected by AddressSanitizer
+when using the --format or --short option. More details in
+<https://lists.gnu.org/archive/html/bug-inetutils/2024-05/msg00020.html>.
+
+** Inetutils can now be built with C23 compilers.
+Except for when configured to support Kerberos 4.
+
+** telnet: Fix signed integer overflow handling when using any of the
+commands `send do`, `send dont`, `send will`, or `send wont` with a
+numerical argument.  On some systems a signed integer overflow using
+one of these commands could have lead to an out-of-bounds array access
+usually resulting in a crash.
+
+** tests/libls.sh: Work better in container environments (pipelines).
+Systems with incomplete /etc/passwd (for uid to username mapping) and
+builds where srcdir/builddir is not useful as a test directory due to
+spurious unrelated files.
+
+** The release tarball uses tar --format=ustar.
+Some other flags are added too, to follow these recommendations:
+https://www.gnu.org/software/tar/manual/html_node/Reproducibility.html
+For reference, the GNUMakefile file from gnulib add to TAR_OPTIONS:
+
+--owner=0 --group=0 numeric-owner --sort=name
+
+The cfg.mk file further add:
+
+--mode=go+u,go-w --mtime=$(abs_top_srcdir)/NEWS
+
+The modification time of NEWS is always set to last git commit time
+before release, see mtime-NEWS-to-git-HEAD in Makefile.am.
+
+We hope that the tarball produced this way is usable on all host but
+please let us know if you run into troubles like unpacking the tarball
+or that some generated file is rebuilt needlessly requiring some
+maintainer tool that shouldn't normally be needed.
+
+** ChangeLog entries for recent releases are now in ChangeLog.2.
+The ChangeLog file contains entries since the last release only;
+earlier entries are found in ChangeLog.0, ChangeLog.1 or ChangeLog.2
+depending on age.  This allows the ChangeLog file to be dynamically
+generated even from a shallow git clone that only contain commits
+since the last release.
+
+# Noteworthy changes in release 2.5 (2023-12-29) [stable]
+
+** ftpd, rcp, rlogin, rsh, rshd, uucpd
+
+*** Avoid potential privilege escalations by checking set*id() return values.
+Reported by Jeffrey Bencteux in
+<https://lists.gnu.org/archive/html/bug-inetutils/2023-07/msg00000.html>.
+
+** ping6
+
+*** Support RFC 4443 ICMPv6 destination unreachable messages.
+Tiny patch contributed by Enrik Berkhan <Enrik.Berkhan@inka.de> in
+<https://lists.gnu.org/archive/html/bug-inetutils/2023-01/msg00000.html>
+
+** Various bugs fixes, internal improvements and clean ups.
+The code is now indented using GNU indent 2.2.13.
+
+# Noteworthy changes in release 2.4 (2022-10-25) [stable]
+
+** ifconfig
+
+*** Support specifying prefix netmask lengths in -A.
+Patch by Samuel Thibault <samuel.thibault@gnu.org>.
+
+** Hurd: tell pfinet translator interfaces to configure
+Patch by Samuel Thibault <samuel.thibault@gnu.org>.
+
+** ftp
+
+*** Avoid crash caused by signed integer overflow resulting in
+out-of-bounds buffer access.  Reported by AiDai in
+<https://lists.gnu.org/archive/html/bug-inetutils/2021-12/msg00003.html>.
+
+*** Avoid crash caused by heap buffer overflow.  Reported by ZFeiXQ in
+<https://lists.gnu.org/archive/html/bug-inetutils/2021-12/msg00016.html>.
+
+*** Avoid crash caused by NULL pointer dereference.  Reported by AiDai in
+<https://lists.gnu.org/archive/html/bug-inetutils/2021-12/msg00004.html>.
+
+*** Avoid crash caused by infinite macro recursion.  Reported by AiDai in
+<https://lists.gnu.org/archive/html/bug-inetutils/2021-12/msg00005.html>.
+
+** telnetd
+
+*** Avoid crash on 0xff 0xf7 (IAC EC) or 0xff 0xf8 (IAC EL).  CVE-2022-39028
+https://pierrekim.github.io/blog/2022-08-24-2-byte-dos-freebsd-netbsd-telnetd-netkit-telnetd-inetutils-telnetd-kerberos-telnetd.html
+
+** telnet
+
+*** Fix a buffer overflow problem.  CVE-2019-0053
+https://cgit.freebsd.org/src/commit/?id=14aab889f4e50072a6b914eb95ebbfa939539dad
+
+** tftp
+
+*** Avoid crashing when given unexpected or invalid commands from tty.
+Reported by AiDai in
+<https://lists.gnu.org/archive/html/bug-inetutils/2021-12/msg00018.html>.
+
+** Various bugs fixes, internal improvements and clean ups.
+Update of gnulib and build fixes for C23.
+
+# Noteworthy changes in release 2.3 (2022-07-08) [stable]
+
+** telnet
+
+*** Don't infloop when (malicious) server sends too large terminal
+value, see: https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=945861
+
+*** Abort subnegotiation of X Display Location Option with WONT when
+DISPLAY value is too large for buffer.  Reported by Joerg Mayer in
+<https://lists.gnu.org/archive/html/bug-inetutils/2022-01/msg00010.html>.
+
+*** Fix off-by-one error in Terminal-Type option subnegotiation if the
+TERM variable has exactly 44 bytes.  This concerns the CVE-2019-0053
+fixes.  Reported by Erik Auerswald in
+<https://lists.gnu.org/archive/html/bug-inetutils/2022-02/msg00004.html>.
+
+*** Avoid crashing when given unexpected or invalid commands from tty.
+Reported by Peter Kasza in
+<https://lists.gnu.org/archive/html/bug-inetutils/2017-06/msg00000.html>,
+AiDai in <https://savannah.gnu.org/bugs/?61725> and
+<https://savannah.gnu.org/bugs/?61726>, and ZFeiXQ in
+<https://lists.gnu.org/archive/html/bug-inetutils/2021-12/msg00017.html>.
+
+** Various bugs fixes, internal improvements and clean ups.
+
+Further cleanup of configure.ac, updates to modern autoconf releases,
+and improved gnulib usage.
+
+# Noteworthy changes in release 2.2 (2021-09-01) [stable]
 
 ** ftp
 
@@ -27,7 +202,7 @@ since we rely on gnulib for portability.
 The tests/ftp-localhost.sh self-test no longer fails on platforms
 where sysctl is missing.
 
-* Noteworthy changes in release 2.1 (2021-07-24) [stable]
+# Noteworthy changes in release 2.1 (2021-07-24) [stable]
 
 ** ftp
 
@@ -55,7 +230,7 @@ Updated whois servers for .ORG and .IN.
 ChangeLog is now automatically generated from version controlled logs.
 Historical information is preserved as ChangeLog.0 and ChangeLog.1.
 
-* Noteworthy changes in release 2.0 (2021-02-05) [stable]
+# Noteworthy changes in release 2.0 (2021-02-05) [stable]
 
 * ping
 
@@ -227,15 +402,14 @@ Old host name no longer exists.  Reported by Neil Mayhem:
 http://lists.gnu.org/archive/html/bug-inetutils/2017-01/msg00000.html
 
 * Improved documentation, self-tests and build environment.
-
-* Noteworthy changes in release 1.9.4 (2015-06-09) [stable]
+
+# Noteworthy changes in release 1.9.4 (2015-06-09) [stable]
 
 This is a minor bug release that fixes a regression in `ifconfig'.
 The issue was reported by Juergen Daubert in
 http://lists.gnu.org/archive/html/bug-inetutils/2015-05/msg00002.html
-
-May 12, 2015
-Version 1.9.3:
+
+# Noteworthy changes in release 1.9.3 (2015-05-12) [stable]
 
 * ftp
 
@@ -295,9 +469,8 @@ protocol data.  The issue should now be resolved.
 
 Improved cooperation with servers like `whois.arin.net', `whois.eu',
 and `whois.ripe.net'.
-
-December 23, 2013
-Version 1.9.2:
+
+# Noteworthy changes in release 1.9.2 (2013-12-23) [stable]
 
 An advisory file CHECKLIST containing testing and verification advice
 has been added, pointing administrators to important properties and
@@ -434,14 +607,12 @@ New switches `-g/--group', `-s/--secure-dir', and `-u/--user'.
 * uucpd
 
 New switch `-u/--uucico'.
-
-January 6, 2012
-Version 1.9.1:
+
+# Noteworthy changes in release 1.9.1 (2012-01-06) [stable]
 
 * Don't install git-merge-changelog.
-
-December 31, 2011
-Version 1.9:
+
+# Noteworthy changes in release 1.9 (2011-12-31) [stable]
 
 * Security fixes
 
@@ -478,7 +649,7 @@ http://www.citi.umich.edu/u/provos/papers/secnet-spoof.txt
 Now under GNU/Linux "ifconfig -a" shows also interfaces without an
 address.
 
-Adjusted output formating for "unix".
+Adjusted output formatting for "unix".
 
 * ping
 
@@ -486,9 +657,8 @@ Now supports -W parameter to specify number of seconds to wait for
 response.
 
 * Various bugs fixes, internal improvements and clean ups.
-
-May 15, 2010
-Version 1.8:
+
+# Noteworthy changes in release 1.8 (2010-05-15) [stable]
 
 * ftp
 
@@ -528,9 +698,8 @@ format definitions.
 * Man pages for the daemons are now in section 8 instead of 1.
 
 * There is now a man page for ping6 too.
-
-December 16, 2009
-Version 1.7:
+
+# Noteworthy changes in release 1.7 (2009-12-16) [stable]
 
 * ping
 
@@ -558,9 +727,7 @@ Command line parsing now uses argp.
 
 * Man pages for all tools are generated using help2man.
 
-
-December 27, 2008
-Version 1.6:
+# Noteworthy changes in release 1.6 (2008-12-27) [stable]
 
 * Various bugs fixes and clean ups.
 
@@ -584,9 +751,8 @@ globally (affecting several services).
 
 It is possible to limit the number of service instances for `nowait'
 services.
-
-October 21, 2006
-Version 1.5:
+
+# Noteworthy changes in release 1.5 (2006-10-21) [stable]
 
 * Various bugs fixes and clean ups.
 
@@ -615,20 +781,18 @@ them via environment.
 
 * telnet not subject to certain DNS spoofing techniques that could
   possibly foil Kerberos authentication.
-
-December 22, 2002
-Version 1.4.2:
 
-* Fix endianess problem in ftpd.
+# Noteworthy changes in release 1.4.2 (2002-12-22) [stable]
+
+* Fix endianness problem in ftpd.
 
 * Various portability updates.
 
 * Security fix for rexecd/rshd.
 
 * Fix processing accumulated messages in syslogd
-
-September 02, 2002
-Version 1.4.1:
+
+# Noteworthy changes in release 1.4.1 (2002-09-02) [stable]
 
 * Fixes a build problem on Solaris
 
@@ -641,10 +805,9 @@ Version 1.4.1:
 
 * The syntax of syslog.conf file has been extended. The new
   wildcard facility specification, **, catches all messages with
-  a facility not specified explicitely in the configuration file.
-
-July 31, 2002
-Version 1.4.0:
+  a facility not specified explicitly in the configuration file.
+
+# Noteworthy changes in release 1.4.0 (2002-07-31) [stable]
 
 * It is now possible to specify whether to compile individual
   utilities using arguments to configure.
@@ -671,58 +834,56 @@ Version 1.4.0:
   line.
 
 * Inetutils should generally compile on most platforms now.
-
-March, 13, 1998
-Version 1.3.2:
 
- This release attempts to get the encryption/authentication options to
- compile correctly; they appear to work on systems with the appropriate
- libraries, but have not been well tested.
-
-September, 11, 1997
-Version 1.3.1:
+# Noteworthy changes in release 1.3.2 (1998-03-13) [stable]
 
- This release fixes various small problems.
+This release attempts to get the encryption/authentication options to
+compile correctly; they appear to work on systems with the appropriate
+libraries, but have not been well tested.
 
- Telnet now won't force the stripping of 8-bit characters when not in binary
- mode (it will leave the terminal in whatever state it was originally).
-
-February, 25, 1997
-Version 1.3:
+# Noteworthy changes in release 1.3.1 (1997-09-11) [stable]
 
- More portable again than 1.2.  It is still very BSD-specific, but now
- works on many popular systems, such as linux and sunos/solaris.
+This release fixes various small problems.
 
- The talk program finally seems to work.
+Telnet now won't force the stripping of 8-bit characters when not in binary
+mode (it will leave the terminal in whatever state it was originally).
 
- ftp now supports a --prompt option to force it to print a prompt, even
- when not on a tty (this makes it possible to use ange-ftp with pipes).
+# Noteworthy changes in release 1.3 (1997-02-25) [stable]
 
- rsh now supports long options.
+More portable again than 1.2.  It is still very BSD-specific, but now
+works on many popular systems, such as linux and sunos/solaris.
 
- Many security fixes have been made, so this release should be more secure
- than previous ones.
-
-August, 21, 1996
-Version 1.2:
+The talk program finally seems to work.
 
- An attempt to be somewhat more portable, and reorganize the code to make
- porting a bit easier; it is still very BSD-specific.
+ftp now supports a --prompt option to force it to print a prompt, even
+when not on a tty (this makes it possible to use ange-ftp with pipes).
 
- A major bug in ftpd bug that prevents most logins from succeeding is
- fixed, as well as other, more minor, bugs.
-
-Version 1.1:
+rsh now supports long options.
 
- A minor release intended only for the GNU hurd.
+Many security fixes have been made, so this release should be more secure
+than previous ones.
 
- This release adds checking for crypt at both compile and runtime (on
- systems where weak refs are supported).
-
+# Noteworthy changes in release 1.2 (1996-08-21) [stable]
+
+An attempt to be somewhat more portable, and reorganize the code to make
+porting a bit easier; it is still very BSD-specific.
+
+A major bug in ftpd bug that prevents most logins from succeeding is
+fixed, as well as other, more minor, bugs.
+
+# Noteworthy changes in release 1.1 (1996-06-30) [stable]
+
+A minor release intended only for the GNU hurd.
+
+This release adds checking for crypt at both compile and runtime (on
+systems where weak refs are supported).
+
+# Noteworthy changes in release 1.0 (1996-06-09) [stable]
+
+Never released, corresponds to first use of GNU inetutils 1.0 in CVS.
+
 ----------------------------------------------------------------------
-Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017,
-2018, 2019, 2020, 2021 Free Software Foundation, Inc.
+Copyright (C) 1997-2025 Free Software Foundation, Inc.
 
 Permission is granted to anyone to make or distribute verbatim copies
 of this document as received, in any medium, provided that the
@@ -732,8 +893,3 @@ the recipient permission to redistribute in turn.
 Permission is granted to distribute modified versions of this
 document, or of portions of it, under the above conditions, provided
 also that they carry prominent notices stating who last changed them.
-
-Local variables:
-mode: outline
-paragraph-separate: "[	 ]*$"
-end:

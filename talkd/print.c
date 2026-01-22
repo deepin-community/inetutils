@@ -1,7 +1,5 @@
 /*
-  Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-  2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015,
-  2016, 2017, 2018, 2019, 2020, 2021 Free Software Foundation, Inc.
+  Copyright (C) 1996-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -60,7 +58,7 @@ _xlat_num (int num, const char *array[], int size)
 }
 
 int
-print_request (const char *cp, CTL_MSG * mp)
+print_request (const char *cp, CTL_MSG *mp)
 {
   syslog (LOG_DEBUG, "%s: %s: id %d, l_user %s, r_user %s, r_tty %s",
 	  cp, _xlat_num (mp->type, message_types, NITEMS (message_types)),
@@ -69,7 +67,7 @@ print_request (const char *cp, CTL_MSG * mp)
 }
 
 int
-print_response (const char *cp, CTL_RESPONSE * rp)
+print_response (const char *cp, CTL_RESPONSE *rp)
 {
   syslog (LOG_DEBUG, "%s: %s: %s, id %d",
 	  cp,

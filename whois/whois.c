@@ -1,7 +1,5 @@
 /*
-  Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-  2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017,
-  2018, 2019, 2020, 2021 Free Software Foundation, Inc.
+  Copyright (C) 1998-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -41,7 +39,7 @@
 #define obstack_chunk_free free
 #include <obstack.h>
 #include <error.h>
-#include <unused-parameter.h>
+#include <attribute.h>
 #include <libinetutils.h>
 
 /* Application-specific */
@@ -64,46 +62,45 @@ int nopar = 0;
 
 static struct argp_option ripe_argp_options[] = {
 #define GRP 10
-  { NULL, 'a', NULL, 0,
-    "search all databases", GRP },
-  { NULL, 'F', NULL, 0,
-    "fast raw output (implies -r)", GRP },
-  { NULL, 'g', "SOURCE:FIRST-LAST", 0,
-    "find updates from SOURCE from serial FIRST to LAST", GRP },
-  { NULL, 'i', "ATTR[,ATTR]...", 0,
-    "do an inverse lookup for specified ATTRibutes", GRP },
-  { NULL, 'l', NULL, 0,
-    "one level less specific lookup (RPSL only)", GRP },
-  { NULL, 'L', NULL, 0,
-    "find all Less specific matches", GRP },
-  { NULL, 'M', NULL, 0,
-    "find all More specific matches", GRP },
-  { NULL, 'm', NULL, 0,
-    "find first level more specific matches", GRP },
-  { NULL, 'r', NULL, 0,
-    "turn off recursive lookups", GRP },
-  { NULL, 'R', NULL, 0,
-    "force to show local copy of the domain object even "
-    "if it contains referral", GRP },
-  { NULL, 'S', NULL, 0,
-    "tell server to leave out syntactic sugar", GRP },
-  { NULL, 's', "SOURCE[,SOURCE]...", 0,
-    "search the database from SOURCE", GRP },
-  { NULL, 'T', "TYPE[,TYPE]...", 0,
-    "only look for objects of TYPE", GRP },
-  { NULL, 'q', "version|sources", 0,
-    "query specified server info (RPSL only)", GRP },
-  { NULL, 't', "TYPE", 0,
-    "requests template for object of TYPE ('all' for a list)", GRP },
-  { NULL, 'x', NULL, 0,
-    "exact match only (RPSL only)", GRP },
+  {NULL, 'a', NULL, 0,
+   "search all databases", GRP},
+  {NULL, 'F', NULL, 0,
+   "fast raw output (implies -r)", GRP},
+  {NULL, 'g', "SOURCE:FIRST-LAST", 0,
+   "find updates from SOURCE from serial FIRST to LAST", GRP},
+  {NULL, 'i', "ATTR[,ATTR]...", 0,
+   "do an inverse lookup for specified ATTRibutes", GRP},
+  {NULL, 'l', NULL, 0,
+   "one level less specific lookup (RPSL only)", GRP},
+  {NULL, 'L', NULL, 0,
+   "find all Less specific matches", GRP},
+  {NULL, 'M', NULL, 0,
+   "find all More specific matches", GRP},
+  {NULL, 'm', NULL, 0,
+   "find first level more specific matches", GRP},
+  {NULL, 'r', NULL, 0,
+   "turn off recursive lookups", GRP},
+  {NULL, 'R', NULL, 0,
+   "force to show local copy of the domain object even "
+   "if it contains referral", GRP},
+  {NULL, 'S', NULL, 0,
+   "tell server to leave out syntactic sugar", GRP},
+  {NULL, 's', "SOURCE[,SOURCE]...", 0,
+   "search the database from SOURCE", GRP},
+  {NULL, 'T', "TYPE[,TYPE]...", 0,
+   "only look for objects of TYPE", GRP},
+  {NULL, 'q', "version|sources", 0,
+   "query specified server info (RPSL only)", GRP},
+  {NULL, 't', "TYPE", 0,
+   "requests template for object of TYPE ('all' for a list)", GRP},
+  {NULL, 'x', NULL, 0,
+   "exact match only (RPSL only)", GRP},
 #undef GRP
-  { NULL, 0, NULL, 0, NULL, 0 }
+  {NULL, 0, NULL, 0, NULL, 0}
 };
 
 static error_t
-ripe_argp_parser (int key, char *arg,
-		  struct argp_state *state _GL_UNUSED_PARAMETER)
+ripe_argp_parser (int key, char *arg, struct argp_state *state MAYBE_UNUSED)
 {
   if (key > 0 && (unsigned) key < 128)
     {
@@ -127,22 +124,21 @@ static struct argp ripe_argp =
 
 static struct argp_option gwhois_argp_options[] = {
 #define GRP 20
-  { NULL, 0, NULL, 0, "General options", GRP },
-  { "verbose", 'V', NULL, 0,
-    "explain what is being done", GRP },
-  { "server", 'h', "HOST", 0,
-    "connect to server HOST", GRP},
-  { "port", 'p', "PORT", 0,
-    "connect to PORT", GRP },
-  { NULL, 'H', NULL, 0,
-    "hide legal disclaimers", GRP },
+  {NULL, 0, NULL, 0, "General options", GRP},
+  {"verbose", 'V', NULL, 0,
+   "explain what is being done", GRP},
+  {"server", 'h', "HOST", 0,
+   "connect to server HOST", GRP},
+  {"port", 'p', "PORT", 0,
+   "connect to PORT", GRP},
+  {NULL, 'H', NULL, 0,
+   "hide legal disclaimers", GRP},
 #undef GRP
-  { NULL, 0, NULL, 0, NULL, 0 }
+  {NULL, 0, NULL, 0, NULL, 0}
 };
 
 static error_t
-gwhois_argp_parser (int key, char *arg,
-		    struct argp_state *state _GL_UNUSED_PARAMETER)
+gwhois_argp_parser (int key, char *arg, struct argp_state *state MAYBE_UNUSED)
 {
   char *p, *q;
 
@@ -157,7 +153,7 @@ gwhois_argp_parser (int key, char *arg,
       break;
 
     case 'H':
-      hide_discl = 0;	/* enable disclaimers hiding */
+      hide_discl = 0;		/* enable disclaimers hiding */
       break;
 
     case 'p':
@@ -175,12 +171,11 @@ gwhois_argp_parser (int key, char *arg,
 }
 
 struct argp_child gwhois_argp_children[] = {
-  { &ripe_argp,
-    0,
-    "RIPE-specific options",
-    0
-    },
-  { NULL, 0, NULL, 0 }
+  {&ripe_argp,
+   0,
+   "RIPE-specific options",
+   0},
+  {NULL, 0, NULL, 0}
 };
 
 static struct argp gwhois_argp = {
@@ -193,11 +188,10 @@ static struct argp gwhois_argp = {
   NULL
 };
 
-const char *program_authors[] =
-  {
-    "Marco d'Itri",
-    NULL
-  };
+const char *program_authors[] = {
+  "Marco d'Itri",
+  NULL
+};
 
 int
 main (int argc, char *argv[])
@@ -389,7 +383,7 @@ whichwhois (const char *s)
       return "whois.arin.net";
     }
 
-  /* has dot and hypen and it's not in tld_serv[], WTF is it? */
+  /* has dot and hyphen and it's not in tld_serv[], WTF is it? */
   if (verb)
     puts (_("I guess it's a domain but I don't know where to look it"
 	    " up."));
@@ -410,7 +404,7 @@ whereas (int asn, struct as_del aslist[])
 }
 
 int
-is_ripe_server (const char * const *srvtab, const char *name)
+is_ripe_server (const char *const *srvtab, const char *name)
 {
   struct in_addr addr;
   int isip = 0;
@@ -428,7 +422,7 @@ is_ripe_server (const char * const *srvtab, const char *name)
 	{
 	  char **pa;
 	  for (pa = hp->h_addr_list; *pa; pa++)
-	    if (*(unsigned long*)*pa == addr.s_addr)
+	    if (*(unsigned long *) *pa == addr.s_addr)
 	      return 1;
 	}
     }
@@ -446,7 +440,7 @@ queryformat (const char *server, const char *flags, const char *query)
   *buf = '\0';
 
   isripe = is_ripe_server (ripe_servers, server)
-            || is_ripe_server (ripe_servers_old, server);
+    || is_ripe_server (ripe_servers_old, server);
   if (isripe)
     strcat (buf, "-V" IDSTRING " ");
 
@@ -600,7 +594,8 @@ openconn (const char *server, const char *port)
    * into legal and functional aliases.
    */
   if ((i = getaddrinfo (server, port ? port : "whois", &hints, &res)) != 0)
-    if ((i = getaddrinfo (server, port ? port : "nicname", &hints, &res)) != 0)
+    if ((i =
+	 getaddrinfo (server, port ? port : "nicname", &hints, &res)) != 0)
       err_quit ("getaddrinfo: %s", gai_strerror (i));
 
   for (ressave = res; res; res = res->ai_next)

@@ -1,7 +1,6 @@
 #!/bin/sh
 
-# Copyright (C) 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019,
-# 2020, 2021 Free Software Foundation, Inc.
+# Copyright (C) 2011-2025 Free Software Foundation, Inc.
 #
 # This file is part of GNU Inetutils.
 #
@@ -65,7 +64,7 @@ TARGET=${TARGET:-127.0.0.1}
 TARGET6=${TARGET6:-::1}
 TARGET46=${TARGET46:-::ffff:$TARGET}
 
-# Step into `tests/', should the invokation
+# Step into `tests/', should the invocation
 # have been made outside of it.
 #
 test -d src && test -f tests/telnet-localhost.sh && cd tests/
@@ -103,6 +102,59 @@ if test "$TEST_IPV4" = "no" && test "$TEST_IPV6" = "no"; then
     echo >&2 "Inet socket testing is disabled.  Skipping test."
     exit 77
 fi
+
+# Check regression of crash reported here:
+# https://lists.gnu.org/archive/html/bug-inetutils/2022-02/msg00014.html
+echo 'help z ! ? z ! ? z ! ? z ! ? z ! ? z ! ? z !' | $TELNET > /dev/null 2>&1
+if test $? -ne 0; then
+    echo "Regression of telnet crash bug." >&2
+    exit 1
+fi
+
+# Check regression of crash reported here:
+# https://lists.gnu.org/archive/html/bug-inetutils/2022-02/msg00009.html
+echo 'help help' | $TELNET > /dev/null 2>&1
+if test $? -ne 0; then
+    echo "Regression of telnet second crash bug." >&2
+    exit 1
+fi
+
+# Check regression of crash reported here:
+# https://lists.gnu.org/archive/html/bug-inetutils/2022-02/msg00007.html
+echo "unset ' '" | $TELNET > /dev/null 2>&1
+if test $? -ne 0; then
+    echo "Regression of telnet third crash bug." >&2
+    exit 1
+fi
+
+# Check regression of crash reported here:
+# https://lists.gnu.org/archive/html/bug-inetutils/2022-02/msg00010.html
+echo "set ' ' foo" | $TELNET > /dev/null 2>&1
+if test $? -ne 0; then
+    echo "Regression of telnet fourth crash bug." >&2
+    exit 1
+fi
+
+errno=0
+
+# In non-verbose mode the variables `display' and `display_err'
+# redirect output streams to `/dev/null'.
+
+test -n "${VERBOSE+yes}" || display='>/dev/null'
+test -n "${VERBOSE+yes}" || display_err='2>/dev/null'
+
+# Check regression of integer overflow check reported in:
+# https://lists.gnu.org/archive/html/bug-inetutils/2024-08/msg00007.html
+for value in -2147483649 -1 256 2147483648 9223372036854775808; do
+    for cmd in "do" "dont" "will" "wont"; do
+        output=`echo "send $cmd $value" | $TELNET 2>&1`
+        echo "$output" | eval "$GREP ': bad value ' $display"
+        if test $? -ne 0; then
+            errno=1
+            echo "Failed to catch bad value '$value'." >&2
+        fi
+    done
+done
 
 # Portability fix for SVR4
 PWD="${PWD:-`pwd`}"
@@ -160,13 +212,6 @@ fi
 
 # Must use '-d' consistently to prevent daemonizing, but we
 # would like to suppress the verbose output.
-#
-# In non-verbose mode the variables `display' and `display_err'
-# redirect output streams to `/dev/null'.
-
-test -n "${VERBOSE+yes}" || display='>/dev/null'
-test -n "${VERBOSE+yes}" || display_err='2>/dev/null'
-
 
 eval "$INETD -d -p'$INETD_PID' '$INETD_CONF' $display_err &"
 
@@ -180,7 +225,7 @@ inetd_pid="`cat $INETD_PID 2>/dev/null`" ||
     {
 	cat <<-EOT >&2
 		Inetd did not create a PID-file.  Aborting test,
-		but loosing control whether an Inetd process is
+		but losing control whether an Inetd process is
 		still around.
 	EOT
 	exit 1
@@ -189,8 +234,6 @@ inetd_pid="`cat $INETD_PID 2>/dev/null`" ||
 test -z "$VERBOSE" || echo "Launched Inetd as process $inetd_pid." >&2
 
 telnet_opts="--no-rc --no-escape --no-login"
-
-errno=0
 
 if test "$TEST_IPV4" != "no" && test -n "$TARGET"; then
     output=`$TELNET $telnet_opts $TARGET $PORT 2>/dev/null`
