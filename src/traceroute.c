@@ -1,6 +1,5 @@
 /*
-  Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015,
-  2016, 2017, 2018, 2019, 2020, 2021 Free Software Foundation, Inc.
+  Copyright (C) 2007-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -49,7 +48,8 @@
 #include <limits.h>
 #include <assert.h>
 #include <argp.h>
-#include <unused-parameter.h>
+#include <attribute.h>
+#include <timespec.h>
 #include <icmp.h>
 #ifdef HAVE_LOCALE_H
 # include <locale.h>
@@ -80,7 +80,7 @@ typedef struct trace
   int no_ident;
   struct sockaddr_in to, from;
   int ttl;
-  struct timeval tsent;
+  struct timespec tsent;
 } trace_t;
 
 void trace_init (trace_t * t, const struct sockaddr_in to,
@@ -89,7 +89,7 @@ void trace_ip_opts (struct sockaddr_in *to);
 void trace_inc_ttl (trace_t * t);
 void trace_inc_port (trace_t * t);
 void trace_port (trace_t * t, const unsigned short port);
-int trace_read (trace_t * t, int * type, int * code);
+int trace_read (trace_t * t, int *type, int *code);
 int trace_write (trace_t * t);
 int trace_udp_sock (trace_t * t);
 int trace_icmp_sock (trace_t * t);
@@ -103,7 +103,7 @@ char *get_hostname (struct in_addr *addr);
 
 int stop = 0;
 int pid;
-int seqno;	/* Most recent sequence number.  */
+int seqno;			/* Most recent sequence number.  */
 static char *hostname = NULL;
 char addrstr[INET6_ADDRSTRLEN];
 struct sockaddr_in dest;
@@ -123,7 +123,7 @@ int opt_port = TRACE_UDP_PORT;
 int opt_max_hops = 64;
 static int opt_max_tries = 3;
 int opt_resolve_hostnames = 0;
-int opt_tos = -1;	/* Triggers with non-negative values.  */
+int opt_tos = -1;		/* Triggers with non-negative values.  */
 int opt_ttl = TRACE_TTL;
 int opt_wait = TIME_INTERVAL;
 #ifdef IP_OPTIONS
@@ -133,35 +133,36 @@ char *opt_gateways = NULL;
 const char args_doc[] = "HOST";
 const char doc[] = "Print the route packets trace to network host.";
 const char *program_authors[] = {
-	"Elian Gidoni",
-	NULL
+  "Elian Gidoni",
+  NULL
 };
 
 /* Define keys for long options that do not have short counterparts. */
-enum {
+enum
+{
   OPT_RESOLVE = 256
 };
 
 static struct argp_option argp_options[] = {
 #define GRP 0
   {"first-hop", 'f', "NUM", 0, "set initial hop distance, i.e., time-to-live",
-   GRP+1},
+   GRP + 1},
 #ifdef IP_OPTIONS
   {"gateways", 'g', "GATES", 0, "list of gateways for loose source routing",
-   GRP+1},
+   GRP + 1},
 #endif
-  {"icmp", 'I', NULL, 0, "use ICMP ECHO as probe", GRP+1},
-  {"max-hop", 'm', "NUM", 0, "set maximal hop count (default: 64)", GRP+1},
+  {"icmp", 'I', NULL, 0, "use ICMP ECHO as probe", GRP + 1},
+  {"max-hop", 'm', "NUM", 0, "set maximal hop count (default: 64)", GRP + 1},
   {"port", 'p', "PORT", 0, "use destination PORT port (default: 33434)",
-   GRP+1},
-  {"resolve-hostnames", OPT_RESOLVE, NULL, 0, "resolve hostnames", GRP+1},
-  {"tos", 't', "NUM", 0, "set type of service (TOS) to NUM", GRP+1},
+   GRP + 1},
+  {"resolve-hostnames", OPT_RESOLVE, NULL, 0, "resolve hostnames", GRP + 1},
+  {"tos", 't', "NUM", 0, "set type of service (TOS) to NUM", GRP + 1},
   {"tries", 'q', "NUM", 0, "send NUM probe packets per hop (default: 3)",
-   GRP+1},
+   GRP + 1},
   {"type", 'M', "METHOD", 0, "use METHOD (`icmp' or `udp') for traceroute "
-   "operations, defaulting to `udp'", GRP+1},
+   "operations, defaulting to `udp'", GRP + 1},
   {"wait", 'w', "NUM", 0, "wait NUM seconds for response (default: 3)",
-   GRP+1},
+   GRP + 1},
 #undef GRP
   {NULL, 0, NULL, 0, NULL, 0}
 };
@@ -177,7 +178,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
     case 'f':
       opt_ttl = strtol (arg, &p, 0);
       if (*p || opt_ttl <= 0 || opt_ttl > 255)
-        error (EXIT_FAILURE, 0, "impossible distance `%s'", arg);
+	error (EXIT_FAILURE, 0, "impossible distance `%s'", arg);
       break;
 
 #ifdef IP_OPTIONS
@@ -214,15 +215,15 @@ parse_opt (int key, char *arg, struct argp_state *state)
     case 'p':
       opt_port = strtol (arg, &p, 0);
       if (*p || opt_port <= 0 || opt_port > 65536)
-        error (EXIT_FAILURE, 0, "invalid port number `%s'", arg);
+	error (EXIT_FAILURE, 0, "invalid port number `%s'", arg);
       break;
 
     case 'q':
       opt_max_tries = (int) strtol (arg, &p, 10);
       if (*p)
-        argp_error (state, "invalid value (`%s' near `%s')", arg, p);
+	argp_error (state, "invalid value (`%s' near `%s')", arg, p);
       if (opt_max_tries < 1 || opt_max_tries > 10)
-        error (EXIT_FAILURE, 0, "number of tries should be between 1 and 10");
+	error (EXIT_FAILURE, 0, "number of tries should be between 1 and 10");
       break;
 
     case 't':
@@ -233,11 +234,11 @@ parse_opt (int key, char *arg, struct argp_state *state)
 
     case 'M':
       if (strcmp (arg, "icmp") == 0)
-        opt_type = TRACE_ICMP;
+	opt_type = TRACE_ICMP;
       else if (strcmp (arg, "udp") == 0)
-        opt_type = TRACE_UDP;
+	opt_type = TRACE_UDP;
       else
-        argp_error (state, "invalid method");
+	argp_error (state, "invalid method");
       break;
 
     case 'w':
@@ -252,12 +253,12 @@ parse_opt (int key, char *arg, struct argp_state *state)
 
     case ARGP_KEY_ARG:
       host_is_given = true;
-      hostname = xstrdup(arg);
+      hostname = xstrdup (arg);
       break;
 
     case ARGP_KEY_SUCCESS:
       if (!host_is_given)
-        argp_error (state, "missing host operand");
+	argp_error (state, "missing host operand");
       break;
 
     default:
@@ -268,7 +269,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
 }
 
 static struct argp argp =
-  {argp_options, parse_opt, args_doc, doc, NULL, NULL, NULL};
+  { argp_options, parse_opt, args_doc, doc, NULL, NULL, NULL };
 
 int
 main (int argc, char **argv)
@@ -284,7 +285,7 @@ main (int argc, char **argv)
   setlocale (LC_ALL, "");
 #endif
 
-  pid = getpid() & 0xffff;
+  pid = getpid () & 0xffff;
 
   /* Parse command line */
   iu_argp_init ("traceroute", program_authors);
@@ -337,7 +338,7 @@ main (int argc, char **argv)
   trace_init (&trace, dest, opt_type);
 
   hop = 1;
-  seqno = -1;	/* One less than first usable packet number 0.  */
+  seqno = -1;			/* One less than first usable packet number 0.  */
 
   while (!stop)
     {
@@ -353,13 +354,12 @@ main (int argc, char **argv)
 }
 
 void
-do_try (trace_t * trace, const int hop,
-	const int max_hops _GL_UNUSED_PARAMETER,
-	const int max_tries)
+do_try (trace_t *trace, const int hop,
+	const int max_hops MAYBE_UNUSED, const int max_tries)
 {
   fd_set readset;
   int ret, tries, readonly = 0;
-  struct timeval now, time;
+  struct timespec timeout, diff;
   double triptime = 0.0;
   uint32_t prev_addr = 0;
 
@@ -373,26 +373,18 @@ do_try (trace_t * trace, const int hop,
       FD_ZERO (&readset);
       FD_SET (fd, &readset);
 
-      memset (&time, 0, sizeof (time));		/* 64-bit issue.  */
-      time.tv_sec = opt_wait;
-      time.tv_usec = 0;
+      /* *INDENT-OFF* */
+      timeout = (struct timespec) { .tv_sec = opt_wait, .tv_nsec = 0 };
+      /* *INDENT-ON* */
 
       if (!readonly)
 	trace_write (trace);
 
       errno = 0;
-      ret = select (fd + 1, &readset, NULL, NULL, &time);
+      ret = pselect (fd + 1, &readset, NULL, NULL, &timeout, NULL);
       save_errno = errno;
 
-      gettimeofday (&now, NULL);
-
-      now.tv_usec -= trace->tsent.tv_usec;
-      now.tv_sec -= trace->tsent.tv_sec;
-      if (now.tv_usec < 0)
-	{
-	  --now.tv_sec;
-	  now.tv_usec += 1000000;
-	}
+      diff = timespec_sub (current_timespec (), trace->tsent);
 
       if (ret < 0)
 	{
@@ -418,14 +410,13 @@ do_try (trace_t * trace, const int hop,
 	    {
 	      int rc, type, code;
 
-	      triptime = ((double) now.tv_sec) * 1000.0 +
-		((double) now.tv_usec) / 1000.0;
+	      triptime = timespectod (diff) * 1000.0;
 
 	      rc = trace_read (trace, &type, &code);
 
 	      if (rc < 0)
 		{
-		  /* FIXME: printf ("Some error ocurred\n"); */
+		  /* FIXME: printf ("Some error occurred\n"); */
 		  tries--;
 		  readonly = 1;
 		  continue;
@@ -437,7 +428,7 @@ do_try (trace_t * trace, const int hop,
 		      printf (" %s ", inet_ntoa (trace->from.sin_addr));
 		      if (opt_resolve_hostnames)
 			printf ("(%s) ",
-			    get_hostname (&trace->from.sin_addr));
+				get_hostname (&trace->from.sin_addr));
 		    }
 		  printf (" %.3fms ", triptime);
 
@@ -459,7 +450,7 @@ char *
 get_hostname (struct in_addr *addr)
 {
   struct hostent *info =
-	gethostbyaddr ((char *) addr, sizeof (*addr), AF_INET);
+    gethostbyaddr ((char *) addr, sizeof (*addr), AF_INET);
   if (info != NULL)
     return info->h_name;
 
@@ -467,7 +458,7 @@ get_hostname (struct in_addr *addr)
 }
 
 void
-trace_init (trace_t * t, const struct sockaddr_in to,
+trace_init (trace_t *t, const struct sockaddr_in to,
 	    const enum trace_type type)
 {
   int fd;
@@ -485,11 +476,10 @@ trace_init (trace_t * t, const struct sockaddr_in to,
     {
       t->udpfd = socket (PF_INET, SOCK_DGRAM, 0);
       if (t->udpfd < 0)
-        error (EXIT_FAILURE, errno, "socket");
+	error (EXIT_FAILURE, errno, "socket");
 
-      if (setsockopt (t->udpfd, IPPROTO_IP, IP_TTL, ttlp,
-		      sizeof (*ttlp)) < 0)
-        error (EXIT_FAILURE, errno, "setsockopt");
+      if (setsockopt (t->udpfd, IPPROTO_IP, IP_TTL, ttlp, sizeof (*ttlp)) < 0)
+	error (EXIT_FAILURE, errno, "setsockopt");
     }
 
   if (t->type == TRACE_ICMP || t->type == TRACE_UDP)
@@ -537,20 +527,18 @@ trace_init (trace_t * t, const struct sockaddr_in to,
   fd = (t->type == TRACE_UDP ? t->udpfd : t->icmpfd);
 
   if (opt_tos >= 0)
-    if (setsockopt (fd, IPPROTO_IP, IP_TOS,
-		    &opt_tos, sizeof (opt_tos)) < 0)
+    if (setsockopt (fd, IPPROTO_IP, IP_TOS, &opt_tos, sizeof (opt_tos)) < 0)
       error (0, errno, "setsockopt(IP_TOS)");
 
 #ifdef IP_OPTIONS
   if (len_ip_opts)
-    if (setsockopt (fd, IPPROTO_IP, IP_OPTIONS,
-		    &ip_opts, len_ip_opts) < 0)
+    if (setsockopt (fd, IPPROTO_IP, IP_OPTIONS, &ip_opts, len_ip_opts) < 0)
       error (0, errno, "setsockopt(IPOPT_LSRR)");
 #endif /* IP_OPTIONS */
 }
 
 void
-trace_port (trace_t * t, const unsigned short int port)
+trace_port (trace_t *t, const unsigned short int port)
 {
   assert (t);
   if (port < IPPORT_RESERVED)
@@ -569,7 +557,7 @@ trace_port (trace_t * t, const unsigned short int port)
 #define CAPTURE_LEN (MAXIPLEN + MAXICMPLEN)
 
 int
-trace_read (trace_t * t, int * type, int * code)
+trace_read (trace_t *t, int *type, int *code)
 {
   int len, rc = 0;
   unsigned char data[CAPTURE_LEN];
@@ -602,8 +590,9 @@ trace_read (trace_t * t, int * type, int * code)
 	  return -1;
 
 	/* check whether it's for us */
-        port = (unsigned short *) ((void *) &ic->icmp_ip +
-			(ic->icmp_ip.ip_hl << 2) + sizeof (in_port_t));
+	port = (unsigned short *) ((void *) &ic->icmp_ip +
+				   (ic->icmp_ip.ip_hl << 2) +
+				   sizeof (in_port_t));
 	if (*port != t->to.sin_port)	/* Network byte order!  */
 	  return -1;
 
@@ -621,9 +610,9 @@ trace_read (trace_t * t, int * type, int * code)
       break;
 
     case TRACE_ICMP:
-      if (! (ic->icmp_type == ICMP_TIME_EXCEEDED
-	     || ic->icmp_type == ICMP_ECHOREPLY
-	     || ic->icmp_type == ICMP_DEST_UNREACH) )
+      if (!(ic->icmp_type == ICMP_TIME_EXCEEDED
+	    || ic->icmp_type == ICMP_ECHOREPLY
+	    || ic->icmp_type == ICMP_DEST_UNREACH))
 	return -1;
 
       if (ic->icmp_type == ICMP_ECHOREPLY
@@ -639,7 +628,7 @@ trace_read (trace_t * t, int * type, int * code)
 	  icmphdr_t *old_icmp;
 
 	  old_ip = (struct ip *) &ic->icmp_ip;
-	  old_icmp = (icmphdr_t *) ((void *) old_ip + (old_ip->ip_hl <<2));
+	  old_icmp = (icmphdr_t *) ((void *) old_ip + (old_ip->ip_hl << 2));
 	  seq = ntohs (old_icmp->icmp_seq);
 	  ident = ntohs (old_icmp->icmp_id);
 
@@ -647,8 +636,7 @@ trace_read (trace_t * t, int * type, int * code)
 	   * whereas an undeliverable packet only checks identity.
 	   */
 	  if (ident != pid
-	      || (ic->icmp_type == ICMP_TIME_EXCEEDED
-		  && seq != seqno))
+	      || (ic->icmp_type == ICMP_TIME_EXCEEDED && seq != seqno))
 	    return -1;
 	}
 
@@ -671,7 +659,7 @@ trace_read (trace_t * t, int * type, int * code)
 }
 
 int
-trace_write (trace_t * t)
+trace_write (trace_t *t)
 {
   int len;
 
@@ -696,8 +684,7 @@ trace_write (trace_t * t)
 	      }
 	  }
 
-	if (gettimeofday (&t->tsent, NULL) < 0)
-	  error (EXIT_FAILURE, errno, "gettimeofday");
+	t->tsent = current_timespec ();
       }
       break;
 
@@ -714,7 +701,7 @@ trace_write (trace_t * t)
 	 * sockets needs extra help with identification of target.
 	 */
 	if (t->no_ident)
-	  *((int *) &hdr + 12 / sizeof(int)) = dest.sin_addr.s_addr;
+	  *((int *) &hdr + 12 / sizeof (int)) = dest.sin_addr.s_addr;
 
 	/* The sequence number is updated to a valid value!  */
 	if (icmp_echo_encode ((unsigned char *) &hdr, sizeof (hdr),
@@ -734,8 +721,7 @@ trace_write (trace_t * t)
 	      }
 	  }
 
-	if (gettimeofday (&t->tsent, NULL) < 0)
-	  error (EXIT_FAILURE, errno, "gettimeofday");
+	t->tsent = current_timespec ();
       }
       break;
 
@@ -749,19 +735,19 @@ trace_write (trace_t * t)
 }
 
 int
-trace_udp_sock (trace_t * t)
+trace_udp_sock (trace_t *t)
 {
   return (t != NULL ? t->udpfd : -1);
 }
 
 int
-trace_icmp_sock (trace_t * t)
+trace_icmp_sock (trace_t *t)
 {
   return (t != NULL ? t->icmpfd : -1);
 }
 
 void
-trace_inc_ttl (trace_t * t)
+trace_inc_ttl (trace_t *t)
 {
   int fd;
   const int *ttlp;
@@ -776,7 +762,7 @@ trace_inc_ttl (trace_t * t)
 }
 
 void
-trace_inc_port (trace_t * t)
+trace_inc_port (trace_t *t)
 {
   assert (t);
   if (t->type == TRACE_UDP)
@@ -816,7 +802,7 @@ trace_ip_opts (struct sockaddr_in *to)
        */
       while (gateway && *gateway
 	     && optbase[IPOPT_OFFSET]
-		< (int) (MAX_IPOPTLEN - sizeof (struct in_addr)))
+	     < (int) (MAX_IPOPTLEN - sizeof (struct in_addr)))
 	{
 	  int rc;
 	  char *p;
@@ -828,7 +814,7 @@ trace_ip_opts (struct sockaddr_in *to)
 	  rc = getaddrinfo (gateway, NULL, &hints, &res);
 	  if (rc)
 	    error (EXIT_FAILURE, errno, "gateway `%s' %s",
-		   gateway, gai_strerror(rc));
+		   gateway, gai_strerror (rc));
 
 	  /* Put target into next unused slot.  */
 	  memcpy (optbase + optbase[IPOPT_OLEN],

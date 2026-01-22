@@ -1,7 +1,6 @@
 #!/bin/sh
 
-# Copyright (C) 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019,
-# 2020, 2021 Free Software Foundation, Inc.
+# Copyright (C) 2011-2025 Free Software Foundation, Inc.
 #
 # This file is part of GNU Inetutils.
 #
@@ -55,7 +54,7 @@ HERE
     exit 0
 fi
 
-# Step into `tests/', should the invokation
+# Step into `tests/', should the invocation
 # have been made outside of it.
 #
 [ -d src ] && [ -f tests/syslogd.sh ] && cd tests/

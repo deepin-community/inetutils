@@ -1,7 +1,5 @@
 /*
-  Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-  2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015,
-  2016, 2017, 2018, 2019, 2020, 2021 Free Software Foundation, Inc.
+  Copyright (C) 1996-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -24,7 +22,7 @@
 #include <signal.h>
 #include <libinetutils.h>
 #include <progname.h>
-#include "unused-parameter.h"
+#include "attribute.h"
 
 #ifndef LOG_FACILITY
 # define LOG_FACILITY LOG_DAEMON
@@ -47,27 +45,27 @@ char *hostname;
 const char args_doc[] = "";
 const char doc[] = "Talk daemon, using service `ntalk'.";
 const char *program_authors[] = {
-	"Sergey Poznyakoff",
-	NULL
+  "Sergey Poznyakoff",
+  NULL
 };
+
 static struct argp_option argp_options[] = {
 #define GRP 0
-  {"acl", 'a', "FILE", 0, "read site-wide ACLs from FILE", GRP+1},
-  {"debug", 'd', NULL, 0, "enable debugging", GRP+1},
+  {"acl", 'a', "FILE", 0, "read site-wide ACLs from FILE", GRP + 1},
+  {"debug", 'd', NULL, 0, "enable debugging", GRP + 1},
   {"idle-timeout", 'i', "SECONDS", 0, "set idle timeout value to SECONDS",
-   GRP+1},
-  {"logging", 'l', NULL, 0, "enable more syslog reporting", GRP+1},
+   GRP + 1},
+  {"logging", 'l', NULL, 0, "enable more syslog reporting", GRP + 1},
   {"request-ttl", 'r', "SECONDS", 0, "set request time-to-live value to "
-   "SECONDS", GRP+1},
-  {"strict-policy", 'S', NULL, 0, "apply strict ACL policy", GRP+1},
-  {"timeout", 't', "SECONDS", 0, "set timeout value to SECONDS", GRP+1},
+   "SECONDS", GRP + 1},
+  {"strict-policy", 'S', NULL, 0, "apply strict ACL policy", GRP + 1},
+  {"timeout", 't', "SECONDS", 0, "set timeout value to SECONDS", GRP + 1},
 #undef GRP
   {NULL, 0, NULL, 0, NULL, 0}
 };
 
 static error_t
-parse_opt (int key, char *arg,
-	   struct argp_state *state _GL_UNUSED_PARAMETER)
+parse_opt (int key, char *arg, struct argp_state *state MAYBE_UNUSED)
 {
   switch (key)
     {
@@ -107,7 +105,7 @@ parse_opt (int key, char *arg,
 }
 
 static struct argp argp =
-  {argp_options, parse_opt, args_doc, doc, NULL, NULL, NULL};
+  { argp_options, parse_opt, args_doc, doc, NULL, NULL, NULL };
 
 int
 main (int argc, char *argv[])
@@ -138,7 +136,7 @@ talkd_init (void)
 time_t last_msg_time;
 
 static void
-alarm_handler (int err _GL_UNUSED_PARAMETER)
+alarm_handler (int err MAYBE_UNUSED)
 {
   int oerrno = errno;
 

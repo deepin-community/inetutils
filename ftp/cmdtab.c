@@ -1,8 +1,5 @@
 /*
-  Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-  2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
-  2015, 2016, 2017, 2018, 2019, 2020, 2021 Free Software Foundation,
-  Inc.
+  Copyright (C) 1995-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -75,7 +72,7 @@ char debughelp[] = "toggle/set debugging mode";
 char dirhelp[] = "list contents of remote directory";
 char disconhelp[] = "terminate ftp session";
 char domachelp[] = "execute macro";
-char epsv4help[] ="toggle the use of EPRT/EPSV for IPv4";
+char epsv4help[] = "toggle the use of EPRT/EPSV for IPv4";
 char formhelp[] = "set file transfer format";
 char globhelp[] = "toggle metacharacter expansion of local file names";
 char hashhelp[] = "toggle printing `#' for each buffer transferred";

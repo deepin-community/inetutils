@@ -1,8 +1,5 @@
 /*
-  Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
-  2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012,
-  2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021 Free Software
-  Foundation, Inc.
+  Copyright (C) 1993-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -111,8 +108,7 @@ struct keyidlist
   char *key;
   int keylen;
   int flags;
-} keyidlist[] =
-{
+} keyidlist[] = {
   {"\0", 1, 0, 0, 0},		/* default key of zero */
   {0, 0, 0, 0, 0}
 };
@@ -155,7 +151,7 @@ static int des_set_parity (Block b);
 
 #   ifdef SHISHI
 static void
-shishi_des_ecb_encrypt (Shishi * h, const unsigned char key[sizeof (Block)],
+shishi_des_ecb_encrypt (Shishi *h, const unsigned char key[sizeof (Block)],
 			const unsigned char *in, unsigned char *out)
 {
   char *tmp;
@@ -185,10 +181,11 @@ ofb64_init (int server)
   fb[CFB].streams[0].str_flagshift = SHIFT_VAL (0, OFB);
   fb[CFB].streams[1].str_flagshift = SHIFT_VAL (1, OFB);
 }
-#   endif /* ENCTYPE_DES_OFB64 */
+#   endif
+       /* ENCTYPE_DES_OFB64 */
 
 static void
-fb64_init (register struct fb *fbp)
+fb64_init (struct fb *fbp)
 {
   memset ((void *) fbp, 0, sizeof (*fbp));
   fbp->state[0] = fbp->state[1] = FAILED;
@@ -218,14 +215,15 @@ ofb64_start (int dir, int server)
 {
   return (fb64_start (&fb[OFB], dir, server));
 }
-#   endif /* ENCTYPE_DES_OFB64 */
+#   endif
+       /* ENCTYPE_DES_OFB64 */
 
 static int
 fb64_start (struct fb *fbp, int dir, int server)
 {
   size_t x;
   unsigned char *p;
-  register int state;
+  int state;
 
   switch (dir)
     {
@@ -309,13 +307,14 @@ ofb64_is (unsigned char *data, int cnt)
 {
   return (fb64_is (data, cnt, &fb[OFB]));
 }
-#   endif /* ENCTYPE_DES_OFB64 */
+#   endif
+       /* ENCTYPE_DES_OFB64 */
 
 static int
 fb64_is (unsigned char *data, int cnt, struct fb *fbp)
 {
   unsigned char *p;
-  register int state = fbp->state[DIR_DECRYPT - 1];
+  int state = fbp->state[DIR_DECRYPT - 1];
 
   if (cnt-- < 1)
     goto failure;
@@ -400,13 +399,14 @@ ofb64_reply (unsigned char *data, int cnt)
 {
   return (fb64_reply (data, cnt, &fb[OFB]));
 }
-#   endif /* ENCTYPE_DES_OFB64 */
+#   endif
+       /* ENCTYPE_DES_OFB64 */
 
 
 static int
 fb64_reply (unsigned char *data, int cnt, struct fb *fbp)
 {
-  register int state = fbp->state[DIR_ENCRYPT - 1];
+  int state = fbp->state[DIR_ENCRYPT - 1];
 
   if (cnt-- < 1)
     goto failure;
@@ -457,7 +457,8 @@ ofb64_session (Session_Key *key, int server)
 {
   fb64_session (key, server, &fb[OFB]);
 }
-#   endif /* ENCTYPE_DES_OFB64 */
+#   endif
+       /* ENCTYPE_DES_OFB64 */
 
 static void
 fb64_session (Session_Key *key, int server, struct fb *fbp)
@@ -472,7 +473,7 @@ fb64_session (Session_Key *key, int server, struct fb *fbp)
 	printf ("Received non-DES session key (%d != %d)\r\n",
 		key ? key->type : -1, SK_DES);
       if (!key)
-	return;	/* XXX: Causes a segfault, since *key is NULL.  */
+	return;			/* XXX: Causes a segfault, since *key is NULL.  */
 
       /* Follow RFC 2952 in using the authentication key
        * to derived one or more DES-keys, after adjusting
@@ -484,7 +485,7 @@ fb64_session (Session_Key *key, int server, struct fb *fbp)
    * since the parity might need mending.  */
   derived_key = malloc (key->length);
   if (!derived_key)
-    return;	/* Still destructive, but no alternate method in sight.  */
+    return;			/* Still destructive, but no alternate method in sight.  */
 
   memmove ((void *) derived_key, (void *) key->data, key->length);
 
@@ -548,12 +549,13 @@ ofb64_keyid (int dir, unsigned char *kp, int *lenp)
 {
   return (fb64_keyid (dir, kp, lenp, &fb[OFB]));
 }
-#   endif /* ENCTYPE_DES_OFB64 */
+#   endif
+       /* ENCTYPE_DES_OFB64 */
 
 static int
 fb64_keyid (int dir, unsigned char *kp, int *lenp, struct fb *fbp)
 {
-  register int state = fbp->state[dir - 1];
+  int state = fbp->state[dir - 1];
 
   if (*lenp != 1 || (*kp != '\0'))
     {
@@ -573,11 +575,10 @@ fb64_keyid (int dir, unsigned char *kp, int *lenp, struct fb *fbp)
 
 static void
 fb64_printsub (unsigned char *data, int cnt,
-	       char *buf, int buflen,
-	       const char *type)
+	       char *buf, int buflen, const char *type)
 {
   char lbuf[32];
-  register int i;
+  int i;
   char *cp;
 
   buf[buflen - 1] = '\0';	/* make sure it's NULL terminated */
@@ -617,23 +618,22 @@ fb64_printsub (unsigned char *data, int cnt,
 }
 
 void
-cfb64_printsub (unsigned char *data, int cnt,
-		char *buf, int buflen)
+cfb64_printsub (unsigned char *data, int cnt, char *buf, int buflen)
 {
   fb64_printsub (data, cnt, buf, buflen, "CFB64");
 }
 
 #   ifdef ENCTYPE_DES_OFB64
 void
-ofb64_printsub (unsigned char *data, int cnt,
-		char *buf, int buflen)
+ofb64_printsub (unsigned char *data, int cnt, char *buf, int buflen)
 {
   fb64_printsub (data, cnt, buf, buflen, "OFB64");
 }
-#   endif /* ENCTYPE_DES_OFB64 */
+#   endif
+       /* ENCTYPE_DES_OFB64 */
 
 static void
-fb64_stream_iv (Block seed, register struct stinfo *stp)
+fb64_stream_iv (Block seed, struct stinfo *stp)
 {
 
   memmove ((void *) stp->str_iv, (void *) seed, sizeof (Block));
@@ -647,7 +647,7 @@ fb64_stream_iv (Block seed, register struct stinfo *stp)
 }
 
 static void
-fb64_stream_key (Block key, register struct stinfo *stp)
+fb64_stream_key (Block key, struct stinfo *stp)
 {
   memmove ((void *) stp->str_ikey, (void *) key, sizeof (Block));
 #   ifndef SHISHI
@@ -681,10 +681,10 @@ fb64_stream_key (Block key, register struct stinfo *stp)
  */
 
 void
-cfb64_encrypt (register unsigned char *s, int c)
+cfb64_encrypt (unsigned char *s, int c)
 {
-  register struct stinfo *stp = &fb[CFB].streams[DIR_ENCRYPT - 1];
-  register int index;
+  struct stinfo *stp = &fb[CFB].streams[DIR_ENCRYPT - 1];
+  int index;
 
   index = stp->str_index;
   while (c-- > 0)
@@ -713,7 +713,7 @@ cfb64_encrypt (register unsigned char *s, int c)
 int
 cfb64_decrypt (int data)
 {
-  register struct stinfo *stp = &fb[CFB].streams[DIR_DECRYPT - 1];
+  struct stinfo *stp = &fb[CFB].streams[DIR_DECRYPT - 1];
   int index;
 
   if (data == -1)
@@ -770,10 +770,10 @@ cfb64_decrypt (int data)
  */
 #   ifdef ENCTYPE_DES_OFB64
 void
-ofb64_encrypt (register unsigned char *s, int c)
+ofb64_encrypt (unsigned char *s, int c)
 {
-  register struct stinfo *stp = &fb[OFB].streams[DIR_ENCRYPT - 1];
-  register int index;
+  struct stinfo *stp = &fb[OFB].streams[DIR_ENCRYPT - 1];
+  int index;
 
   index = stp->str_index;
   while (c-- > 0)
@@ -799,7 +799,7 @@ ofb64_encrypt (register unsigned char *s, int c)
 int
 ofb64_decrypt (int data)
 {
-  register struct stinfo *stp = &fb[OFB].streams[DIR_DECRYPT - 1];
+  struct stinfo *stp = &fb[OFB].streams[DIR_DECRYPT - 1];
   int index;
 
   if (data == -1)
@@ -831,7 +831,8 @@ ofb64_decrypt (int data)
 
   return (data ^ stp->str_feed[index]);
 }
-#   endif /* ENCTYPE_DES_OFB64 */
+#   endif
+       /* ENCTYPE_DES_OFB64 */
 
 static int
 des_parity (Block b, int adjust)
@@ -877,6 +878,7 @@ des_set_parity (Block b)
   return des_parity (b, 1);
 }
 
-#  endif /* DES_ENCRYPTION || SHISHI */
-# endif	/* AUTHENTICATION */
+#  endif
+       /* DES_ENCRYPTION || SHISHI */
+# endif/* AUTHENTICATION */
 #endif /* ENCRYPTION */

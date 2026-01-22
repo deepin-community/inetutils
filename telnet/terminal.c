@@ -1,8 +1,5 @@
 /*
-  Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-  2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
-  2015, 2016, 2017, 2018, 2019, 2020, 2021 Free Software Foundation,
-  Inc.
+  Copyright (C) 1995-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -138,7 +135,7 @@ init_terminal (void)
 int
 ttyflush (int drop)
 {
-  register int n, n0, n1;
+  int n, n0, n1;
 
   n0 = ring_full_count (&ttyoring);
   if ((n1 = n = ring_full_consecutive (&ttyoring)) > 0)
@@ -241,7 +238,7 @@ setconnmode (int force)
 #ifdef	ENCRYPTION
   static int enc_passwd = 0;
 #endif /* ENCRYPTION */
-  register int newmode;
+  int newmode;
 
   newmode = getconnmode () | (force ? MODE_FORCE : 0);
 

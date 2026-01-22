@@ -25,14 +25,14 @@ supdup: A telnet client/daemon like program for the SUPDUP protocol;
   running.  And I don't think there is an actual daemon program for
   GNU systems at all (ITS has one though :-).
 
-Add framework for tests.  How can tests needing root priviliges
+Add framework for tests.  How can tests needing root privileges
 be maintained, automated, or rewritten?
 
 Function for parsing [USER@]HOSTNAME[:PORT], that returns each value
 in a structure.  Handle IP (v4 and v6) numbers as well.  And make
 programs use it.
 
-Files without a copyright notice: README-hacking,
+Files without a copyright notice:
 TODO, confpaths.h.in, ifconfig/COMPATIBILITY, whois/as_del_list,
 whois/ip_del_list, whois/make_as_del.pl, whois/make_ip_del.pl,
 whois/make_tld_serv.pl, and whois/tld_serv_list.
@@ -42,7 +42,7 @@ generated files do not exist.
 
 Go through code and check what is clean, needs cleaning, etc.
 
-Document libraries, and their exported fucntions.
+Document libraries, and their exported functions.
 
 Document code; in the end this should be as nice as coreutils!
 
@@ -118,20 +118,17 @@ Add more utilities:
 Add internationalization, read: gettext support, and provide
 translations, especially for the clients.
 
-3.0 will be a release that tries to put as much as possible into
-libraries (startup code, etc).  We would also like to try and write
-(or convince someone else to write) a gopher and gopherd pair.
+Try to put as much as possible into libraries (startup code, etc).
+
+gopher and gopherd?
 
 Make src/hostname.c handle missing 'sethostname' functions on
 platforms that doesn't have them (it could just print an error
 message).
 
-Fix all warnings with autoconf 2.71+
-
 enhance man pages so they fully supersede NetKit and BSD man pages
 
 generally use gnulib for portability more than we use today:
-  - gnulib has fts.c that we have a custom libls/ for
   - getaddrinfo/getnameinfo with IDN support to simplify IDN complexity
   - more system header files replacements
   - ruserok/wtmp stuff

@@ -1,9 +1,9 @@
 /* Fork a child process attached to the slave of a pseudo-terminal.
-   Copyright (C) 2010-2021 Free Software Foundation, Inc.
+   Copyright (C) 2010-2025 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
-   published by the Free Software Foundation; either version 3 of the
+   published by the Free Software Foundation, either version 3 of the
    License, or (at your option) any later version.
 
    This file is distributed in the hope that it will be useful,
@@ -32,7 +32,7 @@ rpl_forkpty (int *amaster, char *name, struct termios const *termp,
                   (struct winsize *) winp);
 }
 
-#else /* AIX 5.1, HP-UX 11, IRIX 6.5, Solaris 10, mingw */
+#else /* AIX 5.1, HP-UX 11, Solaris 10.  */
 
 # include <pty.h>
 # include <unistd.h>

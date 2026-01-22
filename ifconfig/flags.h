@@ -1,7 +1,5 @@
 /*
-  Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-  2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021
-  Free Software Foundation, Inc.
+  Copyright (C) 2001-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -23,7 +21,7 @@
 #ifndef IFCONFIG_FLAGS_H
 # define IFCONFIG_FLAGS_H
 
-#include <sys/types.h>
+# include <sys/types.h>
 
 /* Using these avoid strings with if_flagtoname, the caller can set a
    preference on returned flag names.  If one of the names in the list
@@ -38,17 +36,17 @@
 # define EXPECT_SNAP ":D2/SNAP:D2:"
 
 /* Suppress flags that are not changeable by user.  */
-#ifndef IFF_CANTCHANGE
-# define IFF_CANTCHANGE 0
-#endif /* IFF_CANTCHANGE */
+# ifndef IFF_CANTCHANGE
+#  define IFF_CANTCHANGE 0
+# endif/* IFF_CANTCHANGE */
 
 /* Manually exclude flags that experience tell us be static.  */
-#define IU_IFF_CANTCHANGE \
+# define IU_IFF_CANTCHANGE \
 	(IFF_CANTCHANGE | IFF_LOOPBACK | IFF_RUNNING)
 
 /* Return the name corresponding to the interface flag FLAG.
    If FLAG is unknown, return NULL.
-   AVOID contains a ':' surrounded and seperated list of flag names
+   AVOID contains a ':' surrounded and separated list of flag names
    that should be avoided if alternative names with the same flag value
    exists.  The first unavoided match is returned, or the first avoided
    match if no better is available.  */
@@ -62,7 +60,7 @@ int if_nameztoflag (const char *name, int *prev);
 /* Print the flags in FLAGS, using AVOID as in if_flagtoname, and
    SEPARATOR between individual flags.  Returns the number of
    characters printed.  */
-int print_if_flags (int flags, const char *avoid, char seperator);
+int print_if_flags (int flags, const char *avoid, char separator);
 
 char *if_list_flags (const char *prefix);
 

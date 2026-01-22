@@ -1,8 +1,5 @@
 /*
-  Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
-  2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012,
-  2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021 Free Software
-  Foundation, Inc.
+  Copyright (C) 1993-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -55,18 +52,19 @@
 
 #if defined HAVE_STREAMSPTY && defined TIOCSIGNAL \
 	&& defined HAVE_STROPTS_H
-# include <stropts.h>	/* I_FLUSH, FLUSHR */
+# include <stropts.h>		/* I_FLUSH, FLUSHR */
 #endif
 
-#ifndef NTELOPTS	/* OpenSolaris */
+#ifndef NTELOPTS		/* OpenSolaris */
 # define NTELOPTS	(1+TELOPT_NEW_ENVIRON)
 #endif
 
-/* Format lines for corresponing commands */
+/* Format lines for corresponding commands */
 char doopt[] = { IAC, DO, '%', 'c', 0 };
 char dont[] = { IAC, DONT, '%', 'c', 0 };
 char will[] = { IAC, WILL, '%', 'c', 0 };
 char wont[] = { IAC, WONT, '%', 'c', 0 };
+
 int not42 = 1;
 
 /*
@@ -137,10 +135,10 @@ send_susp (void)
   ptyflush ();			/* half-hearted */
 # ifdef	TCSIG
   ioctl (pty, TCSIG, (char *) SIGTSTP);
-# else /* TCSIG */
+# else/* TCSIG */
   pty_output_byte (slctab[SLC_SUSP].sptr ?
 		   (unsigned char) *slctab[SLC_SUSP].sptr : '\032');
-# endif	/* TCSIG */
+# endif/* TCSIG */
 #endif /* SIGTSTP */
 }
 
@@ -182,18 +180,18 @@ send_intr (void)
 #else
 # ifdef	TCSIG
   ioctl (pty, TCSIG, (char *) SIGINT);
-# else /* TCSIG */
+# else/* TCSIG */
   init_termbuf ();
   pty_output_byte (slctab[SLC_IP].sptr ?
 		   (unsigned char) *slctab[SLC_IP].sptr : '\177');
-# endif	/* TCSIG */
+# endif/* TCSIG */
 #endif
 }
 
 void
 telrcv (void)
 {
-  register int c;
+  int c;
   static int state = TS_DATA;
 
   while ((net_input_level () > 0) & !pty_buffer_is_full ())
@@ -315,15 +313,21 @@ telrcv (void)
 	    case EC:
 	    case EL:
 	      {
-		cc_t ch;
+		cc_t ch = (cc_t) (_POSIX_VDISABLE);
 
 		DEBUG (debug_options, 1, printoption ("td: recv IAC", c));
 		ptyflush ();	/* half-hearted */
 		init_termbuf ();
 		if (c == EC)
-		  ch = *slctab[SLC_EC].sptr;
+		  {
+		    if (slctab[SLC_EC].sptr)
+		      ch = *slctab[SLC_EC].sptr;
+		  }
 		else
-		  ch = *slctab[SLC_EL].sptr;
+		  {
+		    if (slctab[SLC_EL].sptr)
+		      ch = *slctab[SLC_EL].sptr;
+		  }
 		if (ch != (cc_t) (_POSIX_VDISABLE))
 		  pty_output_byte ((unsigned char) ch);
 		break;
@@ -506,14 +510,14 @@ telrcv (void)
  * Finally, there is one catch.  If we send a negative response to a
  * positive request, my_state will be the positive while want_state will
  * remain negative.  my_state will revert to negative when the negative
- * acknowlegment arrives from the peer.  Thus, my_state generally tells
+ * acknowledgment arrives from the peer.  Thus, my_state generally tells
  * us not only the last negotiated state, but also tells us what the peer
  * wants to be doing as well.  It is important to understand this difference
  * as we may wish to be processing data streams based on our desired state
  * (want_state) or based on what the peer thinks the state is (my_state).
  *
  * This all works fine because if the peer sends a positive request, the data
- * that we receive prior to negative acknowlegment will probably be affected
+ * that we receive prior to negative acknowledgment will probably be affected
  * by the positive state, and we can process it as such (if we can; if we
  * can't then it really doesn't matter).  If it is that important, then the
  * peer probably should be buffering until this option state negotiation
@@ -545,18 +549,18 @@ send_do (int option, int init)
 }
 
 #ifdef	AUTHENTICATION
-extern void auth_request ();
+extern void auth_request (void);
 #endif
 extern void doclientstat (void);
 #ifdef	ENCRYPTION
-extern void encrypt_send_support ();
+extern void encrypt_send_support (void);
 #endif /* ENCRYPTION */
 
 void
 willoption (int option)
 {
   int changeok = 0;
-  void (*func) () = 0;
+  void (*func) (void) = NULL;
 
   /*
    * process input from peer.
@@ -704,12 +708,12 @@ willoption (int option)
 	      /*
 	       * "WILL ECHO".  Kludge upon kludge!
 	       * A 4.2 client is now echoing user input at
-	       * the tty.  This is probably undesireable and
+	       * the tty.  This is probably undesirable and
 	       * it should be stopped.  The client will
 	       * respond WONT TM to the DO TM that we send to
 	       * check for kludge linemode.  When the WONT TM
 	       * arrives, linemode will be turned off and a
-	       * change propogated to the pty.  This change
+	       * change propagated to the pty.  This change
 	       * will cause us to process the new pty state
 	       * in localstat(), which will notice that
 	       * linemode is off and send a WILL ECHO
@@ -809,8 +813,8 @@ wontoption (int option)
 	      /*
 	       * If we get a WONT TM, and had sent a DO TM,
 	       * don't respond with a DONT TM, just leave it
-	       * as is.  Short circut the state machine to
-	       * achive this.
+	       * as is.  Short circuit the state machine to
+	       * achieve this.
 	       */
 	      set_his_want_state_wont (TELOPT_TM);
 	      return;
@@ -1146,7 +1150,7 @@ int env_ovalue = -1;
 void
 suboption (void)
 {
-  register int subchar;
+  int subchar;
 
   DEBUG (debug_options, 1, printsub ('<', subpointer, SB_LEN () + 2));
 
@@ -1155,7 +1159,7 @@ suboption (void)
     {
     case TELOPT_TSPEED:
       {
-	register int xspeed, rspeed;
+	int xspeed, rspeed;
 
 	if (his_state_is_wont (TELOPT_TSPEED))	/* Ignore if option disabled */
 	  break;
@@ -1208,7 +1212,7 @@ suboption (void)
 
     case TELOPT_NAWS:
       {
-	register int xwinsize, ywinsize;
+	int xwinsize, ywinsize;
 
 	if (his_state_is_wont (TELOPT_NAWS))	/* Ignore if option disabled */
 	  break;
@@ -1233,7 +1237,7 @@ suboption (void)
 
     case TELOPT_LINEMODE:
       {
-	register int request;
+	int request;
 
 	/* Ignore if option disabled */
 	if (his_state_is_wont (TELOPT_LINEMODE))
@@ -1249,7 +1253,7 @@ suboption (void)
 	  break;		/* another garbage check */
 
 	if (request == LM_SLC)
-	  {			/* SLC is not preceeded by WILL or WONT */
+	  {			/* SLC is not preceded by WILL or WONT */
 	    /*
 	     * Process suboption buffer of slc's
 	     */
@@ -1320,8 +1324,8 @@ suboption (void)
     case TELOPT_NEW_ENVIRON:
     case TELOPT_OLD_ENVIRON:
       {
-	register int c;
-	register char *cp, *varp, *valp;
+	int c;
+	char *cp, *varp, *valp;
 
 	if (SB_EOF ())
 	  return;
@@ -1355,7 +1359,7 @@ suboption (void)
 	     */
 	    if (env_ovar < 0)
 	      {
-		register int last = -1;	/* invalid value */
+		int last = -1;	/* invalid value */
 		int empty = 0;
 		int got_var = 0, got_value = 0, got_uservar = 0;
 
@@ -1612,8 +1616,8 @@ send_status (void)
 
   unsigned char statusbuf[256];
   unsigned char *ep;
-  register unsigned char *ncp;
-  register unsigned char i;
+  unsigned char *ncp;
+  unsigned char i;
 
   ncp = statusbuf;
   ep = statusbuf + sizeof (statusbuf);

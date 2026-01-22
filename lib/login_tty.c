@@ -1,10 +1,10 @@
 /* Assign a given terminal as controlling terminal and as standard input,
    standard output, standard error of the current process.
-   Copyright (C) 2010-2021 Free Software Foundation, Inc.
+   Copyright (C) 2010-2025 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
-   published by the Free Software Foundation; either version 3 of the
+   published by the Free Software Foundation, either version 3 of the
    License, or (at your option) any later version.
 
    This file is distributed in the hope that it will be useful,
@@ -17,7 +17,8 @@
 
 #include <config.h>
 
-/* Currently no specification header.  */
+/* Specification.  */
+#include <utmp.h>
 
 #include <fcntl.h>
 #include <unistd.h>
@@ -26,13 +27,11 @@
 int
 login_tty (int slave_fd)
 {
-  int i;
-
   /* Create a new session.  */
   setsid ();
 
   /* Make fd the controlling terminal for the current process.
-     On BSD and OSF/1: There is ioctl TIOCSCTTY for this purpose.
+     On BSD: There is ioctl TIOCSCTTY for this purpose.
      On Solaris:
        A terminal becomes the controlling terminal of a session
        if it is being open()ed, at a moment when
@@ -41,7 +40,7 @@ login_tty (int slave_fd)
             a controlling terminal.
        We assume condition 1, try to ensure condition 2, and then open() it.
    */
-  for (i = 0; i < 3; i++)
+  for (int i = 0; i < 3; i++)
     if (i != slave_fd)
       close (i);
 #ifdef TIOCSCTTY
@@ -64,7 +63,7 @@ login_tty (int slave_fd)
 
   /* Assign fd to the standard input, standard output, and standard error of
      the current process.  */
-  for (i = 0; i < 3; i++)
+  for (int i = 0; i < 3; i++)
     if (slave_fd != i)
       if (dup2 (slave_fd, i) < 0)
         return -1;

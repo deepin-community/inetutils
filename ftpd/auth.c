@@ -1,7 +1,5 @@
 /*
-  Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-  2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019,
-  2020, 2021 Free Software Foundation, Inc.
+  Copyright (C) 2000-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -48,7 +46,7 @@
 int
 auth_user (const char *name, struct credentials *pcred)
 {
-  int err = 0;		/* Never remove initialisation!  */
+  int err = 0;			/* Never remove initialisation!  */
 
   pcred->guest = 0;
   pcred->expired = AUTH_EXPIRED_NOT;
@@ -232,7 +230,7 @@ sgetcred (const char *name, struct credentials *pcred)
 	      pcred->expired |= AUTH_EXPIRED_ACCT;
 	    }
 	  if (spw->sp_max > 0 && spw->sp_lstchg > 0
-		   && (spw->sp_lstchg + spw->sp_max < today))
+	      && (spw->sp_lstchg + spw->sp_max < today))
 	    {
 	      p->pw_passwd = NULL;
 	      pcred->expired |= AUTH_EXPIRED_PASS;
@@ -255,7 +253,7 @@ sgetcred (const char *name, struct credentials *pcred)
 # ifdef HAVE_STRUCT_PASSWD_PW_CHANGE
       || p->pw_change
 # endif
-     )
+    )
     {
       time_t now = time ((time_t *) 0);
 

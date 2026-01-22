@@ -1,6 +1,5 @@
 /*
-  Copyright (C) 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016,
-  2017, 2018, 2019, 2020, 2021 Free Software Foundation, Inc.
+  Copyright (C) 2008-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -39,6 +38,8 @@
 # include <idna.h>
 #endif
 
+#include <timespec.h>
+
 #include "ping.h"
 
 static int useless_ident = 0;	/* Relevant at least for Linux.  */
@@ -46,7 +47,7 @@ static int useless_ident = 0;	/* Relevant at least for Linux.  */
 static size_t _ping_packetsize (PING * p);
 
 size_t
-_ping_packetsize (PING * p)
+_ping_packetsize (PING *p)
 {
   if (p->ping_type == ICMP_TIMESTAMP || p->ping_type == ICMP_TIMESTAMPREPLY)
     return ICMP_TSLEN;
@@ -86,8 +87,10 @@ ping_init (int type, int ident)
 	  fd = socket (AF_INET, SOCK_DGRAM, proto->p_proto);
 	  if (fd < 0)
 	    {
-	      if (errno == EPERM || errno == EACCES || errno == EPROTONOSUPPORT)
-		fprintf (stderr, "ping: Lacking privilege for icmp socket.\n");
+	      if (errno == EPERM || errno == EACCES
+		  || errno == EPROTONOSUPPORT)
+		fprintf (stderr,
+			 "ping: Lacking privilege for icmp socket.\n");
 	      else
 		fprintf (stderr, "ping: %s\n", strerror (errno));
 
@@ -118,12 +121,12 @@ ping_init (int type, int ident)
   /* Make sure we use only 16 bits in this field, id for icmp is a unsigned short.  */
   p->ping_ident = ident & 0xFFFF;
   p->ping_cktab_size = PING_CKTABSIZE;
-  gettimeofday (&p->ping_start_time, NULL);
+  p->ping_start_time = current_timespec ();
   return p;
 }
 
 void
-ping_reset (PING * p)
+ping_reset (PING *p)
 {
   p->ping_num_xmit = 0;
   p->ping_num_recv = 0;
@@ -131,13 +134,13 @@ ping_reset (PING * p)
 }
 
 void
-ping_set_type (PING * p, int type)
+ping_set_type (PING *p, int type)
 {
   p->ping_type = type;
 }
 
 int
-ping_xmit (PING * p)
+ping_xmit (PING *p)
 {
   int i, buflen;
 
@@ -174,7 +177,8 @@ ping_xmit (PING * p)
     }
 
   i = sendto (p->ping_fd, (char *) p->ping_buffer, buflen, 0,
-	      (struct sockaddr *) &p->ping_dest.ping_sockaddr, sizeof (struct sockaddr_in));
+	      (struct sockaddr *) &p->ping_dest.ping_sockaddr,
+	      sizeof (struct sockaddr_in));
   if (i < 0)
     return -1;
   else
@@ -188,7 +192,7 @@ ping_xmit (PING * p)
 }
 
 static int
-my_echo_reply (PING * p, icmphdr_t * icmp)
+my_echo_reply (PING *p, icmphdr_t *icmp)
 {
   struct ip *orig_ip = &icmp->icmp_ip;
   icmphdr_t *orig_icmp = (icmphdr_t *) (orig_ip + 1);
@@ -200,7 +204,7 @@ my_echo_reply (PING * p, icmphdr_t * icmp)
 }
 
 int
-ping_recv (PING * p)
+ping_recv (PING *p)
 {
   socklen_t fromlen = sizeof (p->ping_from.ping_sockaddr);
   int n, rc;
@@ -276,20 +280,20 @@ ping_recv (PING * p)
 }
 
 void
-ping_set_event_handler (PING * ping, ping_efp pf, void *closure)
+ping_set_event_handler (PING *ping, ping_efp pf, void *closure)
 {
   ping->ping_event.handler = pf;
   ping->ping_closure = closure;
 }
 
 void
-ping_set_packetsize (PING * ping, size_t size)
+ping_set_packetsize (PING *ping, size_t size)
 {
   ping->ping_datalen = size;
 }
 
 int
-ping_set_dest (PING * ping, const char *host)
+ping_set_dest (PING *ping, const char *host)
 {
 #if HAVE_DECL_GETADDRINFO
   int rc;
@@ -301,7 +305,7 @@ ping_set_dest (PING * ping, const char *host)
   if (rc)
     return 1;
   host = rhost;
-#else
+# else
   rhost = NULL;
 # endif
 
@@ -329,7 +333,7 @@ ping_set_dest (PING * ping, const char *host)
   else
 # if defined HAVE_IDN || defined HAVE_IDN2
     ping->ping_hostname = host;
-#else
+# else
     ping->ping_hostname = strdup (host);
 # endif
 
@@ -357,7 +361,7 @@ ping_set_dest (PING * ping, const char *host)
 	return 1;
       hp = gethostbyname (rhost);
       free (rhost);
-# else /* !HAVE_IDN && !HAVE_IDN2 */
+# else/* !HAVE_IDN && !HAVE_IDN2 */
       hp = gethostbyname (host);
 # endif
       if (!hp)

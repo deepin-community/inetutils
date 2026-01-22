@@ -1,8 +1,5 @@
 /*
-  Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-  2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
-  2015, 2016, 2017, 2018, 2019, 2020, 2021 Free Software Foundation,
-  Inc.
+  Copyright (C) 1995-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -81,7 +78,7 @@
 #include "ftp_var.h"
 
 #include "libinetutils.h"
-#include "unused-parameter.h"
+#include "attribute.h"
 
 #ifdef HAVE_READLINE_READLINE_H
 # include <readline/readline.h>
@@ -107,71 +104,74 @@ static char *prompt = NULL;
 const char args_doc[] = "[HOST [PORT]]";
 const char doc[] = "Remote file transfer.";
 
-enum {
+enum
+{
   OPT_PROMPT = CHAR_MAX + 1,
 };
 
 static struct argp_option argp_options[] = {
 #define GRP 0
-  {"debug", 'd', NULL, 0, "enable debugging output", GRP+1},
+  {"debug", 'd', NULL, 0, "enable debugging output", GRP + 1},
   {"no-edit", 'e', NULL, 0,
 #if HAVE_READLINE
-	  "disable command line editing",
+   "disable command line editing",
 #else /* !HAVE_READLINE */
-	  "(ignored)",
+   "(ignored)",
 #endif /* !HAVE_READLINE */
-	  GRP+1},
-  {"no-glob", 'g', NULL, 0, "turn off file name globbing", GRP+1},
+   GRP + 1},
+  {"no-glob", 'g', NULL, 0, "turn off file name globbing", GRP + 1},
   {"no-prompt", 'i', NULL, 0, "do not prompt during multiple file transfers",
-   GRP+1},
-  {"no-login", 'n', NULL, 0, "do not automatically login to the remote system",
-   GRP+1},
-  {"trace", 't', NULL, 0, "enable packet tracing", GRP+1},
+   GRP + 1},
+  {"no-login", 'n', NULL, 0,
+   "do not automatically login to the remote system",
+   GRP + 1},
+  {"trace", 't', NULL, 0, "enable packet tracing", GRP + 1},
   {"passive", 'p', NULL, 0,
-   "enable passive mode transfer, default for `pftp'", GRP+1},
-  {"active", 'A', NULL, 0, "enable active mode transfer", GRP+1},
-  {"prompt", OPT_PROMPT, "PROMPT", OPTION_ARG_OPTIONAL, "print a command line PROMPT "
-   "(optionally), even if not on a tty", GRP+1},
-  {"verbose", 'v', NULL, 0, "verbose output", GRP+1},
-  {"ipv4", '4', NULL, 0, "contact IPv4 hosts", GRP+1},
-  {"ipv6", '6', NULL, 0, "contact IPv6 hosts", GRP+1},
+   "enable passive mode transfer, default for `pftp'", GRP + 1},
+  {"active", 'A', NULL, 0, "enable active mode transfer", GRP + 1},
+  {"prompt", OPT_PROMPT, "PROMPT", OPTION_ARG_OPTIONAL,
+   "print a command line PROMPT " "(optionally), even if not on a tty",
+   GRP + 1},
+  {"verbose", 'v', NULL, 0, "verbose output", GRP + 1},
+  {"ipv4", '4', NULL, 0, "contact IPv4 hosts", GRP + 1},
+  {"ipv6", '6', NULL, 0, "contact IPv6 hosts", GRP + 1},
   {"netrc", 'N', "NETRC", 0, "select a specific initialization file",
-   GRP+1},
+   GRP + 1},
 #undef GRP
   {NULL, 0, NULL, 0, NULL, 0}
 };
 
 static error_t
-parse_opt (int key, char *arg, struct argp_state *state _GL_UNUSED_PARAMETER)
+parse_opt (int key, char *arg, struct argp_state *state MAYBE_UNUSED)
 {
   switch (key)
     {
-    case 'd':		/* Enable debug mode.  */
+    case 'd':			/* Enable debug mode.  */
       options |= SO_DEBUG;
       debug++;
       break;
 
     case 'e':
-      usereadline = 0;	/* No editing.  */
+      usereadline = 0;		/* No editing.  */
       break;
 
-    case 'g':		/* No glob.  */
+    case 'g':			/* No glob.  */
       doglob = 0;
       break;
 
-    case 'i':		/* No prompt.  */
+    case 'i':			/* No prompt.  */
       interactive = 0;
       break;
 
-    case 'n':		/* No automatic login.  */
+    case 'n':			/* No automatic login.  */
       autologin = 0;
       break;
 
-    case 't':		/* Enable packet tracing.  */
+    case 't':			/* Enable packet tracing.  */
       trace++;
       break;
 
-    case 'v':		/* Verbose.  */
+    case 'v':			/* Verbose.  */
       verbose++;
       break;
 
@@ -179,11 +179,11 @@ parse_opt (int key, char *arg, struct argp_state *state _GL_UNUSED_PARAMETER)
       prompt = arg ? arg : DEFAULT_PROMPT;
       break;
 
-    case 'p':		/* Enable passive transfer mode.  */
+    case 'p':			/* Enable passive transfer mode.  */
       passivemode = 1;
       break;
 
-    case 'A':	/* Enable active transfer mode.  */
+    case 'A':			/* Enable active transfer mode.  */
       passivemode = 0;
       break;
 
@@ -207,7 +207,7 @@ parse_opt (int key, char *arg, struct argp_state *state _GL_UNUSED_PARAMETER)
 }
 
 static struct argp argp =
-  {argp_options, parse_opt, args_doc, doc, NULL, NULL, NULL};
+  { argp_options, parse_opt, args_doc, doc, NULL, NULL, NULL };
 
 
 int
@@ -316,13 +316,13 @@ main (int argc, char *argv[])
 }
 
 void
-intr (int sig _GL_UNUSED_PARAMETER)
+intr (int sig MAYBE_UNUSED)
 {
   longjmp (toplevel, 1);
 }
 
 void
-lostpeer (int sig _GL_UNUSED_PARAMETER)
+lostpeer (int sig MAYBE_UNUSED)
 {
   if (connected)
     {
@@ -425,7 +425,7 @@ cmdscanner (int top)
 
 	  if (!fromatty && prompt)
 	    fprintf (stdout, "%s\n", line ? line : "");
-	} /* !usereadline ends */
+	}			/* !usereadline ends */
 
       if (!line)
 	quit (0, 0);

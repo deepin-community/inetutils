@@ -1,7 +1,5 @@
 /* shishi.c -- functions to use kerberos V with shishi
-  Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013,
-  2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021 Free Software
-  Foundation, Inc.
+  Copyright (C) 2005-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -31,10 +29,9 @@
 
 /* shishi authentication, client side */
 int
-shishi_auth (Shishi ** handle, int verbose, char **cname,
+shishi_auth (Shishi **handle, int verbose, char **cname,
 	     const char *sname, int sock, char *cmd,
-	     unsigned short port, Shishi_key ** enckey,
-	     const char *realm)
+	     unsigned short port, Shishi_key **enckey, const char *realm)
 {
   Shishi_ap *ap;
   Shishi_tkt *tkt;
@@ -103,7 +100,7 @@ shishi_auth (Shishi ** handle, int verbose, char **cname,
       if (n >= 0 && n < (ssize_t) sizeof (errormsg))
 	errormsg[n] = '\0';
       else
-	errormsg[sizeof (errormsg) -1] = '\0';
+	errormsg[sizeof (errormsg) - 1] = '\0';
 
       fprintf (stderr, "Error during server authentication : %s\n", errormsg);
       return SHISHI_VERIFY_FAILED;
@@ -275,8 +272,8 @@ senderror (int s, char type, char *buf)
 
 /* shishi authentication, server side */
 int
-get_auth (int infd, Shishi ** handle, Shishi_ap ** ap,
-	  Shishi_key ** enckey, const char **err_msg, int *protoversion,
+get_auth (int infd, Shishi **handle, Shishi_ap **ap,
+	  Shishi_key **enckey, const char **err_msg, int *protoversion,
 	  int *cksumtype, char **cksum, size_t *cksumlen, char *srvname)
 {
   Shishi_key *key;
@@ -333,8 +330,7 @@ get_auth (int infd, Shishi ** handle, Shishi_ap ** ap,
       if (p && (p != server))
 	sprintf (servername, "%s", server);	/* Non-empty prefix.  */
       else
-	sprintf (servername, "%s/%s", SERVICE,
-		 server + (p ? 1 : 0));	/* Remove initial slash.  */
+	sprintf (servername, "%s/%s", SERVICE, server + (p ? 1 : 0));	/* Remove initial slash.  */
     }
   else
     servername = shishi_server_for_local_service (*handle, SERVICE);
@@ -573,8 +569,8 @@ get_auth (int infd, Shishi ** handle, Shishi_ap ** ap,
 
 /* read encrypted data on socket */
 int
-readenc (Shishi * h, int sock, char *buf, int *len, shishi_ivector * iv,
-	 Shishi_key * enckey, int proto)
+readenc (Shishi *h, int sock, char *buf, int *len, shishi_ivector *iv,
+	 Shishi_key *enckey, int proto)
 {
   char *out;
   char *outbis;
@@ -699,8 +695,8 @@ readenc (Shishi * h, int sock, char *buf, int *len, shishi_ivector * iv,
 
 /* write encrypted data to socket */
 int
-writeenc (Shishi * h, int sock, char *buf, int wlen, int *len,
-	  shishi_ivector * iv, Shishi_key * enckey, int proto)
+writeenc (Shishi *h, int sock, char *buf, int wlen, int *len,
+	  shishi_ivector *iv, Shishi_key *enckey, int proto)
 {
   char *out;
   char *bufbis;
@@ -766,5 +762,5 @@ writeenc (Shishi * h, int sock, char *buf, int wlen, int *len,
 
 
 }
-# endif	/* ENCRYPTION */
+# endif/* ENCRYPTION */
 #endif

@@ -1,7 +1,6 @@
 #!/bin/sh
 
-# Copyright (C) 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019,
-# 2020, 2021 Free Software Foundation, Inc.
+# Copyright (C) 2011-2025 Free Software Foundation, Inc.
 #
 # This file is part of GNU Inetutils.
 #
@@ -43,7 +42,7 @@ HERE
     exit 0
 fi
 
-# Step into `tests/', should the invokation
+# Step into `tests/', should the invocation
 # have been made outside of it.
 #
 [ -d src ] && [ -f tests/syslogd.sh ] && cd tests/
@@ -142,6 +141,18 @@ else
 	      which does without switches:  ifconfig $LO
 EOT
 fi
+
+# Check that unusable prefix length values are rejected when using -A
+#
+for preflen in p 33 -1 1212237832782387238723823782 -1238912x1298129 3k \
+               1.2 2e3 '' ' ';
+do
+    $IFCONFIG -i $LO -A 192.0.2.1/"$preflen" 2>&1 | \
+        $GREP 'Wrong netmask length' >/dev/null 2>&1 ||
+            { errno=1;
+              echo >&2 "Failed to reject invalid prefix length '$preflen'."
+            }
+done
 
 test $errno -ne 0 || $silence echo "Successful testing".
 

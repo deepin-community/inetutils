@@ -1,8 +1,5 @@
 /*
-  Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
-  2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012,
-  2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021 Free Software
-  Foundation, Inc.
+  Copyright (C) 1993-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -70,7 +67,7 @@
 
 #include <config.h>
 
-#include "unused-parameter.h"
+#include "attribute.h"
 
 #if defined AUTHENTICATION
 # include <stdio.h>
@@ -127,7 +124,7 @@ static unsigned char *auth_send_data;
 static int auth_send_cnt = 0;
 
 /*
- * Authentication types supported.  Plese note that these are stored
+ * Authentication types supported.  Please note that these are stored
  * in priority order, i.e. try the first one first.
  */
 TN_Authenticator authenticators[] = {
@@ -155,7 +152,7 @@ TN_Authenticator authenticators[] = {
    krb5shishi_reply,
    krb5shishi_status,
    krb5shishi_printsub,
-  },
+   },
   {AUTHTYPE_KERBEROS_V5, AUTH_WHO_CLIENT | AUTH_HOW_ONE_WAY,
    krb5shishi_init,
    krb5shishi_send,
@@ -163,7 +160,7 @@ TN_Authenticator authenticators[] = {
    krb5shishi_reply,
    krb5shishi_status,
    krb5shishi_printsub,
-  },
+   },
 # endif
 # ifdef	KRB5
 #  ifdef	ENCRYPTION
@@ -174,7 +171,8 @@ TN_Authenticator authenticators[] = {
    kerberos5_reply,
    kerberos5_status,
    kerberos5_printsub},
-#  endif /* ENCRYPTION */
+#  endif
+  /* ENCRYPTION */
   {AUTHTYPE_KERBEROS_V5, AUTH_WHO_CLIENT | AUTH_HOW_ONE_WAY,
    kerberos5_init,
    kerberos5_send,
@@ -192,7 +190,8 @@ TN_Authenticator authenticators[] = {
    kerberos4_reply,
    kerberos4_status,
    kerberos4_printsub},
-#  endif /* ENCRYPTION */
+#  endif
+  /* ENCRYPTION */
   {AUTHTYPE_KERBEROS_V4, AUTH_WHO_CLIENT | AUTH_HOW_ONE_WAY,
    kerberos4_init,
    kerberos4_send,
@@ -287,7 +286,7 @@ auth_disable_name (char *name)
 int
 getauthmask (char *type, int *maskp)
 {
-  register int x;
+  int x;
 
   if (AUTHTYPE_NAME (0) && !strcasecmp (type, AUTHTYPE_NAME (0)))
     {
@@ -367,7 +366,7 @@ auth_togdebug (int on)
 }
 
 int
-auth_status ()
+auth_status (void)
 {
   TN_Authenticator *ap;
   int i, mask;
@@ -396,7 +395,7 @@ auth_status ()
  * negotiation.
  */
 void
-auth_request ()
+auth_request (void)
 {
   static unsigned char str_request[64] = { IAC, SB,
     TELOPT_AUTHENTICATION,
@@ -472,7 +471,7 @@ auth_send (unsigned char *data, int cnt)
       data > _auth_send_data + sizeof (_auth_send_data))
     {
       auth_send_cnt = (cnt > (int) sizeof (_auth_send_data))
-		      ? (int) sizeof (_auth_send_data) : cnt;
+	? (int) sizeof (_auth_send_data) : cnt;
       memmove ((void *) _auth_send_data, (void *) data, auth_send_cnt);
       auth_send_data = _auth_send_data;
     }
@@ -494,8 +493,7 @@ auth_send (unsigned char *data, int cnt)
 		? AUTHTYPE_NAME (auth_send_data[0]) : "unknown",
 		auth_send_data[0],
 		(auth_send_data[1] & AUTH_HOW_MASK & AUTH_HOW_MUTUAL)
-		? "MUTUAL" : "ONEWAY",
-		auth_send_data[1]);
+		? "MUTUAL" : "ONEWAY", auth_send_data[1]);
       if ((i_support & ~i_wont_support) & typemask (*auth_send_data))
 	{
 	  ap = findauthenticator (auth_send_data[0], auth_send_data[1]);
@@ -509,8 +507,7 @@ auth_send (unsigned char *data, int cnt)
 			? AUTHTYPE_NAME (auth_send_data[0]) : "unknown",
 			auth_send_data[0],
 			(auth_send_data[1] & AUTH_HOW_MASK & AUTH_HOW_MUTUAL)
-			? "MUTUAL" : "ONEWAY",
-			auth_send_data[1]);
+			? "MUTUAL" : "ONEWAY", auth_send_data[1]);
 	      if ((*ap->send) (ap))
 		{
 		  /*
@@ -548,11 +545,11 @@ auth_send (unsigned char *data, int cnt)
    */
   printf ("Unable to securely authenticate user ... exit\n");
   exit (EXIT_SUCCESS);
-# endif	/* KANNAN */
+# endif/* KANNAN */
 }
 
 void
-auth_send_retry ()
+auth_send_retry (void)
 {
   /*
    * if auth_send_cnt <= 0 then auth_send will end up rejecting
@@ -617,8 +614,9 @@ auth_name (unsigned char *data, int cnt)
   if (cnt + 1 > (int) sizeof (savename))
     {
       if (auth_debug_mode)
-	printf (">>>%s: Name in NAME (len %d) overflows buffer (len %zu).\r\n",
-		Name, cnt, sizeof (savename) - 1);
+	printf
+	  (">>>%s: Name in NAME (len %d) overflows buffer (len %zu).\r\n",
+	   Name, cnt, sizeof (savename) - 1);
       return;
     }
   memmove ((void *) savename, (void *) data, cnt);
@@ -633,8 +631,8 @@ auth_sendname (char *name, int len)
 {
   static unsigned char str_request[256 + 6]
     = { IAC, SB, TELOPT_AUTHENTICATION, TELQUAL_NAME, };
-  register unsigned char *e = str_request + 4;
-  register unsigned char *ee = &str_request[sizeof (str_request) - 2];
+  unsigned char *e = str_request + 4;
+  unsigned char *ee = &str_request[sizeof (str_request) - 2];
   unsigned char *cp = (unsigned char *) name;
 
   while (--len >= 0)
@@ -652,7 +650,7 @@ auth_sendname (char *name, int len)
 }
 
 void
-auth_finished (TN_Authenticator * ap, int result)
+auth_finished (TN_Authenticator *ap, int result)
 {
   if (ap && ap->cleanup)
     (*ap->cleanup) (ap);
@@ -665,7 +663,7 @@ auth_finished (TN_Authenticator * ap, int result)
 }
 
 static void
-auth_intr (int sig _GL_UNUSED_PARAMETER)
+auth_intr (int sig MAYBE_UNUSED)
 {
   auth_finished (0, AUTH_REJECT);
 }
@@ -709,10 +707,9 @@ auth_debug (int mode)
 }
 
 static void
-auth_gen_printsub (unsigned char *data, int cnt, char *buf,
-		   int buflen)
+auth_gen_printsub (unsigned char *data, int cnt, char *buf, int buflen)
 {
-  register char *cp;
+  char *cp;
   char tbuf[16];
 
   cnt -= 3;

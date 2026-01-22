@@ -1,8 +1,5 @@
 /*
-  Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
-  2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013,
-  2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021 Free Software
-  Foundation, Inc.
+  Copyright (C) 1994-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -69,7 +66,7 @@
 #include "extern.h"
 
 /*
- * Special version of popen which avoids call to shell.  This ensures noone
+ * Special version of popen which avoids call to shell.  This ensures no one
  * may create a pipe to a hidden program as a side effect of a list or dir
  * command.
  */
@@ -214,7 +211,7 @@ pfree:for (argc = 1; gargv[argc] != NULL; argc++)
 }
 
 int
-ftpd_pclose (FILE * iop)
+ftpd_pclose (FILE *iop)
 {
   struct file_pid *fpid = file_pids, *prev_fpid = 0;
   int status;

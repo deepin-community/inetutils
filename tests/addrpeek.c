@@ -1,6 +1,5 @@
 /* addrpeek - testing service for Inetd: remote address, environment vars
-  Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-  2019, 2020, 2021 Free Software Foundation, Inc.
+  Copyright (C) 2010-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -57,13 +56,6 @@
 # define SEPARATOR "\n"
 #endif
 
-/* TODO Develop some reliable test for the existence of ENVIRON.
- * It is detectable using HAVE_DECL_ENVIRON for GNU/Linux and
- * GNU/kFreeBSD. It is present, but not detectable for OpenBSD
- * and FreeBSD.
- */
-extern char **environ;
-
 static void
 write_address (int fd)
 {
@@ -85,17 +77,17 @@ write_address (int fd)
     {
       sslen = sizeof (ss);
       recvfrom (fd, answer, sizeof (answer), 0,
-                  (struct sockaddr *) &ss, &sslen);
+		(struct sockaddr *) &ss, &sslen);
       shutdown (fd, SHUT_RD);
     }
   else
-      return;
+    return;
 
   getnameinfo ((struct sockaddr *) &ss, sslen, addr, sizeof (addr),
-                NULL, 0, NI_NUMERICHOST);
+	       NULL, 0, NI_NUMERICHOST);
 
   len = snprintf (answer, sizeof (answer),
-                  "Your address is %s." SEPARATOR, addr);
+		  "Your address is %s." SEPARATOR, addr);
 
   sendto (fd, answer, len, 0, (struct sockaddr *) &ss, sslen);
 }
@@ -103,7 +95,7 @@ write_address (int fd)
 void
 write_environment (int fd, char *envp[])
 {
-  for ( ; *envp; ++envp)
+  for (; *envp; ++envp)
     {
       write (fd, *envp, strlen (*envp));
       write (fd, SEPARATOR, strlen (SEPARATOR));
@@ -118,16 +110,16 @@ main (int argc, char *argv[])
   for (j = 1; j < argc; ++j)
     {
       if (strncmp (argv[j], "addr", strlen ("addr")) == 0)
-        {
-          write_address (STDOUT_FILENO);
-          continue;
-        }
+	{
+	  write_address (STDOUT_FILENO);
+	  continue;
+	}
 
       if (strncmp (argv[j], "env", strlen ("env")) == 0)
-        {
-          write_environment (STDOUT_FILENO, environ);
-          continue;
-        }
+	{
+	  write_environment (STDOUT_FILENO, environ);
+	  continue;
+	}
     }
 
   close (STDIN_FILENO);

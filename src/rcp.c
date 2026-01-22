@@ -1,8 +1,5 @@
 /*
-  Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-  2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
-  2015, 2016, 2017, 2018, 2019, 2020, 2021 Free Software Foundation,
-  Inc.
+  Copyright (C) 1995-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -84,13 +81,18 @@
 # include <utime.h>		/* If we don't have utimes(), use utime(). */
 #endif
 #include <progname.h>
-#include <unused-parameter.h>
+#include <attribute.h>
 #include <libinetutils.h>
 #include <argp.h>
 #include <error.h>
 #include <xalloc.h>
 
-typedef struct {
+#include "intprops.h"
+#include "stat-time.h"
+#include "timespec.h"
+
+typedef struct
+{
   int cnt;
   char *buf;
 } BUF;
@@ -126,9 +128,9 @@ int doencrypt = 0;
 # ifdef KERBEROS
 CREDENTIALS cred;
 Key_schedule schedule;
-extern char *krb_realmofhost ();
+extern char *krb_realmofhost (const char *);
 
-# elif defined SHISHI /* !KERBEROS  */
+# elif defined SHISHI		/* !KERBEROS  */
 Shishi *h;
 Shishi_key *enckey;
 shishi_ivector iv1, iv2, iv3, iv4;
@@ -138,13 +140,14 @@ int keytype;
 int keylen;
 int rc;
 int wlen;
-# endif /* SHISHI */
+# endif/* SHISHI */
 #endif /* KERBEROS || SHISHI */
 
-const char doc[] = "Remote copy SOURCE to DEST, or multiple SOURCE(s) to DIRECTORY.";
-const char arg_doc[] = "SOURCE DEST\n"
-                       "SOURCE... DIRECTORY\n"
-                       "--target-directory=DIRECTORY SOURCE...";
+const char doc[] =
+  "Remote copy SOURCE to DEST, or multiple SOURCE(s) to DIRECTORY.";
+const char arg_doc[] =
+  "SOURCE DEST\n" "SOURCE... DIRECTORY\n"
+  "--target-directory=DIRECTORY SOURCE...";
 
 char *target = NULL;
 int preserve_option;
@@ -156,53 +159,53 @@ sa_family_t family = AF_UNSPEC;
 
 static struct argp_option options[] = {
 #define GRID 0
-  { "recursive", 'r', NULL, 0,
-    "if any of the source files are directories, copies"
-    " each subtree rooted at that name; in this case the"
-    " destination must be a directory",
-    GRID+1 },
-  { "preserve", 'p', NULL, 0,
-    "attempt to preserve (duplicate) in its copies the"
-    " modification times and modes of the source files",
-    GRID+1 },
-  { "target-directory", 'd', "DIRECTORY", OPTION_ARG_OPTIONAL,
-    "copy all SOURCE arguments into DIRECTORY",
-    GRID+1 },
-  { "from", 'f', NULL, 0,
-    "copying from remote host (server use only)",
-    GRID+1 },
-  { "to", 't', NULL, 0,
-    "copying to remote host (server use only)",
-    GRID+1 },
+  {"recursive", 'r', NULL, 0,
+   "if any of the source files are directories, copies"
+   " each subtree rooted at that name; in this case the"
+   " destination must be a directory",
+   GRID + 1},
+  {"preserve", 'p', NULL, 0,
+   "attempt to preserve (duplicate) in its copies the"
+   " modification times and modes of the source files",
+   GRID + 1},
+  {"target-directory", 'd', "DIRECTORY", OPTION_ARG_OPTIONAL,
+   "copy all SOURCE arguments into DIRECTORY",
+   GRID + 1},
+  {"from", 'f', NULL, 0,
+   "copying from remote host (server use only)",
+   GRID + 1},
+  {"to", 't', NULL, 0,
+   "copying to remote host (server use only)",
+   GRID + 1},
 #if defined WITH_ORCMD_AF || defined WITH_RCMD_AF || defined SHISHI
-  { "ipv4", '4', NULL, 0,
-    "use only IPv4",
-    GRID+1 },
-  { "ipv6", '6', NULL, 0,
-    "use only IPv6",
-    GRID+1 },
+  {"ipv4", '4', NULL, 0,
+   "use only IPv4",
+   GRID + 1},
+  {"ipv6", '6', NULL, 0,
+   "use only IPv6",
+   GRID + 1},
 #endif /* WITH_ORCMD_AF || WITH_RCMD_AF || SHISHI */
 #undef GRID
 #if defined KERBEROS || defined SHISHI
 # define GRID 10
-  { "kerberos", 'K', NULL, 0,
-    "turns off all Kerberos authentication",
-    GRID+1 },
-  { "realm", 'k', "REALM", 0,
-    "obtain tickets for a remote host in REALM instead of the remote host's realm",
-    GRID+1 },
+  {"kerberos", 'K', NULL, 0,
+   "turns off all Kerberos authentication",
+   GRID + 1},
+  {"realm", 'k', "REALM", 0,
+   "obtain tickets for a remote host in REALM instead of the remote host's realm",
+   GRID + 1},
 # ifdef ENCRYPTION
-  { "encrypt", 'x', NULL, 0,
-    "encrypt all data transfer",
-    GRID+1 },
+  {"encrypt", 'x', NULL, 0,
+   "encrypt all data transfer",
+   GRID + 1},
 # endif
 # undef GRID
 #endif
-  { NULL, 0, NULL, 0, NULL, 0 }
+  {NULL, 0, NULL, 0, NULL, 0}
 };
 
 static error_t
-parse_opt (int key, char *arg, struct argp_state *state _GL_UNUSED_PARAMETER)
+parse_opt (int key, char *arg, struct argp_state *state MAYBE_UNUSED)
 {
   switch (key)
     {
@@ -228,10 +231,10 @@ parse_opt (int key, char *arg, struct argp_state *state _GL_UNUSED_PARAMETER)
     case 'x':
       doencrypt = 1;
 #  ifdef KERBEROS
-      des_set_key(cred.session, schedule);
+      des_set_key (cred.session, schedule);
 #  endif
       break;
-# endif /* ENCRYPTION */
+# endif/* ENCRYPTION */
 #endif /* KERBEROS || SHISHI */
 
     case 'p':
@@ -249,12 +252,12 @@ parse_opt (int key, char *arg, struct argp_state *state _GL_UNUSED_PARAMETER)
 	target = xstrdup (arg);	/* Client side use.  */
       break;
 
-    case 'f':		/* "from" */
+    case 'f':			/* "from" */
       iamremote = 1;
       from_option = 1;
       break;
 
-    case 't':		/* "to" */
+    case 't':			/* "to" */
       iamremote = 1;
       to_option = 1;
       break;
@@ -316,7 +319,7 @@ main (int argc, char *argv[])
     {
 # if defined ENCRYPTION && defined KERBEROS
       shell = doencrypt ? "ekshell" : "kshell";
-# else /* SHISHI */
+# else/* SHISHI */
       shell = "kshell";		/* Libshishi uses a single service.  */
 # endif
 
@@ -348,14 +351,25 @@ main (int argc, char *argv[])
   if (from_option)
     {				/* Follow "protocol", send data. */
       response ();
-      setuid (userid);
+
+      if (setuid (userid) == -1)
+	{
+	  error (EXIT_FAILURE, 0,
+		 "Could not drop privileges (setuid() failed)");
+	}
+
       source (argc, argv);
       exit (errs);
     }
 
   if (to_option)
     {				/* Receive data. */
-      setuid (userid);
+      if (setuid (userid) == -1)
+	{
+	  error (EXIT_FAILURE, 0,
+		 "Could not drop privileges (setuid() failed)");
+	}
+
       sink (argc, argv);
       exit (errs);
     }
@@ -502,12 +516,10 @@ toremote (char *targ, int argc, char *argv[])
 #endif /* KERBEROS || SHISHI */
 #ifdef WITH_ORCMD_AF
 		rem = orcmd_af (&host, port, pwd->pw_name,
-				tuser ? tuser : pwd->pw_name,
-				bp, 0, family);
+				tuser ? tuser : pwd->pw_name, bp, 0, family);
 #elif defined WITH_RCMD_AF
 		rem = rcmd_af (&host, port, pwd->pw_name,
-			       tuser ? tuser : pwd->pw_name,
-			       bp, 0, family);
+			       tuser ? tuser : pwd->pw_name, bp, 0, family);
 #elif defined WITH_ORCMD
 		rem = orcmd (&host, port, pwd->pw_name,
 			     tuser ? tuser : pwd->pw_name, bp, 0);
@@ -519,11 +531,10 @@ toremote (char *targ, int argc, char *argv[])
 		{
 		  /* rcmd() provides its own error messages,
 		   * but we add a vital addition, caused by
-		   * insufficient capabilites.
+		   * insufficient capabilities.
 		   */
 		  if (errno == EACCES)
-		    error (EXIT_FAILURE, 0,
-			   "No access to privileged ports.");
+		    error (EXIT_FAILURE, 0, "No access to privileged ports.");
 
 		  exit (EXIT_FAILURE);
 		}
@@ -540,7 +551,12 @@ toremote (char *targ, int argc, char *argv[])
 	      if (response () < 0)
 		exit (EXIT_FAILURE);
 	      free (bp);
-	      setuid (userid);
+
+	      if (setuid (userid) == -1)
+		{
+		  error (EXIT_FAILURE, 0,
+			 "Could not drop privileges (setuid() failed)");
+		}
 	    }
 	  source (1, argv + i);
 	  close (rem);
@@ -559,7 +575,7 @@ toremote (char *targ, int argc, char *argv[])
 		      free (ivtab[i]->iv);
 		    }
 		}
-# endif /* ENCRYPTION */
+# endif/* ENCRYPTION */
 	    }
 #endif /* SHISHI */
 	}
@@ -584,8 +600,7 @@ tolocal (int argc, char *argv[])
 	  if (asprintf (&bp, "exec %s%s%s %s %s",
 			PATH_CP,
 			iamrecursive ? " -R" : "",
-			preserve_option ? " -p" : "",
-			argv[i], target) < 0)
+			preserve_option ? " -p" : "", argv[i], target) < 0)
 	    xalloc_die ();
 	  if (susystem (bp, userid))
 	    ++errs;
@@ -619,13 +634,13 @@ tolocal (int argc, char *argv[])
 	rem = kerberos (&host, bp, pwd->pw_name, suser);
       else
 #elif defined WITH_ORCMD_AF
-	rem = orcmd_af (&host, port, pwd->pw_name, suser, bp, 0, family);
+      rem = orcmd_af (&host, port, pwd->pw_name, suser, bp, 0, family);
 #elif defined WITH_RCMD_AF
-	rem = rcmd_af (&host, port, pwd->pw_name, suser, bp, 0, family);
+      rem = rcmd_af (&host, port, pwd->pw_name, suser, bp, 0, family);
 #elif defined WITH_ORCMD
-	rem = orcmd (&host, port, pwd->pw_name, suser, bp, 0);
+      rem = orcmd (&host, port, pwd->pw_name, suser, bp, 0);
 #else /* !WITH_ORCMD_AF && !WITH_RCMD_AF && !WITH_ORCMD */
-	rem = rcmd (&host, port, pwd->pw_name, suser, bp, 0);
+      rem = rcmd (&host, port, pwd->pw_name, suser, bp, 0);
 #endif
       free (bp);
       if (rem < 0)
@@ -633,7 +648,13 @@ tolocal (int argc, char *argv[])
 	  ++errs;
 	  continue;
 	}
-      seteuid (userid);
+
+      if (seteuid (userid) == -1)
+	{
+	  error (EXIT_FAILURE, 0,
+		 "Could not drop privileges (seteuid() failed)");
+	}
+
 #if defined IP_TOS && defined IPPROTO_IP && defined IPTOS_THROUGHPUT
       sslen = sizeof (ss);
       (void) getpeername (rem, (struct sockaddr *) &ss, &sslen);
@@ -646,53 +667,47 @@ tolocal (int argc, char *argv[])
 #endif
       vect[0] = target;
       sink (1, vect);
-      seteuid (effuid);
+
+      if (seteuid (effuid) == -1)
+	{
+	  error (EXIT_FAILURE, 0,
+		 "Could not drop privileges (seteuid() failed)");
+	}
+
       close (rem);
       rem = -1;
 #ifdef SHISHI
       if (use_kerberos)
 	shishi_done (h);
-	{
+      {
 # ifdef ENCRYPTION
-	  if (doencrypt)
-	    {
-	      shishi_key_done (enckey);
-	      for (i = 0; i < 4; i++)
-		{
-		  shishi_crypto_close (ivtab[i]->ctx);
-		  free (ivtab[i]->iv);
-		}
-	    }
-# endif /* ENCRYPTION */
-	}
+	if (doencrypt)
+	  {
+	    shishi_key_done (enckey);
+	    for (i = 0; i < 4; i++)
+	      {
+		shishi_crypto_close (ivtab[i]->ctx);
+		free (ivtab[i]->iv);
+	      }
+	  }
+# endif/* ENCRYPTION */
+      }
 #endif /* SHISHI */
     }
 }
 
 static int
-write_stat_time (int fd, struct stat *stat)
+write_stat_time (int fd, struct stat *st)
 {
-  char buf[4 * sizeof (long) * 3 + 2];
-  time_t a_sec, m_sec;
-  long a_usec = 0, m_usec = 0;
-
-  a_sec = stat->st_atime;
-#ifdef HAVE_STRUCT_STAT_ST_ATIM_TV_NSEC
-  a_usec = stat->st_atim.tv_nsec / 1000;
-#elif defined HAVE_STRUCT_STAT_ST_ATIM_TV_USEC
-  a_usec = stat->st_atim.tv_usec;
-#endif
-
-  m_sec = stat->st_mtime;
-#ifdef HAVE_STRUCT_STAT_ST_MTIM_TV_NSEC
-  m_usec = stat->st_mtim.tv_nsec / 1000;
-#elif defined HAVE_STRUCT_STAT_ST_MTIM_TV_USEC
-  m_usec = stat->st_mtim.tv_usec;
-#endif
-
-  snprintf (buf, sizeof (buf), "T%ld %ld %ld %ld\n",
-	    m_sec, m_usec, a_sec, a_usec);
-  return write (fd, buf, strlen (buf));
+  /* 'T' + 4 integers + 3 spaces + '\n' + '\0'.  */
+  char buffer[4 * INT_STRLEN_BOUND (intmax_t) + 1 + 3 + 2];
+  struct timespec atime = get_stat_atime (st);
+  struct timespec mtime = get_stat_mtime (st);
+  int len = sprintf (buffer, "T%jd %jd %jd %jd\n", (intmax_t) mtime.tv_sec,
+		     (intmax_t) (mtime.tv_nsec / 1000),
+		     (intmax_t) atime.tv_sec,
+		     (intmax_t) (mtime.tv_nsec / 1000));
+  return write (fd, buffer, len);
 }
 
 void
@@ -745,7 +760,8 @@ source (int argc, char *argv[])
 	}
 #define RCP_MODEMASK	(S_ISUID|S_ISGID|S_ISVTX|S_IRWXU|S_IRWXG|S_IRWXO)
       snprintf (buf, sizeof buf, "C%04o %jd %s\n",
-		(int) stb.st_mode & RCP_MODEMASK, (intmax_t) stb.st_size, last);
+		(int) stb.st_mode & RCP_MODEMASK, (intmax_t) stb.st_size,
+		last);
       write (rem, buf, strlen (buf));
       if (response () < 0)
 	goto next;
@@ -830,7 +846,8 @@ rsource (char *name, struct stat *statp)
       return;
     }
 
-  sprintf (buf, "D%04o %d %s\n", (int) statp->st_mode & RCP_MODEMASK, 0, last);
+  sprintf (buf, "D%04o %d %s\n", (int) statp->st_mode & RCP_MODEMASK, 0,
+	   last);
   write (rem, buf, strlen (buf));
   free (buf);
 
@@ -1181,9 +1198,9 @@ again:
       if (doencrypt)
 	{
 #  ifdef KERBEROS
-	  rem = krcmd_mutual (host, port, user, bp, 0, dest_realm,
-			      &cred, schedule) :
-	  krb_errno = errno;
+	rem = krcmd_mutual (host, port, user, bp, 0, dest_realm, &cred, schedule):
+	  krb_errno =
+	    errno;
 #  elif defined SHISHI
 	  int i;
 	  char *xbp = NULL;
@@ -1248,11 +1265,11 @@ again:
 #  endif
 	}
       else
-# endif /* ENCRYPTION */
+# endif/* ENCRYPTION */
 	{
 # ifdef KERBEROS
 	  rem = krcmd (host, port, user, bp, 0, dest_realm);
-# else /* SHISHI */
+# else/* SHISHI */
 	  rem = krcmd (&h, host, port, &user, bp, NULL, dest_realm, family);
 # endif
 	  krb_errno = errno;
@@ -1264,7 +1281,8 @@ again:
 	  if (krb_errno == ECONNREFUSED)
 	    oldw ("remote host doesn't support Kerberos");
 	  else if (krb_errno == ENOENT)
-	    error (EXIT_FAILURE, 0, "Can't provide Kerberos authentication data.");
+	    error (EXIT_FAILURE, 0,
+		   "Can't provide Kerberos authentication data.");
 	  else
 	    error (EXIT_FAILURE, 0, "Kerberos authentication failed.");
 
@@ -1281,17 +1299,18 @@ again:
 
 # ifdef ENCRYPTION
       if (doencrypt)
-	error (EXIT_FAILURE, 0, "the -x option requires Kerberos authentication");
+	error (EXIT_FAILURE, 0,
+	       "the -x option requires Kerberos authentication");
 # endif
       if (p)
-	*host = ++p;	/* Skip prefix like `host/'.  */
+	*host = ++p;		/* Skip prefix like `host/'.  */
 # ifdef WITH_ORCMD_AF
       rem = orcmd_af (host, port, locuser, user, bp, 0, family);
 # elif defined WITH_RCMD_AF
       rem = rcmd_af (host, port, locuser, user, bp, 0, family);
 # elif defined WITH_ORCMD
       rem = orcmd (host, port, locuser, user, bp, 0);
-# else /* !WITH_ORCMD_AF && !WITH_RCMD_AF && !WITH_ORCMD */
+# else/* !WITH_ORCMD_AF && !WITH_RCMD_AF && !WITH_ORCMD */
       rem = rcmd (host, port, locuser, user, bp, 0);
 # endif
     }
@@ -1354,11 +1373,12 @@ run_err (const char *fmt, ...)
   static FILE *fp;
   va_list ap;
 
-  va_start (ap, fmt);
-
   ++errs;
   if (fp == NULL && !(fp = fdopen (rem, "w")))
     return;
+
+  va_start (ap, fmt);
+
   fprintf (fp, "%c", 0x01);
   fprintf (fp, "rcp: ");
   vfprintf (fp, fmt, ap);
@@ -1444,7 +1464,12 @@ susystem (char *s, int userid)
       return (127);
 
     case 0:
-      setuid (userid);
+      if (setuid (userid) == -1)
+	{
+	  error (EXIT_FAILURE, 0,
+		 "Could not drop privileges (setuid() failed)");
+	}
+
       execl (PATH_BSHELL, "sh", "-c", s, NULL);
       _exit (127);
     }
@@ -1458,7 +1483,7 @@ susystem (char *s, int userid)
 }
 
 BUF *
-allocbuf (BUF * bp, int fd, int blksize)
+allocbuf (BUF *bp, int fd, int blksize)
 {
   struct stat stb;
   size_t size;
@@ -1489,7 +1514,7 @@ allocbuf (BUF * bp, int fd, int blksize)
 }
 
 void
-lostconn (int signo _GL_UNUSED_PARAMETER)
+lostconn (int signo MAYBE_UNUSED)
 {
   if (!iamremote)
     error (0, 0, "lost connection");

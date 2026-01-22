@@ -1,7 +1,5 @@
 /*
-  Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013,
-  2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021 Free Software
-  Foundation, Inc.
+  Copyright (C) 2005-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -31,7 +29,8 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <xalloc.h>
-#include <unused-parameter.h>
+#include <attribute.h>
+#include <timespec.h>
 
 #include "ping_common.h"
 
@@ -61,7 +60,7 @@ ping_cvt_number (const char *optarg, size_t maxval, int allow_zero)
 }
 
 void
-init_data_buffer (unsigned char * pat, size_t len)
+init_data_buffer (unsigned char *pat, size_t len)
 {
   size_t i = 0;
   unsigned char *p;
@@ -96,29 +95,12 @@ decode_pattern (const char *text, int *pattern_len,
   for (i = 0; *text && i < *pattern_len; i++)
     {
       if (sscanf (text, "%2x%n", &c, &off) != 1)
-        error (EXIT_FAILURE, 0, "error in pattern near %s", text);
+	error (EXIT_FAILURE, 0, "error in pattern near %s", text);
 
       text += off;
       pattern_data[i] = c;
     }
   *pattern_len = i;
-}
-
-
-/*
- * tvsub --
- *	Subtract 2 timeval structs:  out = out - in.  Out is assumed to
- * be >= in.
- */
-void
-tvsub (struct timeval *out, struct timeval *in)
-{
-  if ((out->tv_usec -= in->tv_usec) < 0)
-    {
-      --out->tv_sec;
-      out->tv_usec += 1000000;
-    }
-  out->tv_sec -= in->tv_sec;
 }
 
 double
@@ -170,7 +152,7 @@ ping_cvt_time (char *buf, size_t buflen, n_time t)
 }
 
 int
-_ping_setbuf (PING * p, bool use_ipv6)
+_ping_setbuf (PING *p, bool use_ipv6)
 {
   if (!p->ping_buffer)
     {
@@ -189,7 +171,7 @@ _ping_setbuf (PING * p, bool use_ipv6)
 }
 
 int
-ping_set_data (PING * p, void *data, size_t off, size_t len, bool use_ipv6)
+ping_set_data (PING *p, void *data, size_t off, size_t len, bool use_ipv6)
 {
   icmphdr_t *icmp;
 
@@ -205,25 +187,25 @@ ping_set_data (PING * p, void *data, size_t off, size_t len, bool use_ipv6)
 }
 
 void
-ping_set_count (PING * ping, size_t count)
+ping_set_count (PING *ping, size_t count)
 {
   ping->ping_count = count;
 }
 
 void
-ping_set_sockopt (PING * ping, int opt, void *val, int valsize)
+ping_set_sockopt (PING *ping, int opt, void *val, int valsize)
 {
   setsockopt (ping->ping_fd, SOL_SOCKET, opt, (char *) &val, valsize);
 }
 
 void
-ping_set_interval (PING * ping, size_t interval)
+ping_set_interval (PING *ping, size_t interval)
 {
   ping->ping_interval = interval;
 }
 
 void
-_ping_freebuf (PING * p)
+_ping_freebuf (PING *p)
 {
   if (p->ping_buffer)
     {
@@ -238,23 +220,17 @@ _ping_freebuf (PING * p)
 }
 
 void
-ping_unset_data (PING * p)
+ping_unset_data (PING *p)
 {
   _ping_freebuf (p);
 }
 
-int
-ping_timeout_p (struct timeval *start_time, int timeout)
+bool
+ping_timeout_p (struct timespec *start_time, int timeout)
 {
-  struct timeval now;
-  gettimeofday (&now, NULL);
-  if (timeout != -1)
-    {
-      tvsub (&now, start_time);
-      if (now.tv_sec >= timeout)
-        return 1;
-    }
-  return 0;
+  if (timeout == -1)
+    return false;
+  return timespec_sub (current_timespec (), *start_time).tv_sec >= timeout;
 }
 
 char *
@@ -282,14 +258,13 @@ ipaddr2str (struct sockaddr *from, socklen_t fromlen)
   if (options & OPT_NUMERIC)
     return xstrdup (ipstr);
 
-  err = getnameinfo (from, fromlen, hoststr, sizeof (hoststr),
-		     NULL, 0,
+  err = getnameinfo (from, fromlen, hoststr, sizeof (hoststr), NULL, 0,
 #ifdef NI_IDN
 		     NI_IDN | NI_NAMEREQD
 #else
 		     NI_NAMEREQD
 #endif
-		     );
+    );
   if (err)
     return xstrdup (ipstr);
 

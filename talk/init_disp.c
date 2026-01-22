@@ -1,8 +1,5 @@
 /*
-  Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-  2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
-  2015, 2016, 2017, 2018, 2019, 2020, 2021 Free Software Foundation,
-  Inc.
+  Copyright (C) 1995-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -62,10 +59,10 @@
 #include <signal.h>
 #include <error.h>
 #include "talk.h"
-#include "unused-parameter.h"
+#include "attribute.h"
 
 static void
-sig_sent (int sig _GL_UNUSED_PARAMETER)
+sig_sent (int sig MAYBE_UNUSED)
 {
 
   message ("Connection closing. Exiting");
@@ -88,7 +85,8 @@ init_display (void)
 #endif
 
   if (initscr () == NULL)
-    error (EXIT_FAILURE, 0, "Terminal type unset or lacking necessary features.");
+    error (EXIT_FAILURE, 0,
+	   "Terminal type unset or lacking necessary features.");
 
 #ifdef HAVE_SIGACTION
   sigaction (SIGTSTP, (struct sigaction *) 0, &siga);
@@ -99,7 +97,7 @@ init_display (void)
   sigvec (SIGTSTP, (struct sigvec *) 0, &sigv);
   sigv.sv_mask |= sigmask (SIGALRM);
   sigvec (SIGTSTP, &sigv, (struct sigvec *) 0);
-# endif	/* HAVE_SIGVEC */
+# endif/* HAVE_SIGVEC */
 #endif /* HAVE_SIGACTION */
 
   curses_initialized = 1;

@@ -1,7 +1,5 @@
 dnl
-dnl Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-dnl 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015,
-dnl 2016, 2017, 2018, 2019, 2020, 2021 Free Software Foundation, Inc.
+dnl Copyright (C) 1996-2025 Free Software Foundation, Inc.
 dnl
 dnl This file is part of GNU Inetutils.
 dnl
@@ -95,7 +93,7 @@ AC_DEFUN([IU_LIB_TERMCAP], [
     LIBTERMCAP="$LIBNCURSES"
   else
     dnl Must check declaration in different settings,
-    dnl so caching in AC_CHECK_DECL is too distructive.
+    dnl so caching in AC_CHECK_DECL is too destructive.
     dnl
     _IU_SAVE_LIBS=$LIBS
     AC_CHECK_LIB(termcap, tgetent, LIBTERMCAP=-ltermcap)
@@ -175,9 +173,7 @@ AC_DEFUN([IU_LIB_CURSES], [
       AC_CACHE_CHECK(whether curses needs $LIBTERMCAP,
 		     inetutils_cv_curses_needs_termcap,
 	LIBS="$LIBCURSES"
-	AC_TRY_LINK([#include <curses.h>], [initscr ();],
-		    [inetutils_cv_curses_needs_termcap=no],
-		    [inetutils_cv_curses_needs_termcap=yes]))
+	AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <curses.h>]], [[initscr ();]])],[inetutils_cv_curses_needs_termcap=no],[inetutils_cv_curses_needs_termcap=yes]))
       if test $inetutils_cv_curses_needs_termcap = yes; then
 	  LIBCURSES="$LIBCURSES $LIBTERMCAP"
       fi

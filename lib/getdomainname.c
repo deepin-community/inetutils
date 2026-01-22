@@ -1,10 +1,10 @@
 /* getdomainname emulation for systems that doesn't have it.
 
-   Copyright (C) 2003, 2006, 2008, 2010-2021 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2006, 2008, 2010-2025 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 3 of the License, or
+   the Free Software Foundation, either version 3 of the License, or
    (at your option) any later version.
 
    This program is distributed in the hope that it will be useful,
@@ -26,7 +26,7 @@
 #include <string.h>
 #include <errno.h>
 
-#if HAVE_SYSINFO && HAVE_SYS_SYSTEMINFO_H /* IRIX, OSF/1, Solaris */
+#if HAVE_SYSINFO && HAVE_SYS_SYSTEMINFO_H /* Solaris */
 # include <sys/systeminfo.h>
 #endif
 
@@ -44,7 +44,7 @@ int
 getdomainname (char *name, size_t len)
 #undef getdomainname
 {
-#if HAVE_GETDOMAINNAME                 /* Mac OS X, FreeBSD, AIX, IRIX, OSF/1 */
+#if HAVE_GETDOMAINNAME                 /* Mac OS X, FreeBSD, AIX */
   extern int getdomainname (char *, int);
 
   if (len > INT_MAX)

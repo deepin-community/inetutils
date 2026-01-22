@@ -1,6 +1,5 @@
 /* waitdaemon -- Verify that waitdaemon() is functional.
-  Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-  2019, 2020, 2021 Free Software Foundation, Inc.
+  Copyright (C) 2010-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -34,18 +33,18 @@
 #include <error.h>
 #include <progname.h>
 #include <libinetutils.h>
-#include <unused-parameter.h>
+#include <attribute.h>
 
 extern int waitdaemon (int nochdir, int noclose, int maxwait);
 
 void
-doexit (int signo _GL_UNUSED_PARAMETER)
+doexit (int signo MAYBE_UNUSED)
 {
   _exit (EXIT_SUCCESS);
 }
 
 int
-main (int argc _GL_UNUSED_PARAMETER, char *argv[])
+main (int argc MAYBE_UNUSED, char *argv[])
 {
   pid_t ppid;
 

@@ -1,8 +1,5 @@
 /*
-  Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
-  2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012,
-  2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021 Free Software
-  Foundation, Inc.
+  Copyright (C) 1993-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -88,7 +85,7 @@
 
 #include <argp.h>
 #include <progname.h>
-#include <unused-parameter.h>
+#include <attribute.h>
 #include <libinetutils.h>
 
 void dologin (struct passwd *pw, struct sockaddr *sap, socklen_t salen);
@@ -106,20 +103,17 @@ char *nenv[] = {
   NULL,
 };
 
-extern char **environ;
-
 static struct argp_option argp_options[] = {
 #define GRP 10
-  { "uucico", 'u', "LOCATION", 0,
-    "location of uucico executable, "
-    "replacing default at " PATH_UUCICO, GRP },
+  {"uucico", 'u', "LOCATION", 0,
+   "location of uucico executable, "
+   "replacing default at " PATH_UUCICO, GRP},
 #undef GRP
-  { NULL, 0, NULL, 0, NULL, 0 }
+  {NULL, 0, NULL, 0, NULL, 0}
 };
 
 static error_t
-parse_opt (int key, char *arg,
-	   struct argp_state *state _GL_UNUSED_PARAMETER)
+parse_opt (int key, char *arg, struct argp_state *state MAYBE_UNUSED)
 {
   switch (key)
     {
@@ -132,12 +126,11 @@ parse_opt (int key, char *arg,
   return 0;
 }
 
-static struct argp argp =
-  {
-    argp_options, parse_opt, NULL,
-    "TCP/IP server for uucico.",
-    NULL, NULL, NULL
-  };
+static struct argp argp = {
+  argp_options, parse_opt, NULL,
+  "TCP/IP server for uucico.",
+  NULL, NULL, NULL
+};
 
 int
 main (int argc, char **argv)
@@ -173,7 +166,7 @@ main (int argc, char **argv)
 }
 
 static int
-readline (register char *p, register int n)
+readline (char *p, int n)
 {
   char c;
 
@@ -255,7 +248,12 @@ doit (struct sockaddr *sap, socklen_t salen)
   snprintf (Username, sizeof (Username), "USER=%s", user);
   snprintf (Logname, sizeof (Logname), "LOGNAME=%s", user);
   dologin (pw, sap, salen);
-  setgid (pw->pw_gid);
+
+  if (setgid (pw->pw_gid) == -1)
+    {
+      fprintf (stderr, "setgid() failed");
+      return;
+    }
 #ifdef HAVE_INITGROUPS
   initgroups (pw->pw_name, pw->pw_gid);
 #endif
@@ -264,7 +262,13 @@ doit (struct sockaddr *sap, socklen_t salen)
       fprintf (stderr, "Login incorrect.");
       return;
     }
-  setuid (pw->pw_uid);
+
+  if (setuid (pw->pw_uid) == -1)
+    {
+      fprintf (stderr, "setuid() failed");
+      return;
+    }
+
   execl (uucico_location, "uucico", NULL);
   perror ("uucico server: execl");
 }
@@ -281,7 +285,7 @@ dologout (void)
   while ((pid = wait3 (0, WNOHANG, 0)) > 0)
 # else
   while ((pid = wait (0)) > 0)
-# endif	/* HAVE_WAIT3 */
+# endif/* HAVE_WAIT3 */
 #endif /* HAVE_WAITPID */
     {
       char line[100];
@@ -313,7 +317,7 @@ dologout (void)
     }
 }
 
-# define SCPYN(a, b)	strncpy(a, b, sizeof (a) - 1); (a)[sizeof (a) - 1] = 0
+#define SCPYN(a, b)	strncpy(a, b, sizeof (a) - 1); (a)[sizeof (a) - 1] = 0
 
 /*
  * Record login in wtmp file.
@@ -321,15 +325,14 @@ dologout (void)
 void
 dologin (struct passwd *pw, struct sockaddr *sap, socklen_t salen)
 {
-  char line[NI_MAXHOST]; /* remote is copied here later on */
+  char line[NI_MAXHOST];	/* remote is copied here later on */
 #if defined PATH_LASTLOG && defined HAVE_STRUCT_LASTLOG
   int f;
 #endif
 #if HAVE_DECL_GETNAMEINFO
   char remotehost[NI_MAXHOST];
 
-  if (getnameinfo (sap, salen, remotehost, sizeof (remotehost),
-		   NULL, 0, 0))
+  if (getnameinfo (sap, salen, remotehost, sizeof (remotehost), NULL, 0, 0))
     (void) getnameinfo (sap, salen, remotehost, sizeof (remotehost),
 			NULL, 0, NI_NUMERICHOST);
 #else
@@ -340,12 +343,12 @@ dologin (struct passwd *pw, struct sockaddr *sap, socklen_t salen)
 
   switch (sap->sa_family)
     {
-#ifdef IPV6
+# ifdef IPV6
     case AF_INET6:
       addr = (void *) &(((struct sockaddr_in6 *) sap)->sin6_addr);
       addrlen = sizeof (struct in6_addr);
       break;
-#endif
+# endif
     case AF_INET:
     default:
       addr = (void *) &(((struct sockaddr_in *) sap)->sin_addr);
@@ -353,7 +356,7 @@ dologin (struct passwd *pw, struct sockaddr *sap, socklen_t salen)
       break;
     }
 
-  (void) salen;		/* Silence warning.  */
+  (void) salen;			/* Silence warning.  */
   hp = gethostbyaddr (addr, addrlen, sap->sa_family);
 
   if (hp)
@@ -382,7 +385,7 @@ dologin (struct passwd *pw, struct sockaddr *sap, socklen_t salen)
     struct timeval now;
 
     ut.ut_type = USER_PROCESS;
-    ut.ut_pid = getpid();
+    ut.ut_pid = getpid ();
     SCPYN (ut.ut_line, line);
     SCPYN (ut.ut_user, pw->pw_name);
     SCPYN (ut.ut_host, remotehost);

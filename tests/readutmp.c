@@ -1,6 +1,5 @@
 /* readutmp - Basic test of existing utmp/utmpx access.
-  Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-  2019, 2020, 2021 Free Software Foundation, Inc.
+  Copyright (C) 2010-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -20,7 +19,7 @@
 /* Written by Mats Erik Andersson.  */
 
 /* Readutmp reads the system's standard UTMP or UTMPX file
- * and verifies that a spcific user is logged in.
+ * and verifies that a specific user is logged in.
  *
  * Invocation:
  *
@@ -75,7 +74,8 @@ main (int argc, char *argv[])
   found = (getutxuser (name) != 0);
   endutxent ();
 #else /* !HAVE_GETUTXUSER */
-  if (read_utmp (UTMP_FILE, &count, &utmpp, READ_UTMP_USER_PROCESS))
+  if (read_utmp (UTMP_FILE, &count, &utmpp,
+		 READ_UTMP_USER_PROCESS | READ_UTMP_CHECK_PIDS))
     {
       perror ("read_utmp");
       return EXIT_FAILURE;

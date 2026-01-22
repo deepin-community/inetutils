@@ -1,7 +1,5 @@
 /*
-  Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-  2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021
-  Free Software Foundation, Inc.
+  Copyright (C) 2001-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -47,7 +45,7 @@ extern int system_parse_opt (struct ifconfig **ifp, char option,
 
 /* Parse remaining ARGC arguments ARGV on the command line. IFP has
    the same meaning as in system_parse_opt.  (There is some
-   post-processing, so you are not reliefed from setting IPF is
+   post-processing, so you are not relieved from setting IPF is
    appropriate.)
    Return 0 if all options were not recognized, otherwise 1.  */
 extern int system_parse_opt_rest (struct ifconfig **ifp, int argc,
@@ -66,6 +64,7 @@ extern const char *system_default_format;
 # undef SYSTEM_FORMAT_HANDLER
 
 
+int system_preconfigure (int sfd, struct ifreq *ifr);
 int system_configure (int sfd, struct ifreq *ifr,
 		      struct system_ifconfig *__ifs);
 
@@ -86,7 +85,7 @@ int system_configure (int sfd, struct ifreq *ifr,
 # endif
 
 
-extern struct if_nameindex* (*system_if_nameindex) (void);
+extern struct if_nameindex *(*system_if_nameindex) (void);
 
 # if defined __linux__
 #  include "system/linux.h"

@@ -1,8 +1,5 @@
 /*
-  Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-  2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
-  2015, 2016, 2017, 2018, 2019, 2020, 2021 Free Software Foundation,
-  Inc.
+  Copyright (C) 1995-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -108,7 +105,7 @@ static unsigned char subbuffer[SUBBUFSIZE], *subpointer, *subend;	/* buffer for 
 #define SB_EOF()	(subpointer >= subend)
 #define SB_LEN()	(subend - subpointer)
 
-char options[256] = { 0 };		/* The combined options */
+char options[256] = { 0 };	/* The combined options */
 char do_dont_resp[256] = { 0 };
 char will_wont_resp[256] = { 0 };
 
@@ -179,8 +176,8 @@ int kludgelinemode = 1;
  */
 
 Clocks clocks;
-
-
+
+
 
 /*
  * Initialize telnet environment.
@@ -222,7 +219,7 @@ init_telnet (void)
  */
 
 void
-send_do (register int c, register int init)
+send_do (int c, int init)
 {
   if (init)
     {
@@ -238,7 +235,7 @@ send_do (register int c, register int init)
 }
 
 void
-send_dont (register int c, register int init)
+send_dont (int c, int init)
 {
   if (init)
     {
@@ -254,7 +251,7 @@ send_dont (register int c, register int init)
 }
 
 void
-send_will (register int c, register int init)
+send_will (int c, int init)
 {
   if (init)
     {
@@ -270,7 +267,7 @@ send_will (register int c, register int init)
 }
 
 void
-send_wont (register int c, register int init)
+send_wont (int c, int init)
 {
   if (init)
     {
@@ -593,10 +590,10 @@ dontoption (int option)
 }
 
 int
-is_unique (register char *name, register char **as, register char **ae)
+is_unique (char *name, char **as, char **ae)
 {
-  register char **ap;
-  register int n;
+  char **ap;
+  int n;
 
   n = strlen (name) + 1;
   for (ap = as; ap < ae; ap++)
@@ -618,8 +615,8 @@ static char *unknown[] = { 0, 0 };
 char **
 mklist (char *buf, char *name)
 {
-  register int n;
-  register char c, *cp, **argvp, *cp2, **argv, **avt;
+  int n;
+  char c, *cp, **argvp, *cp2, **argv, **avt;
 
   if (name)
     {
@@ -666,11 +663,11 @@ mklist (char *buf, char *name)
    */
   argvp = argv + 1;
   *argv = *argvp = 0;
-  n = 0;		/* Positive: name uses white space.  */
+  n = 0;			/* Positive: name uses white space.  */
 
   for (cp = cp2 = buf; (c = *cp); cp++)
     {
-      if (c == '|' || c == ':')		/* Delimiters */
+      if (c == '|' || c == ':')	/* Delimiters */
 	{
 	  *cp++ = '\0';
 	  /*
@@ -863,12 +860,10 @@ suboption (void)
 	  name = gettermname ();
 	  len = strlen (name) + 4 + 2;
 
-	  if ((len < NETROOM ()) && (len <= (int) sizeof (temp)))
+	  if ((len < NETROOM ()) && (len < (int) sizeof (temp)))
 	    {
 	      snprintf ((char *) temp, sizeof (temp), "%c%c%c%c%s%c%c",
-			IAC, SB, TELOPT_TTYPE, TELQUAL_IS,
-			name,
-			IAC, SE);
+			IAC, SB, TELOPT_TTYPE, TELQUAL_IS, name, IAC, SE);
 	      ring_supply_data (&netoring, temp, len);
 	      printsub ('>', &temp[2], len - 2);
 	    }
@@ -893,8 +888,7 @@ suboption (void)
 
 	  snprintf ((char *) temp, sizeof (temp), "%c%c%c%c%d,%d%c%c",
 		    IAC, SB, TELOPT_TSPEED, TELQUAL_IS,
-		    (int) ospeed, (int) ispeed,
-		    IAC, SE);
+		    (int) ospeed, (int) ispeed, IAC, SE);
 	  len = strlen ((char *) temp + 4) + 4;	/* temp[3] is 0 ... */
 
 	  if (len < NETROOM ())
@@ -1011,19 +1005,19 @@ suboption (void)
 	  /* Remote host, and display server must not be corrupted
 	   * by truncation.  In addition, every character of telnet
 	   * protocol must remain unsevered.  Check that DP fits in
-	   * full within TEMP.  Otherwise report buffer error.
+	   * full within TEMP.  Otherwise report buffer error and
+	   * turn off the option.
 	   */
 	  if (strlen ((char *) dp) >= sizeof (temp) - 4 - 2)
 	    {
-	      printf ("lm_will: not enough room in buffer\n");
+	      printf ("lm_will: not enough room in buffer for DISPLAY\n");
+	      send_wont (TELOPT_XDISPLOC, 1);
 	      break;
 	    }
 
 	  /* Go ahead safely.  */
 	  snprintf ((char *) temp, sizeof (temp), "%c%c%c%c%s%c%c",
-		    IAC, SB, TELOPT_XDISPLOC, TELQUAL_IS,
-		    dp,
-		    IAC, SE);
+		    IAC, SB, TELOPT_XDISPLOC, TELQUAL_IS, dp, IAC, SE);
 	  len = strlen ((char *) temp + 4) + 4;	/* temp[3] is 0 ... */
 
 	  if (len < NETROOM ())
@@ -1280,7 +1274,7 @@ static int slc_mode = SLC_EXPORT;
 void
 slc_init (void)
 {
-  register struct spc *spcp;
+  struct spc *spcp;
 
   localchars = 1;
   for (spcp = spc_data; spcp < &spc_data[NSLC + 1]; spcp++)
@@ -1349,7 +1343,7 @@ slcstate (void)
 }
 
 void
-slc_mode_export (void)
+slc_mode_export (int n)
 {
   slc_mode = SLC_EXPORT;
   if (my_state_is_will (TELOPT_LINEMODE))
@@ -1367,6 +1361,7 @@ slc_mode_import (int def)
 unsigned char slc_import_val[] = {
   IAC, SB, TELOPT_LINEMODE, LM_SLC, 0, SLC_VARIABLE, 0, IAC, SE
 };
+
 unsigned char slc_import_def[] = {
   IAC, SB, TELOPT_LINEMODE, LM_SLC, 0, SLC_DEFAULT, 0, IAC, SE
 };
@@ -1397,7 +1392,7 @@ slc_import (int def)
 void
 slc_export (void)
 {
-  register struct spc *spcp;
+  struct spc *spcp;
 
   TerminalDefaultChars ();
 
@@ -1421,10 +1416,10 @@ slc_export (void)
 }
 
 void
-slc (register unsigned char *cp, int len)
+slc (unsigned char *cp, int len)
 {
-  register struct spc *spcp;
-  register int func, level;
+  struct spc *spcp;
+  int func, level;
 
   slc_start_reply ();
 
@@ -1499,7 +1494,7 @@ slc (register unsigned char *cp, int len)
 void
 slc_check (void)
 {
-  register struct spc *spcp;
+  struct spc *spcp;
 
   slc_start_reply ();
   for (spcp = &spc_data[1]; spcp < &spc_data[NSLC + 1]; spcp++)
@@ -1533,7 +1528,7 @@ slc_start_reply (void)
 }
 
 void
-slc_add_reply (unsigned char func, unsigned char flags, cc_t value)
+slc_add_reply (unsigned int func, unsigned int flags, cc_t value)
 {
   if ((*slc_replyp++ = func) == IAC)
     *slc_replyp++ = IAC;
@@ -1546,7 +1541,7 @@ slc_add_reply (unsigned char func, unsigned char flags, cc_t value)
 void
 slc_end_reply (void)
 {
-  register int len;
+  int len;
 
   *slc_replyp++ = IAC;
   *slc_replyp++ = SE;
@@ -1566,7 +1561,7 @@ slc_end_reply (void)
 int
 slc_update (void)
 {
-  register struct spc *spcp;
+  struct spc *spcp;
   int need_update = 0;
 
   for (spcp = &spc_data[1]; spcp < &spc_data[NSLC + 1]; spcp++)
@@ -1604,10 +1599,10 @@ int old_env_value = OLD_ENV_VALUE;
 #endif
 
 void
-env_opt (register unsigned char *buf, register int len)
+env_opt (unsigned char *buf, int len)
 {
-  register unsigned char *ep = 0, *epc = 0;
-  register int i;
+  unsigned char *ep = 0, *epc = 0;
+  int i;
 
   switch (buf[0] & 0xff)
     {
@@ -1678,8 +1673,8 @@ env_opt (register unsigned char *buf, register int len)
     }
 }
 
-#define OPT_REPLY_SIZE	256
-unsigned char *opt_reply;
+#define OPT_REPLY_SIZE	(2 * SUBBUFSIZE)
+unsigned char *opt_reply = NULL;
 unsigned char *opt_replyp;
 unsigned char *opt_replyend;
 
@@ -1713,9 +1708,9 @@ env_opt_start_info (void)
 }
 
 void
-env_opt_add (register unsigned char *ep)
+env_opt_add (unsigned char *ep)
 {
-  register unsigned char *vp, c;
+  unsigned char *vp, c;
 
   if (opt_reply == NULL)
      /*XXX*/ return;
@@ -1732,11 +1727,11 @@ env_opt_add (register unsigned char *ep)
 	env_opt_add (ep);
       return;
     }
-  vp = env_getvalue ((char *)ep);
+  vp = env_getvalue ((char *) ep);
   if (opt_replyp + (vp ? strlen ((char *) vp) : 0) +
       strlen ((char *) ep) + 6 > opt_replyend)
     {
-      register int len;
+      int len;
       opt_replyend += OPT_REPLY_SIZE;
       len = opt_replyend - opt_reply;
       opt_reply = (unsigned char *) realloc (opt_reply, len);
@@ -1762,6 +1757,8 @@ env_opt_add (register unsigned char *ep)
     {
       while ((c = *ep++))
 	{
+	  if (opt_replyp + (2 + 2) > opt_replyend)
+	    return;
 	  switch (c & 0xff)
 	    {
 	    case IAC:
@@ -1778,6 +1775,8 @@ env_opt_add (register unsigned char *ep)
 	}
       if ((ep = vp))
 	{
+	  if (opt_replyp + (1 + 2 + 2) > opt_replyend)
+	    return;
 #ifdef	OLD_ENVIRON
 	  if (telopt_environ == TELOPT_OLD_ENVIRON)
 	    *opt_replyp++ = old_env_value;
@@ -1804,10 +1803,12 @@ opt_welldefined (char *ep)
 }
 
 void
-env_opt_end (register int emptyok)
+env_opt_end (int emptyok)
 {
-  register int len;
+  int len;
 
+  if (opt_replyp + 2 > opt_replyend)
+    return;
   len = opt_replyp - opt_reply + 2;
   if (emptyok || len > 6)
     {
@@ -1834,9 +1835,9 @@ env_opt_end (register int emptyok)
 int
 telrcv (void)
 {
-  register int c;
-  register int scc;
-  register unsigned char *sbp;
+  int c;
+  int scc;
+  unsigned char *sbp;
   int count;
   int returnValue = 0;
 
@@ -1902,7 +1903,7 @@ telrcv (void)
 # ifdef	ENCRYPTION
 		  if (decrypt_input)
 		    c = (*decrypt_input) (c);
-# endif	/* ENCRYPTION */
+# endif/* ENCRYPTION */
 		  if (c == IAC)
 		    {
 		      telrcv_state = TS_IAC;
@@ -2113,12 +2114,12 @@ telrcv (void)
 		  /*
 		   * This is an error.  We only expect to get
 		   * "IAC IAC" or "IAC SE".  Several things may
-		   * have happend.  An IAC was not doubled, the
+		   * have happened.  An IAC was not doubled, the
 		   * IAC SE was left off, or another option got
 		   * inserted into the suboption are all possibilities.
 		   * If we assume that the IAC was not doubled,
 		   * and really the IAC SE was left off, we could
-		   * get into an infinate loop here.  So, instead,
+		   * get into an infinite loop here.  So, instead,
 		   * we terminate the suboption, and process the
 		   * partial suboption if we can.
 		   */
@@ -2180,8 +2181,8 @@ telsnd (void)
   count = 0;
   while (NETROOM () > 2)
     {
-      register int sc;
-      register int c;
+      int sc;
+      int c;
 
       if (tcc == 0)
 	{
@@ -2474,7 +2475,7 @@ telnet (char *user)
 # ifdef	ENCRYPTION
       send_do (TELOPT_ENCRYPT, 1);
       send_will (TELOPT_ENCRYPT, 1);
-# endif	/* ENCRYPTION */
+# endif/* ENCRYPTION */
       send_do (TELOPT_SGA, 1);
       send_will (TELOPT_TTYPE, 1);
       send_will (TELOPT_NAWS, 1);
@@ -2593,7 +2594,7 @@ nextitem (char *current)
       return current + 3;
     case SB:			/* loop forever looking for the SE */
       {
-	register char *look = current + 2;
+	char *look = current + 2;
 
 	for (;;)
 	  {
@@ -2633,7 +2634,7 @@ static void
 netclear (void)
 {
 #if 0				/* XXX */
-  register char *thisitem, *next;
+  char *thisitem, *next;
   char *good;
 # define wewant(p)	((nfrontp > p) && ((*p&0xff) == IAC) && \
 				((*(p+1)&0xff) != EC) && ((*(p+1)&0xff) != EL))
@@ -2719,7 +2720,7 @@ xmitEC (void)
 
 
 int
-dosynch (void)
+dosynch (const char *s)
 {
   netclear ();			/* clear the path to the network */
   NETADD (IAC);
@@ -2732,10 +2733,10 @@ dosynch (void)
 int want_status_response = 0;
 
 int
-get_status (void)
+get_status (const char *s)
 {
   unsigned char tmp[16];
-  register unsigned char *cp;
+  unsigned char *cp;
 
   if (my_want_state_is_dont (TELOPT_STATUS))
     {
@@ -2771,7 +2772,7 @@ intp (void)
     }
   if (autosynch)
     {
-      dosynch ();
+      dosynch (NULL);
     }
 }
 
@@ -2787,7 +2788,7 @@ sendbrk (void)
     }
   if (autosynch)
     {
-      dosynch ();
+      dosynch (NULL);
     }
 }
 
@@ -2803,7 +2804,7 @@ sendabort (void)
     }
   if (autosynch)
     {
-      dosynch ();
+      dosynch (NULL);
     }
 }
 
@@ -2819,7 +2820,7 @@ sendsusp (void)
     }
   if (autosynch)
     {
-      dosynch ();
+      dosynch (NULL);
     }
 }
 
@@ -2846,7 +2847,7 @@ sendnaws (void)
 {
   long rows, cols;
   unsigned char tmp[16];
-  register unsigned char *cp;
+  unsigned char *cp;
 
   if (my_state_is_wont (TELOPT_NAWS))
     return;

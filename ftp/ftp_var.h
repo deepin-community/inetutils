@@ -1,8 +1,5 @@
 /*
-  Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-  2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
-  2015, 2016, 2017, 2018, 2019, 2020, 2021 Free Software Foundation,
-  Inc.
+  Copyright (C) 1995-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -56,6 +53,9 @@
 #include <setjmp.h>
 #include <progname.h>
 
+/* For in_port_t.  */
+#include <netinet/in.h>
+
 #ifndef FTP_EXTERN
 # define FTP_EXTERN extern
 #endif
@@ -89,7 +89,7 @@ FTP_EXTERN int crflag;		/* if 1, strip car. rets. on ascii gets */
 FTP_EXTERN char pasv[64];	/* passive port for proxy data connection */
 FTP_EXTERN int passivemode;	/* passive mode enabled */
 FTP_EXTERN int doepsv4;		/* EPSV/EPRT for IPv4 enabled */
-FTP_EXTERN int usefamily;	/* Precondition on an adress family */
+FTP_EXTERN int usefamily;	/* Precondition on an address family */
 FTP_EXTERN int usereadline;	/* Use readline support, given a TTY.  */
 FTP_EXTERN char *altarg;	/* argv[1] with no shell-like preprocessing  */
 FTP_EXTERN char ntin[17];	/* input translation table */
@@ -123,7 +123,7 @@ FTP_EXTERN size_t linelen;	/* allocated length of the same, if known */
 #endif
 
 FTP_EXTERN int margc;		/* count of arguments on input line */
-FTP_EXTERN char *margv[MAXMARGV]; /* args parsed from input line */
+FTP_EXTERN char *margv[MAXMARGV];	/* args parsed from input line */
 FTP_EXTERN int cpend;		/* flag: if != 0, then pending server reply */
 FTP_EXTERN int mflag;		/* flag: if != 0, then active multi command */
 

@@ -1,6 +1,6 @@
 /* memrchr -- find the last occurrence of a byte in a memory block
 
-   Copyright (C) 1991, 1993, 1996-1997, 1999-2000, 2003-2021 Free Software
+   Copyright (C) 1991, 1993, 1996-1997, 1999-2000, 2003-2025 Free Software
    Foundation, Inc.
 
    Based on strlen implementation by Torbjorn Granlund (tege@sics.se),
@@ -11,7 +11,7 @@
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
-   published by the Free Software Foundation; either version 3 of the
+   published by the Free Software Foundation, either version 3 of the
    License, or (at your option) any later version.
 
    This file is distributed in the hope that it will be useful,
@@ -84,15 +84,11 @@ __memrchr (void const *s, int c_in, size_t n)
       repeated_one |= repeated_one << 31 << 1;
       repeated_c |= repeated_c << 31 << 1;
       if (8 < sizeof (longword))
-        {
-          size_t i;
-
-          for (i = 64; i < sizeof (longword) * 8; i *= 2)
-            {
-              repeated_one |= repeated_one << i;
-              repeated_c |= repeated_c << i;
-            }
-        }
+        for (size_t i = 64; i < sizeof (longword) * 8; i *= 2)
+          {
+            repeated_one |= repeated_one << i;
+            repeated_c |= repeated_c << i;
+          }
     }
 
   /* Instead of the traditional loop which tests each byte, we will test a

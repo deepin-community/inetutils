@@ -1,7 +1,5 @@
 # configure.ac - Configuration for inetutils
-# Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-# 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015,
-# 2016, 2017, 2018, 2019, 2020, 2021 Free Software Foundation, Inc.
+# Copyright (C) 1996-2025 Free Software Foundation, Inc.
 #
 # This file is part of GNU Inetutils.
 #
@@ -24,12 +22,13 @@ AC_INIT([GNU inetutils],
  m4_esyscmd([build-aux/git-version-gen .tarball-version]),
  [bug-inetutils@gnu.org])
 
+AC_CONFIG_MACRO_DIRS([m4 am])
 AC_CONFIG_SRCDIR([src/inetd.c])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_HEADERS([config.h:config.hin])
 AC_CANONICAL_HOST
 
-AM_INIT_AUTOMAKE([1.11.1 dist-xz -Wall -Werror])
+AM_INIT_AUTOMAKE([1.11.1 tar-ustar -Wall -Werror])
 
 # For now, we always use libexecdir; later we may want to vary where
 # the daemons go.
@@ -249,7 +248,7 @@ fi
 
 # NetBSD offers orcmd() and orcmd_af() for getting
 # exactly the functionality that rcmd() and rcmd_af()
-# offer on all other targetted systems.
+# offer on all other targeted systems.
 AC_CHECK_FUNC(rcmd_af, , , [#include <netdb.h>])
 if test "$ac_cv_func_rcmd_af" = yes; then
   AC_DEFINE([WITH_RCMD_AF], 1, [Define to one if you can use rcmd_af.])
@@ -591,9 +590,10 @@ if test "$with_wrap" = yes; then
   AC_MSG_CHECKING(hosts_ctl in -lwrap);
   save_LIBS=$LIBS
   LIBS="$save_LIBS -lwrap"
-  AC_TRY_LINK([int allow_severity = 1; int deny_severity = 1;],
-              hosts_ctl(), eval "ac_cv_lib_wrap_hosts_ctl=yes",
-              eval "ac_cv_lib_wrap_hosts_ctl=no")
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([[int allow_severity = 1; int deny_severity = 1;]],
+                                  [[hosts_ctl()]])],
+                 [eval "ac_cv_lib_wrap_hosts_ctl=yes"],
+		 [eval "ac_cv_lib_wrap_hosts_ctl=no"])
   LIBS=$save_LIBS
   if test "$ac_cv_lib_wrap_hosts_ctl" = yes \
       && test "$ac_cv_header_tcpd_h" = yes; then
@@ -611,9 +611,6 @@ AC_CHECK_FUNCS([setlocale])
 IU_CHECK_LIBIDN([$with_libidn_prefix], [$with_idn])
 
 ### Checks for header files.
-
-AC_HEADER_DIRENT
-
 AC_CHECK_HEADERS([arpa/nameser.h arpa/tftp.h fcntl.h features.h \
 		  glob.h memory.h netinet/ether.h netinet/in_systm.h \
 		  netinet/ip.h netinet/ip_icmp.h netinet/ip_var.h \
@@ -649,9 +646,6 @@ if test "$ac_cv_header_arpa_tftp_h" = no; then
 fi
 
 ### Checks for types.
-
-# Checks return type of signal handlers
-AC_TYPE_SIGNAL
 
 AC_CHECK_TYPES(struct if_nameindex, , ,
   [IU_FLUSHLEFT([#include <sys/types.h>
@@ -730,16 +724,6 @@ IU_CHECK_MEMBERS([struct sockaddr.sa_len], , ,
                   #include <sys/socket.h>])
 IU_CHECK_MEMBERS([struct hostent.h_addr_list], , , [#include <netdb.h>])
 
-IU_CHECK_MEMBERS([struct stat.st_atim.tv_nsec,
-		  struct stat.st_atim.tv_usec,
-		  struct stat.st_blksize,
-		  struct stat.st_ctim.tv_nsec,
-		  struct stat.st_ctim.tv_usec,
-		  struct stat.st_mtim.tv_nsec,
-		  struct stat.st_mtim.tv_usec], , ,
-		 [#include <sys/types.h>
-		  #include <sys/stat.h>])
-
 # OpenSolaris does not use a union for `struct tftphdr.th_u'.  As a
 # consequence `struct tftphdr.th_stuff' is a macro resolving to a
 # `ushort_t'.  BSD and Linux produce `char *'.
@@ -748,19 +732,8 @@ IU_CHECK_MEMBERS([struct tftphdr.th_u], , ,
 		  #include <sys/socket.h>
 		  #include <arpa/tftp.h>])
 
-### Checks for compiler characteristics.
-
-# See if `weak refs' are possible; these make it possible (with shared
-# libraries) to check for the existance of a standard function at
-# run-time instead of compile time, which is very handy for
-# distributing binary version programs that automatically adapt -- in
-# inetutils case, to whether or not crypt is available.
-IU_CHECK_WEAK_REFS
-
 ### Checks for library functions.
-AC_FUNC_CLOSEDIR_VOID
 AC_FUNC_FORK
-AC_FUNC_STRCOLL
 AC_FUNC_MMAP
 
 AC_CHECK_FUNCS(cfsetspeed cgetent dirfd flock \
@@ -787,6 +760,18 @@ _SAVE_LIBS="$LIBS"
 LIBS="$LIBCRYPT $LIBS"
 AC_CHECK_FUNCS(crypt)
 LIBS="$_SAVE_LIBS"
+
+# Disable programs which needs crypt.
+if test "$ac_cv_lib_pam_pam_authenticate" != yes \
+   && test "$ac_cv_func_crypt" != yes; then
+  AC_MSG_WARN([Disabling rexecd since no PAM or crypt.])
+  IU_DISABLE_TARGET(rexecd)
+fi
+if test "$ac_cv_func_crypt" != yes; then
+  AC_MSG_WARN([Disabling ftpd/uucpd since no crypt.])
+  IU_DISABLE_TARGET(uucpd)
+  IU_DISABLE_TARGET(ftpd)
+fi
 
 AC_CHECK_FUNC(_obstack_free)
 
@@ -897,9 +882,7 @@ AC_CHECK_DECLS(htons, , ,
 # See if we have h_errno (the test is here so we can use -lresolv if
 # necessary).
 AC_CACHE_CHECK([for h_errno], inetutils_cv_var_h_errno,
-  AC_TRY_COMPILE([#include <netdb.h>],
-    [ extern int h_errno; int iu_x = h_errno; ],
-    inetutils_cv_var_h_errno=yes, inetutils_cv_var_h_errno=no))
+  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <netdb.h>]], [[ extern int h_errno; int iu_x = h_errno; ]])],[inetutils_cv_var_h_errno=yes],[inetutils_cv_var_h_errno=no]))
 if test "$inetutils_cv_var_h_errno" = yes; then
   # FIXME: Isn't this wrong? Shouldn't the declaration check define
   #        this if we find h_errno?

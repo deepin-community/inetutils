@@ -1,7 +1,5 @@
 /*
-  Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-  2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019,
-  2020, 2021 Free Software Foundation, Inc.
+  Copyright (C) 2000-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -91,7 +89,7 @@
 static int printaname (FTSENT *, unsigned long, unsigned long);
 static void printlink (FTSENT *);
 static void printtime (time_t);
-static int printtype (u_int);
+static int printtype (unsigned int);
 static int compute_columns (DISPLAY *, int *);
 
 #define IS_NOPRINT(p)	((p)->fts_number == NO_PRINT)
@@ -139,7 +137,8 @@ printlong (DISPLAY *dp)
       if (f_flags)
 	printf ("%-*s ", dp->s_flags, np->flags);
       if (S_ISCHR (sp->st_mode) || S_ISBLK (sp->st_mode))
-	printf ("%3d, %3d ", (int) major (sp->st_rdev), (int) minor (sp->st_rdev));
+	printf ("%3d, %3d ", (int) major (sp->st_rdev),
+		(int) minor (sp->st_rdev));
       else if (dp->bcfile)
 	printf ("%*s%*llu ",
 		8 - dp->s_size, "", dp->s_size, (long long) sp->st_size);
@@ -357,7 +356,7 @@ printstream (DISPLAY *dp)
 }
 
 static int
-printtype (u_int mode)
+printtype (unsigned int mode)
 {
   switch (mode & S_IFMT)
     {

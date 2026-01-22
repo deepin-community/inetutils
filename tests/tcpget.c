@@ -1,6 +1,5 @@
 /* tcpget - get single response from a TCP port.
-  Copyright (C) 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021
-  Free Software Foundation, Inc.
+  Copyright (C) 2013-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -49,7 +48,7 @@ int
 main (int argc, char *argv[])
 {
   int fd, opt, rc;
-  int timeout = 5;	/* Defaulting to five seconds of waiting time.  */
+  int timeout = 5;		/* Defaulting to five seconds of waiting time.  */
   char buffer[256];
   struct addrinfo hints, *ai, *res;
 
@@ -67,7 +66,7 @@ main (int argc, char *argv[])
 	{
 	case 't':
 	  t = atoi (optarg);
-	  if (t > 0 && t <= 3600 /* on hour */)
+	  if (t > 0 && t <= 3600 /* on hour */ )
 	    timeout = t;
 	  break;
 

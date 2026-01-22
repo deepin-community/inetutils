@@ -1,8 +1,5 @@
 /*
-  Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
-  2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013,
-  2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021 Free Software
-  Foundation, Inc.
+  Copyright (C) 1994-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -30,7 +27,7 @@
 #define N_LINES 5
 #define N_CHARS 256
 
-extern char *ttymsg (struct iovec *iov, int iovcnt, char *line, int tmout);
+#include <libinetutils.h>
 
 typedef struct
 {
@@ -42,13 +39,13 @@ typedef struct
 } LINE;
 
 static void
-init_line (LINE * lp)
+init_line (LINE *lp)
 {
   memset (lp, 0, sizeof *lp);
 }
 
 static void
-format_line (LINE * lp, const char *fmt, ...)
+format_line (LINE *lp, const char *fmt, ...)
 {
   va_list ap;
   int i = lp->ind;
@@ -63,7 +60,7 @@ format_line (LINE * lp, const char *fmt, ...)
 }
 
 static char *
-finish_line (LINE * lp)
+finish_line (LINE *lp)
 {
   int i;
   char *p;
@@ -89,7 +86,7 @@ finish_line (LINE * lp)
 }
 
 static int
-print_mesg (char *tty, CTL_MSG * request, char *remote_machine)
+print_mesg (char *tty, CTL_MSG *request, char *remote_machine)
 {
   time_t t;
   LINE ln;
@@ -115,7 +112,7 @@ print_mesg (char *tty, CTL_MSG * request, char *remote_machine)
   iovec.iov_base = buf;
   iovec.iov_len = strlen (buf);
 
-  if ((cp = ttymsg (&iovec, 1, tty, RING_WAIT - 5)) != NULL)
+  if ((cp = inetutils_ttymsg (&iovec, 1, tty, RING_WAIT - 5)) != NULL)
     {
       syslog (LOG_ERR, "%s", cp);
       return FAILED;
@@ -126,7 +123,7 @@ print_mesg (char *tty, CTL_MSG * request, char *remote_machine)
 /* See if the user is accepting messages. If so, announce that
    a talk is requested. */
 int
-announce (CTL_MSG * request, char *remote_machine)
+announce (CTL_MSG *request, char *remote_machine)
 {
   char *ttypath;
   int len;

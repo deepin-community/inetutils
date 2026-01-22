@@ -1,4 +1,4 @@
-/* Copyright (C) 1991, 1993, 1996-1997, 1999-2000, 2003-2004, 2006, 2008-2021
+/* Copyright (C) 1991, 1993, 1996-1997, 1999-2000, 2003-2004, 2006, 2008-2025
    Free Software Foundation, Inc.
 
    Based on strlen implementation by Torbjorn Granlund (tege@sics.se),
@@ -97,15 +97,11 @@ __memchr (void const *s, int c_in, size_t n)
       repeated_one |= repeated_one << 31 << 1;
       repeated_c |= repeated_c << 31 << 1;
       if (8 < sizeof (longword))
-        {
-          size_t i;
-
-          for (i = 64; i < sizeof (longword) * 8; i *= 2)
-            {
-              repeated_one |= repeated_one << i;
-              repeated_c |= repeated_c << i;
-            }
-        }
+        for (size_t i = 64; i < sizeof (longword) * 8; i *= 2)
+          {
+            repeated_one |= repeated_one << i;
+            repeated_c |= repeated_c << i;
+          }
     }
 
   /* Instead of the traditional loop which tests each byte, we will test a

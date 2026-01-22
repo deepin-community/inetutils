@@ -1,7 +1,6 @@
 #!/bin/sh
 
-# Copyright (C) 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021 Free
-# Software Foundation, Inc.
+# Copyright (C) 2014-2025 Free Software Foundation, Inc.
 #
 # This file is part of GNU Inetutils.
 #
@@ -50,7 +49,33 @@ fi
 
 # Don't use CWD . because parallel testing may create and remove files
 # here while we work.
-LSDIR=..
+
+# The trouble with using srcdir or builddir is that they may contain
+# unexpected files causing the tests to fail.  For example, if the
+# directory contain a file with a 300 characters long filename that
+# will cause 'ls -C' and 'ls -x' to be the same because COLUMNS will
+# be 80.
+
+# We use sleep to cause different modtime and atime.
+
+LSDIR=$(mktemp -d)
+if test -z "$LSDIR" || test ! -d "$LSDIR"; then
+    LSDIR=tmp.$$
+fi
+
+clean_lsdir () {
+    test -d "$LSDIR" && echo "Cleaning up..." && rm -rfv "$LSDIR"
+}
+
+trap clean_lsdir EXIT HUP INT QUIT TERM
+
+touch "$LSDIR"/foo
+sleep 1
+touch "$LSDIR"/bar.sh
+sleep 1
+mkdir "$LSDIR"/baz
+sleep 1
+echo foo > "$LSDIR"/foo
 
 # IMPORTANT: Execute an initial call to $LS, just to get going.
 # In case this is a coverage run, as NixOS does, this very first
@@ -121,6 +146,8 @@ test x"$REPLY_C" != x"$REPLY_m" ||
   { errno=1; echo >&2 'Failed to distinguish "-C" from "-m".'; }
 
 test x"$REPLY_l" != x"$REPLY_n" ||
+  # Don't fail if the cause was missing /etc/passwd
+  { id -u && ! id -u -n ;} ||
   { errno=1; echo >&2 'Failed to distinguish "-l" from "-n".'; }
 
 test x"$REPLY_Ccts" != x"$REPLY_Cuts" ||

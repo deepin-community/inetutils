@@ -1,8 +1,5 @@
 /*
-  Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
-  2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012,
-  2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021 Free Software
-  Foundation, Inc.
+  Copyright (C) 1993-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -27,7 +24,7 @@
 #include <argp.h>
 #include <progname.h>
 #include <error.h>
-#include <unused-parameter.h>
+#include <attribute.h>
 #include <libinetutils.h>
 
 #if defined AUTHENTICATION || defined ENCRYPTION
@@ -54,11 +51,9 @@ char *login_invocation =
    *       of the authenticating, remote user.
    */
   PATH_LOGIN " -p -h %h %?T{-t %T} -d %L %?u{-u %u}{%U}"
-
 #elif defined SOLARIS
   /* At least for SunOS 5.8.  */
   PATH_LOGIN " -h %h %?T{%T} %?u{-- %u}{%U}"
-
 #else /* !SOLARIS */
   PATH_LOGIN " -p -h %h %?u{-f %u}{%U}"
 #endif
@@ -110,42 +105,42 @@ char *terminaltype;
 
 int SYNCHing;			/* we are in TELNET SYNCH mode */
 struct telnetd_clocks clocks;
-
 
+
 static struct argp_option argp_options[] = {
 #define GRID 10
-  { "debug", 'D', "LEVEL", OPTION_ARG_OPTIONAL,
-    "set debugging level", GRID },
-  { "exec-login", 'E', "STRING", 0,
-    "set program to be executed instead of " PATH_LOGIN, GRID },
-  { "no-hostinfo", 'h', NULL, 0,
-    "do not print host information before login has been completed", GRID },
-  { "linemode", 'l', "MODE", OPTION_ARG_OPTIONAL,
-    "set line mode", GRID },
-  { "no-keepalive", 'n', NULL, 0,
-    "disable TCP keep-alives", GRID },
-  { "reverse-lookup", 'U', NULL, 0,
-    "refuse connections from addresses that "
-    "cannot be mapped back into a symbolic name", GRID },
+  {"debug", 'D', "LEVEL", OPTION_ARG_OPTIONAL,
+   "set debugging level", GRID},
+  {"exec-login", 'E', "STRING", 0,
+   "set program to be executed instead of standard login(1)", GRID},
+  {"no-hostinfo", 'h', NULL, 0,
+   "do not print host information before login has been completed", GRID},
+  {"linemode", 'l', "MODE", OPTION_ARG_OPTIONAL,
+   "set line mode", GRID},
+  {"no-keepalive", 'n', NULL, 0,
+   "disable TCP keep-alive", GRID},
+  {"reverse-lookup", 'U', NULL, 0,
+   "refuse connections from addresses that "
+   "cannot be mapped back into a symbolic name", GRID},
 #undef GRID
 
 #ifdef AUTHENTICATION
 # define GRID 20
-  { NULL, 0, NULL, 0, "Authentication control:", GRID },
-  { "authmode", 'a', "MODE", 0,
-    "specify what mode to use for authentication", GRID },
-  { "server-principal", 'S', "NAME", 0,
-    "set Kerberos principal name for this server instance, "
-    "with or without explicit realm", GRID },
-  { "disable-auth-type", 'X', "TYPE", 0,
-    "disable the use of given authentication option", GRID },
+  {NULL, 0, NULL, 0, "Authentication control:", GRID},
+  {"authmode", 'a', "MODE", 0,
+   "specify what mode to use for authentication", GRID},
+  {"server-principal", 'S', "NAME", 0,
+   "set Kerberos principal name for this server instance, "
+   "with or without explicit realm", GRID},
+  {"disable-auth-type", 'X', "TYPE", 0,
+   "disable the use of given authentication option", GRID},
 # undef GRID
 #endif /* AUTHENTICATION */
-  { NULL, 0, NULL, 0, NULL, 0 }
+  {NULL, 0, NULL, 0, NULL, 0}
 };
 
 static error_t
-parse_opt (int key, char *arg, struct argp_state *state _GL_UNUSED_PARAMETER)
+parse_opt (int key, char *arg, struct argp_state *state MAYBE_UNUSED)
 {
   switch (key)
     {
@@ -198,16 +193,15 @@ parse_opt (int key, char *arg, struct argp_state *state _GL_UNUSED_PARAMETER)
   return 0;
 }
 
-static struct argp argp =
-  {
-    argp_options,
-    parse_opt,
-    NULL,
-    "DARPA telnet protocol server",
-    NULL, NULL, NULL
-  };
-
+static struct argp argp = {
+  argp_options,
+  parse_opt,
+  NULL,
+  "DARPA telnet protocol server",
+  NULL, NULL, NULL
+};
 
+
 
 int
 main (int argc, char **argv)
@@ -262,8 +256,7 @@ static struct
 {
   char *name;
   int modnum;
-} debug_mode[debug_max_mode] =
-{
+} debug_mode[debug_max_mode] = {
   {"options", debug_options},
   {"report", debug_report},
   {"netdata", debug_net_data},
@@ -333,7 +326,7 @@ telnetd_setup (int fd)
   struct sockaddr_in saddr;
   struct hostent *hp;
 #endif
-  int true = 1;
+  int on = 1;
   socklen_t len;
   char uname[256];
    /*FIXME*/ int level;
@@ -487,12 +480,11 @@ telnetd_setup (int fd)
 
   if (keepalive
       && setsockopt (fd, SOL_SOCKET, SO_KEEPALIVE,
-		     (char *) &true, sizeof (true)) < 0)
+		     (char *) &on, sizeof (on)) < 0)
     syslog (LOG_WARNING, "setsockopt (SO_KEEPALIVE): %m");
 
   if (debug_tcp
-      && setsockopt (fd, SOL_SOCKET, SO_DEBUG,
-		     (char *) &true, sizeof (true)) < 0)
+      && setsockopt (fd, SOL_SOCKET, SO_DEBUG, (char *) &on, sizeof (on)) < 0)
     syslog (LOG_WARNING, "setsockopt (SO_DEBUG): %m");
 
   net = fd;
@@ -523,13 +515,13 @@ telnetd_setup (int fd)
 
 #ifndef HAVE_STREAMSPTY
   /* Turn on packet mode */
-  ioctl (pty, TIOCPKT, (char *) &true);
+  ioctl (pty, TIOCPKT, (char *) &on);
 #endif
-  ioctl (pty, FIONBIO, (char *) &true);
-  ioctl (net, FIONBIO, (char *) &true);
+  ioctl (pty, FIONBIO, (char *) &on);
+  ioctl (net, FIONBIO, (char *) &on);
 
 #if defined SO_OOBINLINE
-  setsockopt (net, SOL_SOCKET, SO_OOBINLINE, (char *) &true, sizeof true);
+  setsockopt (net, SOL_SOCKET, SO_OOBINLINE, (char *) &on, sizeof on);
 #endif
 
 #ifdef SIGTSTP
@@ -626,7 +618,7 @@ telnetd_run (void)
   for (;;)
     {
       fd_set ibits, obits, xbits;
-      register int c;
+      int c;
 
       if (net_input_level () < 0 && pty_input_level () < 0)
 	break;
@@ -711,8 +703,7 @@ telnetd_run (void)
 
 		  sprintf (data, "%c%c%c%c%c%c",
 			   IAC, SB, TELOPT_LFLOW,
-			   flowmode ? LFLOW_ON : LFLOW_OFF,
-			   IAC, SE);
+			   flowmode ? LFLOW_ON : LFLOW_OFF, IAC, SE);
 		  net_output_datalen (data, sizeof (data));
 		  DEBUG (debug_options, 1,
 			 printsub ('>', data + 2, sizeof (data) - 2));
@@ -751,13 +742,14 @@ telnetd_run (void)
        * so as to let pending data be flushed, mainly to the
        * benefit of the remote and expecting client.
        */
-      if (pending_sigchld) {
-	/* Check for pending output, independently of OBITS.  */
-	if (net_output_level () > 0)
-	  netflush ();
+      if (pending_sigchld)
+	{
+	  /* Check for pending output, independently of OBITS.  */
+	  if (net_output_level () > 0)
+	    netflush ();
 
-	cleanup (SIGCHLD);	/* Not returning from this.  */
-      }
+	  cleanup (SIGCHLD);	/* Not returning from this.  */
+	}
     }
 
   cleanup (0);
@@ -796,7 +788,7 @@ print_hostinfo (void)
 }
 
 static void
-chld_is_done (int sig _GL_UNUSED_PARAMETER)
+chld_is_done (int sig MAYBE_UNUSED)
 {
   pending_sigchld = 1;
 }

@@ -1,7 +1,5 @@
 /*
-  Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-  2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017,
-  2018, 2019, 2020, 2021 Free Software Foundation, Inc.
+  Copyright (C) 1998-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -76,7 +74,7 @@
 
 /* Some systems define PKTSIZE in <arpa/tftp.h>.  */
 #ifndef PKTSIZE
-#define PKTSIZE SEGSIZE+4	/* should be moved to tftp.h */
+# define PKTSIZE SEGSIZE+4	/* should be moved to tftp.h */
 #endif
 
 struct bf
@@ -104,6 +102,7 @@ w_init (void)
 {
   return rw_init (0);
 }				/* write-behind */
+
 struct tftphdr *
 r_init (void)
 {
@@ -131,7 +130,7 @@ rw_init (int x)
 /* if true, convert to ascii */
 /* file opened for read */
 int
-readit (FILE * file, struct tftphdr **dpp, int convert)
+readit (FILE *file, struct tftphdr **dpp, int convert)
 {
   struct bf *b;
 
@@ -153,11 +152,11 @@ readit (FILE * file, struct tftphdr **dpp, int convert)
 /*	FILE *file;  file opened for read */
 /*	int convert;  if true, convert to ascii */
 void
-read_ahead (FILE * file, int convert)
+read_ahead (FILE *file, int convert)
 {
-  register int i;
-  register char *p;
-  register int c;
+  int i;
+  char *p;
+  int c;
   struct bf *b;
   struct tftphdr *dp;
 
@@ -207,7 +206,7 @@ read_ahead (FILE * file, int convert)
    available.
  */
 int
-writeit (FILE * file, struct tftphdr **dpp, int ct, int convert)
+writeit (FILE *file, struct tftphdr **dpp, int ct, int convert)
 {
   bfs[current].counter = ct;	/* set size of data to write */
   current = !current;		/* switch to other buffer */
@@ -225,13 +224,13 @@ writeit (FILE * file, struct tftphdr **dpp, int ct, int convert)
  * CR followed by anything else.  In this case we leave it alone.
  */
 int
-write_behind (FILE * file, int convert)
+write_behind (FILE *file, int convert)
 {
   char *buf;
   int count;
-  register int ct;
-  register char *p;
-  register int c;		/* current character */
+  int ct;
+  char *p;
+  int c;			/* current character */
   struct bf *b;
   struct tftphdr *dp;
 

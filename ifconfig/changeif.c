@@ -1,7 +1,5 @@
 /* changeif.c -- change the configuration of a network interface
-  Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-  2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021
-  Free Software Foundation, Inc.
+  Copyright (C) 2001-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -75,8 +73,7 @@ int
 set_address (int sfd, struct ifreq *ifr, char *address)
 {
 #ifndef SIOCSIFADDR
-  error (0, 0,
-	   "don't know how to set an interface address on this system");
+  error (0, 0, "don't know how to set an interface address on this system");
   return -1;
 #else
 # if HAVE_DECL_GETADDRINFO
@@ -105,15 +102,14 @@ set_address (int sfd, struct ifreq *ifr, char *address)
     }
 
   rc = getnameinfo (ai->ai_addr, ai->ai_addrlen,
-		    addr, sizeof (addr), NULL, 0,
-		    NI_NUMERICHOST);
+		    addr, sizeof (addr), NULL, 0, NI_NUMERICHOST);
   freeaddrinfo (res);
   if (rc)
     {
       error (0, 0, "cannot resolve `%s': %s", address, gai_strerror (rc));
       return -1;
     }
-# else /* !HAVE_DECL_GETADDRINFO */
+# else/* !HAVE_DECL_GETADDRINFO */
   char *addr;
   struct hostent *host = gethostbyname (address);
 
@@ -129,11 +125,10 @@ set_address (int sfd, struct ifreq *ifr, char *address)
     }
 
   addr = inet_ntoa (*((struct in_addr *) host->h_addr));
-# endif /* !HAVE_DECL_GETADDRINFO */
+# endif/* !HAVE_DECL_GETADDRINFO */
 
   {
-    SIOCSIF (ADDR, addr)
-    if (verbose)
+    SIOCSIF (ADDR, addr) if (verbose)
       printf ("Set interface address of `%s' to %s.\n",
 	      ifr->ifr_name, inet_ntoa (sin->sin_addr));
   }
@@ -149,8 +144,7 @@ set_netmask (int sfd, struct ifreq *ifr, char *netmask)
   return -1;
 #else
 
-  SIOCSIF (NETMASK, netmask)
-  if (verbose)
+  SIOCSIF (NETMASK, netmask) if (verbose)
     printf ("Set interface netmask of `%s' to %s.\n",
 	    ifr->ifr_name, inet_ntoa (sin->sin_addr));
   return 0;
@@ -162,7 +156,7 @@ set_dstaddr (int sfd, struct ifreq *ifr, char *dstaddr)
 {
 #ifndef SIOCSIFDSTADDR
   error (0, 0,
-         "don't know how to set an interface peer address on this system");
+	 "don't know how to set an interface peer address on this system");
   return -1;
 #else /* !SIOCSIFDSTADDR */
 # if HAVE_DECL_GETADDRINFO
@@ -191,15 +185,14 @@ set_dstaddr (int sfd, struct ifreq *ifr, char *dstaddr)
     }
 
   rc = getnameinfo (ai->ai_addr, ai->ai_addrlen,
-		    addr, sizeof (addr), NULL, 0,
-		    NI_NUMERICHOST);
+		    addr, sizeof (addr), NULL, 0, NI_NUMERICHOST);
   freeaddrinfo (res);
   if (rc)
     {
       error (0, 0, "cannot resolve `%s': %s", dstaddr, gai_strerror (rc));
       return -1;
     }
-# else /* !HAVE_DECL_GETADDRINFO */
+# else/* !HAVE_DECL_GETADDRINFO */
   char *addr;
   struct hostent *host = gethostbyname (dstaddr);
 
@@ -215,10 +208,9 @@ set_dstaddr (int sfd, struct ifreq *ifr, char *dstaddr)
     }
 
   addr = inet_ntoa (*((struct in_addr *) host->h_addr));
-# endif /* !HAVE_DECL_GETADDRINFO */
+# endif/* !HAVE_DECL_GETADDRINFO */
 
-  SIOCSIF (DSTADDR, addr)
-  if (verbose)
+  SIOCSIF (DSTADDR, addr) if (verbose)
     printf ("Set interface peer address of `%s' to %s.\n",
 	    ifr->ifr_name, inet_ntoa (sin->sin_addr));
   return 0;
@@ -230,11 +222,10 @@ set_brdaddr (int sfd, struct ifreq *ifr, char *brdaddr)
 {
 #ifndef SIOCSIFBRDADDR
   error (0, 0,
-         "don't know how to set an interface broadcast address on this system");
+	 "don't know how to set an interface broadcast address on this system");
   return -1;
 #else
-  SIOCSIF (BRDADDR, brdaddr)
-  if (verbose)
+  SIOCSIF (BRDADDR, brdaddr) if (verbose)
     printf ("Set interface broadcast address of `%s' to %s.\n",
 	    ifr->ifr_name, inet_ntoa (sin->sin_addr));
   return 0;
@@ -245,15 +236,15 @@ int
 set_hwaddr (int sfd, struct ifreq *ifr, char *hwaddr)
 {
 #ifndef SIOCSIFHWADDR
-  error (0, 0,
-         "don't know how to set a hardware address on this system");
+  error (0, 0, "don't know how to set a hardware address on this system");
   return -1;
 #else
 # ifndef ifr_hwaddr
 #  ifdef ifr_enaddr
 #   define ifr_hwaddr ifr_enaddr
-#  endif /* ifr_en_addr */
-# endif /* ifr_hwaddr */
+#  endif
+  /* ifr_en_addr */
+# endif/* ifr_hwaddr */
   int err;
   struct ether_addr *ether;
   struct sockaddr *sa = (struct sockaddr *) &ifr->ifr_hwaddr;
@@ -270,7 +261,7 @@ set_hwaddr (int sfd, struct ifreq *ifr, char *hwaddr)
 	  return -1;
 	}
 
-	ether = &addr;
+      ether = &addr;
     }
 
   /* Reading the present hardware address is a simple
@@ -297,8 +288,7 @@ int
 set_mtu (int sfd, struct ifreq *ifr, int mtu)
 {
 #ifndef SIOCSIFMTU
-  error (0, 0,
-         "don't know how to set the interface mtu on this system");
+  error (0, 0, "don't know how to set the interface mtu on this system");
   return -1;
 #else
   int err = 0;
@@ -320,8 +310,7 @@ int
 set_metric (int sfd, struct ifreq *ifr, int metric)
 {
 #ifndef SIOCSIFMETRIC
-  error (0, 0,
-         "don't know how to set the interface metric on this system");
+  error (0, 0, "don't know how to set the interface metric on this system");
   return -1;
 #else
   int err = 0;
@@ -344,8 +333,7 @@ int
 set_flags (int sfd, struct ifreq *ifr, int setflags, int clrflags)
 {
 #if !defined SIOCGIFFLAGS || !defined SIOCSIFFLAGS
-  error (0, 0,
-         "don't know how to set the interface flags on this system");
+  error (0, 0, "don't know how to set the interface flags on this system");
   return -1;
 #else
   struct ifreq tifr = *ifr;
@@ -360,8 +348,8 @@ set_flags (int sfd, struct ifreq *ifr, int setflags, int clrflags)
 
 # ifdef ifr_flagshigh
   ifr->ifr_flagshigh = (tifr.ifr_flagshigh | (setflags >> 16))
-		       & ~(clrflags >> 16);
-# endif /* ifr_flagshigh */
+    & ~(clrflags >> 16);
+# endif/* ifr_flagshigh */
 
   if (ioctl (sfd, SIOCSIFFLAGS, ifr) < 0)
     {
@@ -406,7 +394,8 @@ configure_if (int sfd, struct ifconfig *ifp)
   strncpy (ifr.ifr_name, ifp->name, IFNAMSIZ);
   ifr.ifr_name[IFNAMSIZ - 1] = '\0';
 
-  if (ifp->valid & IF_VALID_ADDR)
+  err = system_preconfigure (sfd, &ifr);
+  if (!err && ifp->valid & IF_VALID_ADDR)
     err = set_address (sfd, &ifr, ifp->address);
   if (!err && ifp->valid & IF_VALID_NETMASK)
     err = set_netmask (sfd, &ifr, ifp->netmask);

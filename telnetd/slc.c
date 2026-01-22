@@ -1,8 +1,5 @@
 /*
-  Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
-  2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012,
-  2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021 Free Software
-  Foundation, Inc.
+  Copyright (C) 1993-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -69,7 +66,7 @@ static unsigned char slcbuf[NSLC * 6];	/* buffer for slc negotiation */
 void
 send_slc (void)
 {
-  register int i;
+  int i;
 
   /*
    * Send out list of triplets of special characters
@@ -96,8 +93,8 @@ send_slc (void)
 	    case SLC_RP:
 	    case SLC_LNEXT:
 	      add_slc ((unsigned char) i,
-		       (slctab[i].current.flag & ~SLC_LEVELBITS) | SLC_DEFAULT,
-			0);
+		       (slctab[i].current.
+			flag & ~SLC_LEVELBITS) | SLC_DEFAULT, 0);
 	      break;
 
 	    default:
@@ -117,7 +114,7 @@ send_slc (void)
 void
 default_slc (void)
 {
-  register int i;
+  int i;
 
   for (i = 1; i <= NSLC; i++)
     {
@@ -143,7 +140,7 @@ default_slc (void)
 void
 get_slc_defaults (void)
 {
-  register int i;
+  int i;
 
   init_termbuf ();
 
@@ -163,7 +160,7 @@ get_slc_defaults (void)
  * Add an slc triplet to the slc buffer.
  */
 void
-add_slc (register char func, register char flag, register cc_t val)
+add_slc (char func, char flag, cc_t val)
 {
 
   if ((*slcptr++ = (unsigned char) func) == 0xff)
@@ -186,7 +183,7 @@ add_slc (register char func, register char flag, register cc_t val)
  * of the terminal control structures.
  */
 void
-start_slc (register int getit)
+start_slc (int getit)
 {
 
   slcchange = 0;
@@ -203,13 +200,13 @@ start_slc (register int getit)
  * Finish up the slc negotiation.  If something to send, then send it.
  */
 int
-end_slc (register unsigned char **bufp)
+end_slc (unsigned char **bufp)
 {
-  register int len;
+  int len;
   void netflush (void);
 
   /*
-   * If a change has occured, store the new terminal control
+   * If a change has occurred, store the new terminal control
    * structures back to the terminal driver.
    */
   if (slcchange)
@@ -255,10 +252,9 @@ end_slc (register unsigned char **bufp)
  * Figure out what to do about the client's slc
  */
 void
-process_slc (register unsigned char func, register unsigned char flag,
-	     register cc_t val)
+process_slc (unsigned char func, unsigned char flag, cc_t val)
 {
-  register int hislevel, mylevel, ack;
+  int hislevel, mylevel, ack;
 
   /*
    * Ensure that we know something about this function
@@ -330,17 +326,17 @@ process_slc (register unsigned char func, register unsigned char flag,
  * Compare client's request with what we are capable of supporting.
  */
 void
-change_slc (register char func_c, register char flag, register cc_t val)
+change_slc (char func_c, char flag, cc_t val)
 {
-  register int func = func_c;
-  register int hislevel, mylevel;
+  int func = func_c;
+  int hislevel, mylevel;
 
   hislevel = flag & SLC_LEVELBITS;
   mylevel = slctab[func].defset.flag & SLC_LEVELBITS;
   /*
    * If client is setting a function to NOSUPPORT
    * or DEFAULT, then we can easily and directly
-   * accomodate the request.
+   * accommodate the request.
    */
   if (hislevel == SLC_NOSUPPORT)
     {
@@ -448,7 +444,7 @@ change_slc (register char func_c, register char flag, register cc_t val)
 void
 check_slc (void)
 {
-  register int i;
+  int i;
 
   for (i = 1; i <= NSLC; i++)
     {
@@ -477,11 +473,11 @@ check_slc (void)
  * ptr points to the beginning of the buffer, len is the length.
  */
 void
-do_opt_slc (register unsigned char *ptr, register int len)
+do_opt_slc (unsigned char *ptr, int len)
 {
-  register unsigned char func, flag;
+  unsigned char func, flag;
   cc_t val;
-  register unsigned char *end = ptr + len;
+  unsigned char *end = ptr + len;
 
   if (terminit ())
     {				/* go ahead */

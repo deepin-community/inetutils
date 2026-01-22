@@ -1,8 +1,5 @@
 /*
-  Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
-  2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013,
-  2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021 Free Software
-  Foundation, Inc.
+  Copyright (C) 1994-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -49,6 +46,7 @@
  */
 
 #include <stdio.h>
+#include <unistd.h>
 #include <setjmp.h>
 #include <getopt.h>
 #include <sys/types.h>
@@ -63,9 +61,6 @@ extern void dologout (int);
 extern void fatal (const char *);
 extern int ftpd_pclose (FILE *);
 extern FILE *ftpd_popen (char *, const char *);
-#if !HAVE_DECL_GETUSERSHELL
-extern char *getusershell (void);
-#endif
 extern void lreply (int, const char *, ...);
 extern void lreply_multiline (int n, const char *text);
 extern void makedir (const char *);
@@ -124,7 +119,7 @@ extern off_t restart_point;
 /* Exported from server_mode.c.  */
 extern int usefamily;
 extern int server_mode (const char *pidfile, struct sockaddr *phis_addr,
-			socklen_t *phis_addrlen, char *argv[]);
+			socklen_t * phis_addrlen, char *argv[]);
 
 /* Credential for the request.  */
 struct credentials

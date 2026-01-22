@@ -1,7 +1,5 @@
 /*
-  Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-  2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021
-  Free Software Foundation, Inc.
+  Copyright (C) 2001-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -25,12 +23,12 @@ typedef struct icmp_header icmphdr_t;
 
 struct icmp_header
 {
-  unsigned char icmp_type;		/* type of message, see below */
-  unsigned char icmp_code;		/* type sub code */
-  unsigned short icmp_cksum;		/* ones complement cksum of struct */
+  unsigned char icmp_type;	/* type of message, see below */
+  unsigned char icmp_code;	/* type sub code */
+  unsigned short icmp_cksum;	/* ones complement cksum of struct */
   union
   {
-    unsigned char ih_pptr;		/* ICMP_PARAMPROB */
+    unsigned char ih_pptr;	/* ICMP_PARAMPROB */
     struct in_addr ih_gwaddr;	/* ICMP_REDIRECT */
     struct ih_idseq
     {
@@ -50,7 +48,7 @@ struct icmp_header
     struct ih_rtradv
     {
       unsigned char irt_num_addrs;	/* Number of addresses following the msg */
-      unsigned char irt_wpa;		/* Address Entry Size (32-bit words) */
+      unsigned char irt_wpa;	/* Address Entry Size (32-bit words) */
       unsigned short irt_lifetime;	/* Lifetime */
     } ih_rtradv;
 
@@ -71,7 +69,7 @@ struct icmp_header
     struct id_ts		/* ICMP_TIMESTAMP, ICMP_TIMESTAMPREPLY */
     {
       n_time its_otime;		/* Originate timestamp */
-      n_time its_rtime;		/* Recieve timestamp */
+      n_time its_rtime;		/* Receive timestamp */
       n_time its_ttime;		/* Transmit timestamp */
     } id_ts;
     struct id_ip		/* Original IP header */
@@ -79,7 +77,7 @@ struct icmp_header
       struct ip idi_ip;
       /* options and then 64 bits of data */
     } id_ip;
-    unsigned long id_mask;		/* ICMP_ADDRESS, ICMP_ADDRESSREPLY */
+    unsigned long id_mask;	/* ICMP_ADDRESS, ICMP_ADDRESSREPLY */
     char id_data[1];
   } icmp_dun;
 #define icmp_otime	icmp_dun.id_ts.its_otime
@@ -98,7 +96,7 @@ struct icmp_header
 #define ICMP_PROT_UNREACH	2	/* Protocol Unreachable         */
 #define ICMP_PORT_UNREACH	3	/* Port Unreachable             */
 #define ICMP_FRAG_NEEDED	4	/* Fragmentation Needed/DF set  */
-#define ICMP_SR_FAILED		5	/* Source Route failed		*/
+#define ICMP_SR_FAILED		5	/* Source Route failed          */
 #define ICMP_NET_UNKNOWN	6
 #define ICMP_HOST_UNKNOWN	7
 #define ICMP_HOST_ISOLATED	8
@@ -147,16 +145,17 @@ struct icmp_header
 #define ICMP_ADVLEN(p)	(8 + ((p)->icmp_ip.ip_hl << 2) + 8)
 	/* N.B.: must separately check that ip_hl >= 5 */
 
-unsigned short icmp_cksum (unsigned char * addr, int len);
-int icmp_generic_encode (unsigned char * buffer, size_t bufsize, int type, int ident,
-			 int seqno);
-int icmp_generic_decode (unsigned char * buffer, size_t bufsize,
+unsigned short icmp_cksum (unsigned char *addr, int len);
+int icmp_generic_encode (unsigned char *buffer, size_t bufsize, int type,
+			 int ident, int seqno);
+int icmp_generic_decode (unsigned char *buffer, size_t bufsize,
 			 struct ip **ipp, icmphdr_t ** icmpp);
 
-int icmp_echo_encode (unsigned char * buffer, size_t bufsize, int ident, int seqno);
-int icmp_echo_decode (unsigned char * buffer, size_t bufsize,
-		      struct ip **ip, icmphdr_t ** icmp);
-int icmp_timestamp_encode (unsigned char * buffer, size_t bufsize,
-			   int ident, int seqno);
-int icmp_address_encode (unsigned char * buffer, size_t bufsize, int ident,
+int icmp_echo_encode (unsigned char *buffer, size_t bufsize, int ident,
+		      int seqno);
+int icmp_echo_decode (unsigned char *buffer, size_t bufsize, struct ip **ip,
+		      icmphdr_t ** icmp);
+int icmp_timestamp_encode (unsigned char *buffer, size_t bufsize, int ident,
+			   int seqno);
+int icmp_address_encode (unsigned char *buffer, size_t bufsize, int ident,
 			 int seqno);

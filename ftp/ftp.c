@@ -1,8 +1,5 @@
 /*
-  Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-  2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
-  2015, 2016, 2017, 2018, 2019, 2020, 2021 Free Software Foundation,
-  Inc.
+  Copyright (C) 1995-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -73,12 +70,13 @@
 #include <error.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <float.h>
 #include <netdb.h>
 #include <pwd.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>	/* intmax_t */
+#include <stdint.h>		/* intmax_t */
 #include <string.h>
 #include <unistd.h>
 #include <stdarg.h>
@@ -90,18 +88,11 @@
 # include <idna.h>
 #endif
 
+#include <intprops.h>
+#include <timespec.h>
+
 #include "ftp_var.h"
-#include "unused-parameter.h"
-
-#if !HAVE_DECL_FCLOSE
-/* Some systems don't declare fclose in <stdio.h>, so do it ourselves.  */
-extern int fclose (FILE *);
-#endif
-
-#if !HAVE_DECL_PCLOSE
-/* Some systems don't declare pclose in <stdio.h>, so do it ourselves.  */
-extern int pclose (FILE *);
-#endif
+#include "attribute.h"
 
 int data = -1;
 int abrtflag = 0;
@@ -113,11 +104,11 @@ off_t restart_point = 0;
 struct sockaddr_storage myctladdr;
 struct sockaddr_storage hisctladdr;
 struct sockaddr_storage data_addr;
-socklen_t ctladdrlen;	/* Applies to all addresses.  */
+socklen_t ctladdrlen;		/* Applies to all addresses.  */
 
 /* For temporary resolving: hookup() and initconn()/noport.  */
 static char ia[INET6_ADDRSTRLEN];
-static char portstr[10];
+static char portstr[INT_STRLEN_BOUND (in_port_t) + 1];
 
 FILE *cin, *cout;
 
@@ -126,7 +117,7 @@ FILE *cin, *cout;
 #endif
 
 char *
-hookup (char *host, int port)
+hookup (char *host, in_port_t port)
 {
   struct addrinfo hints, *ai = NULL, *res = NULL;
   struct timeval timeout;
@@ -152,7 +143,8 @@ hookup (char *host, int port)
   rhost = strdup (host);
 #endif
 
-  snprintf (portstr, sizeof (portstr) - 1, "%u", port);
+
+  snprintf (portstr, sizeof portstr, "%u", port);
   memset (&hisctladdr, 0, sizeof (hisctladdr));
   memset (&hints, 0, sizeof (hints));
 
@@ -187,9 +179,9 @@ hookup (char *host, int port)
   for (ai = res; ai != NULL; ai = ai->ai_next, ++again)
     {
       if (again)
-        {
+	{
 	  getnameinfo (ai->ai_addr, ai->ai_addrlen, ia, sizeof (ia),
-			NULL, 0, NI_NUMERICHOST);
+		       NULL, 0, NI_NUMERICHOST);
 	  error (0, 0, "Trying %s ...", ia);
 	}
 
@@ -200,7 +192,7 @@ hookup (char *host, int port)
       timeout.tv_sec = FTP_CONNECT_TIMEOUT;
       timeout.tv_usec = 0;
       if (setsockopt (s, SOL_SOCKET, SO_SNDTIMEO, &timeout,
-			sizeof (timeout)) < 0 && debug)
+		      sizeof (timeout)) < 0 && debug)
 	error (0, errno, "setsockopt (SO_SNDTIMEO)");
 
       if (connect (s, ai->ai_addr, ai->ai_addrlen) < 0)
@@ -208,7 +200,7 @@ hookup (char *host, int port)
 	  int oerrno = (errno != EINPROGRESS) ? errno : ETIMEDOUT;
 
 	  getnameinfo (ai->ai_addr, ai->ai_addrlen, ia, sizeof (ia),
-			NULL, 0, NI_NUMERICHOST);
+		       NULL, 0, NI_NUMERICHOST);
 	  error (0, oerrno, "connect to address %s", ia);
 	  close (s);
 	  s = -1;
@@ -219,12 +211,12 @@ hookup (char *host, int port)
       timeout.tv_sec = 0;
       timeout.tv_usec = 0;
       (void) setsockopt (s, SOL_SOCKET, SO_SNDTIMEO, &timeout,
-			  sizeof (timeout));
+			 sizeof (timeout));
 
       ctladdrlen = ai->ai_addrlen;
-      memmove ((caddr_t) &hisctladdr, ai->ai_addr, ai->ai_addrlen);
+      memmove (&hisctladdr, ai->ai_addr, ai->ai_addrlen);
       break;
-    } /* for (ai = ai->ai_next) */
+    }				/* for (ai = ai->ai_next) */
 
   if (res)
     freeaddrinfo (res);
@@ -247,7 +239,7 @@ hookup (char *host, int port)
 #if defined IP_TOS && defined IPPROTO_IP && defined IPTOS_LOWDELAY
   tos = IPTOS_LOWDELAY;
   if (myctladdr.ss_family == AF_INET &&
-	setsockopt (s, IPPROTO_IP, IP_TOS, (char *) &tos, sizeof (int)) < 0)
+      setsockopt (s, IPPROTO_IP, IP_TOS, (char *) &tos, sizeof (int)) < 0)
     error (0, errno, "setsockopt TOS (ignored)");
 #endif
 
@@ -298,9 +290,6 @@ bad:
 int
 login (char *host)
 {
-#if !HAVE_DECL_GETPASS
-  extern char *getpass ();
-#endif
   char tmp[80];
   char *user, *pass, *acct, *p;
   int n, aflag = 0;
@@ -410,7 +399,7 @@ login (char *host)
 }
 
 void
-cmdabort (int sig _GL_UNUSED_PARAMETER)
+cmdabort (int sig MAYBE_UNUSED)
 {
 
   printf ("\n");
@@ -533,7 +522,7 @@ getreply (int expecteof)
 	    }
 	  if (dig < 4 && isdigit (c))
 	    code = code * 10 + (c - '0');
-	  if (!pflag && (code == 227 || code == 228 || code == 229)) /* PASV || LPSV || EPSV */
+	  if (!pflag && (code == 227 || code == 228 || code == 229))	/* PASV || LPSV || EPSV */
 	    pflag = 1;
 	  if (dig > 4 && pflag == 1 && isdigit (c))
 	    pflag = 2;
@@ -541,7 +530,7 @@ getreply (int expecteof)
 	    {
 	      if (c != '\r' && c != ')')
 		{
-		  if (pt < &pasv[sizeof(pasv) - 1])
+		  if (pt < &pasv[sizeof (pasv) - 1])
 		    *pt++ = c;
 		}
 	      else
@@ -597,7 +586,7 @@ empty (fd_set *mask, int sec)
 jmp_buf sendabort;
 
 void
-abortsend (int sig _GL_UNUSED_PARAMETER)
+abortsend (int sig MAYBE_UNUSED)
 {
 
   mflag = 0;
@@ -611,7 +600,7 @@ void
 sendrequest (char *cmd, char *local, char *remote, int printnames)
 {
   struct stat st;
-  struct timeval start, stop;
+  struct timespec start, stop;
   int c, d;
   FILE *fin, *dout = 0, *popen (const char *, const char *);
   int (*closefunc) (FILE *);
@@ -694,7 +683,7 @@ sendrequest (char *cmd, char *local, char *remote, int printnames)
 	  code = -1;
 	  return;
 	}
-	blksize = st.st_blksize;
+      blksize = st.st_blksize;
     }
   if (initconn ())
     {
@@ -782,7 +771,7 @@ sendrequest (char *cmd, char *local, char *remote, int printnames)
       bufsize = blksize;
     }
 
-  gettimeofday (&start, (struct timezone *) 0);
+  start = current_timespec ();
   oldintp = signal (SIGPIPE, SIG_IGN);
   switch (curtype)
     {
@@ -866,7 +855,7 @@ sendrequest (char *cmd, char *local, char *remote, int printnames)
   if (closefunc != NULL)
     (*closefunc) (fin);
   fclose (dout);
-  gettimeofday (&stop, (struct timezone *) 0);
+  stop = current_timespec ();
   getreply (0);
   signal (SIGINT, oldintr);
   if (oldintp)
@@ -894,7 +883,7 @@ abort:
   code = -1;
   if (closefunc != NULL && fin != NULL)
     (*closefunc) (fin);
-  gettimeofday (&stop, (struct timezone *) 0);
+  stop = current_timespec ();
   if (bytes > 0)
     ptransfer ("sent", bytes, &start, &stop);
 }
@@ -902,7 +891,7 @@ abort:
 jmp_buf recvabort;
 
 void
-abortrecv (int sig _GL_UNUSED_PARAMETER)
+abortrecv (int sig MAYBE_UNUSED)
 {
 
   mflag = 0;
@@ -913,7 +902,8 @@ abortrecv (int sig _GL_UNUSED_PARAMETER)
 }
 
 void
-recvrequest (char *cmd, char *local, char *remote, char *lmode, int printnames)
+recvrequest (char *cmd, char *local, char *remote, char *lmode,
+	     int printnames)
 {
   FILE *fout, *din = 0;
   int (*closefunc) (FILE *);
@@ -923,7 +913,7 @@ recvrequest (char *cmd, char *local, char *remote, char *lmode, int printnames)
   static int bufsize = 0;
   static char *buf;
   long long bytes = 0, local_hashbytes = hashbytes;
-  struct timeval start, stop;
+  struct timespec start, stop;
 
   is_retr = strcmp (cmd, "RETR") == 0;
   if (is_retr && verbose && printnames)
@@ -1046,7 +1036,7 @@ recvrequest (char *cmd, char *local, char *remote, char *lmode, int printnames)
       bufsize = blksize;
     }
 
-  gettimeofday (&start, (struct timezone *) 0);
+  start = current_timespec ();
   switch (curtype)
     {
 
@@ -1126,7 +1116,7 @@ recvrequest (char *cmd, char *local, char *remote, char *lmode, int printnames)
 	      /* Explain our failure.  */
 	      if (ch == EOF)
 		printf ("Action not taken: offset %jd is outside of %s.\n",
-		       restart_point, local);
+			restart_point, local);
 	      else
 		error (0, errno, "local: %s", local);
 
@@ -1196,7 +1186,7 @@ recvrequest (char *cmd, char *local, char *remote, char *lmode, int printnames)
   if (oldintp)
     signal (SIGPIPE, oldintp);
   fclose (din);
-  gettimeofday (&stop, (struct timezone *) 0);
+  stop = current_timespec ();
   getreply (0);
   if (bytes > 0 && is_retr)
     ptransfer ("received", bytes, &start, &stop);
@@ -1226,7 +1216,7 @@ abort:
     (*closefunc) (fout);
   if (din)
     fclose (din);
-  gettimeofday (&stop, (struct timezone *) 0);
+  stop = current_timespec ();
   if (bytes > 0)
     ptransfer ("received", bytes, &start, &stop);
   signal (SIGINT, oldintr);
@@ -1245,7 +1235,7 @@ initconn (void)
   socklen_t len;
   int on = 1;
   uint32_t a0, a1, a2, a3, p0, p1, port;
-  uint32_t af, hal, h[16], pal; /* RFC 1639: LPSV resonse.  */
+  uint32_t af, hal, h[16], pal;	/* RFC 1639: LPSV response.  */
   struct sockaddr_in *data_addr_sa4 = (struct sockaddr_in *) &data_addr;
   struct sockaddr_in6 *data_addr_sa6 = (struct sockaddr_in6 *) &data_addr;
 
@@ -1268,42 +1258,42 @@ initconn (void)
        *   then fall back to PASV/LPSV.
        */
       switch (myctladdr.ss_family)
-        {
-	  case AF_INET:
-	    if (doepsv4 && command ("EPSV") == COMPLETE)
-	      {
-	        good_epsv = 1;
-	        break;
-	      }
-	    if (doepsv4)
-	      {
-		/* When arriving here, EPSV failed. Prevent new attempts.  */
-		doepsv4 = 0;
-	      }
-	    if (command ("PASV") == COMPLETE)
-		break;
-	    if (command ("LPSV") == COMPLETE)
-	      {
-		good_lpsv = 1;
-		break;
-	      }
-	    printf ("Passive mode refused.\n");
-	    goto bad;
+	{
+	case AF_INET:
+	  if (doepsv4 && command ("EPSV") == COMPLETE)
+	    {
+	      good_epsv = 1;
+	      break;
+	    }
+	  if (doepsv4)
+	    {
+	      /* When arriving here, EPSV failed. Prevent new attempts.  */
+	      doepsv4 = 0;
+	    }
+	  if (command ("PASV") == COMPLETE)
 	    break;
-	  case AF_INET6:
-	    if (command ("EPSV") == COMPLETE)
-	      {
-		good_epsv = 1;
-		break;
-	      }
-	    if (command ("LPSV") == COMPLETE)
-	      {
-		good_lpsv = 1;
-		break;
-	      }
-	    printf ("Passive mode refused.\n");
-	    goto bad;
-	    break;
+	  if (command ("LPSV") == COMPLETE)
+	    {
+	      good_lpsv = 1;
+	      break;
+	    }
+	  printf ("Passive mode refused.\n");
+	  goto bad;
+	  break;
+	case AF_INET6:
+	  if (command ("EPSV") == COMPLETE)
+	    {
+	      good_epsv = 1;
+	      break;
+	    }
+	  if (command ("LPSV") == COMPLETE)
+	    {
+	      good_lpsv = 1;
+	      break;
+	    }
+	  printf ("Passive mode refused.\n");
+	  goto bad;
+	  break;
 	}
 
       if (good_epsv)
@@ -1316,21 +1306,21 @@ initconn (void)
 	  if (sscanf (pasv, "%u|", &port) != 1)
 	    {
 	      printf ("Extended passive mode scan failure. "
-			"Should not happen!\n");
+		      "Should not happen!\n");
 	      (void) command ("ABOR");	/* Cancel any open connection.  */
 	      goto bad;
 	    }
 	  data_addr = hisctladdr;
 	  switch (data_addr.ss_family)
 	    {
-	      case AF_INET:
-		data_addr_sa4->sin_port = htons (port);
-		break;
-	      case AF_INET6:
-		data_addr_sa6->sin6_port = htons (port);
-		break;
+	    case AF_INET:
+	      data_addr_sa4->sin_port = htons (port);
+	      break;
+	    case AF_INET6:
+	      data_addr_sa6->sin6_port = htons (port);
+	      break;
 	    }
-	} /* EPSV */
+	}			/* EPSV */
       else if (good_lpsv)
 	{
 	  /* LPSV: IPv4 or IPv6
@@ -1343,11 +1333,12 @@ initconn (void)
 
 	  if (myctladdr.ss_family == AF_INET)
 	    {
-	      if ((sscanf (pasv, "%u," /* af */
-				"%u,%u,%u,%u,%u," /* hal, h[4] */
-				"%u,%u,%u", /* pal, p0, p1 */
-				&af, &hal, &h[0], &h[1], &h[2], &h[3], &pal, &p0, &p1) != 9)
-		  || (/* Strong checking */ af != 4 || hal != 4 || pal != 2) )
+	      if ((sscanf (pasv, "%u,"	/* af */
+			   "%u,%u,%u,%u,%u,"	/* hal, h[4] */
+			   "%u,%u,%u",	/* pal, p0, p1 */
+			   &af, &hal, &h[0], &h[1], &h[2], &h[3], &pal, &p0,
+			   &p1) != 9) || ( /* Strong checking */ af != 4
+					  || hal != 4 || pal != 2))
 		{
 		  printf ("Passive mode address scan failure. "
 			  "Shouldn't happen!\n");
@@ -1355,33 +1346,36 @@ initconn (void)
 		  goto bad;
 		}
 	      for (j = 0; j < 4; ++j)
-		h[j] &= 0xff; /* Mask only the significant bits.  */
+		h[j] &= 0xff;	/* Mask only the significant bits.  */
 
 	      data_addr.ss_family = AF_INET;
 	      data_addr_sa4->sin_port =
-		  htons (((p0 & 0xff) << 8) | (p1 & 0xff));
+		htons (((p0 & 0xff) << 8) | (p1 & 0xff));
 
+	      {
+		uint32_t *pu32 =
+		  (uint32_t *) & data_addr_sa4->sin_addr.s_addr;
+		pu32[0] =
+		  htonl ((h[0] << 24) | (h[1] << 16) | (h[2] << 8) | h[3]);
+	      }
+	      if (data_addr_sa4->sin_addr.s_addr
+		  != ((struct sockaddr_in *) &hisctladdr)->sin_addr.s_addr)
 		{
-		  uint32_t *pu32 = (uint32_t *) &data_addr_sa4->sin_addr.s_addr;
-		  pu32[0] = htonl ( (h[0] << 24) | (h[1] << 16) | (h[2] << 8) | h[3]);
+		  printf ("Passive mode address mismatch.\n");
+		  (void) command ("ABOR");	/* Cancel any open connection.  */
+		  goto bad;
 		}
-		if (data_addr_sa4->sin_addr.s_addr
-		    != ((struct sockaddr_in *) &hisctladdr)->sin_addr.s_addr)
-		  {
-		    printf ("Passive mode address mismatch.\n");
-		    (void) command ("ABOR");	/* Cancel any open connection.  */
-		    goto bad;
-		  }
-	    } /* LPSV IPv4 */
-	  else /* IPv6 */
+	    }			/* LPSV IPv4 */
+	  else			/* IPv6 */
 	    {
-	      if ((sscanf (pasv, "%u," /* af */
-				"%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u," /* hal, h[16] */
-				"%u,%u,%u", /* pal, p0, p1 */
-				&af, &hal, &h[0], &h[1], &h[2], &h[3], &h[4], &h[5], &h[6], &h[7],
-				&h[8], &h[9], &h[10], &h[11], &h[12], &h[13], &h[14], &h[15],
-				&pal, &p0, &p1) != 21)
-		  || (/* Strong checking */ af != 6 || hal != 16 || pal != 2) )
+	      if ((sscanf (pasv, "%u,"	/* af */
+			   "%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,"	/* hal, h[16] */
+			   "%u,%u,%u",	/* pal, p0, p1 */
+			   &af, &hal, &h[0], &h[1], &h[2], &h[3], &h[4],
+			   &h[5], &h[6], &h[7], &h[8], &h[9], &h[10], &h[11],
+			   &h[12], &h[13], &h[14], &h[15], &pal, &p0,
+			   &p1) != 21) || ( /* Strong checking */ af != 6
+					   || hal != 16 || pal != 2))
 		{
 		  printf ("Passive mode address scan failure. "
 			  "Shouldn't happen!\n");
@@ -1389,32 +1383,38 @@ initconn (void)
 		  goto bad;
 		}
 	      for (j = 0; j < 16; ++j)
-		h[j] &= 0xff; /* Mask only the significant bits.  */
+		h[j] &= 0xff;	/* Mask only the significant bits.  */
 
 	      data_addr.ss_family = AF_INET6;
 	      data_addr_sa6->sin6_port =
-		  htons (((p0 & 0xff) << 8) | (p1 & 0xff));
+		htons (((p0 & 0xff) << 8) | (p1 & 0xff));
 
+	      {
+		uint32_t *pu32 =
+		  (uint32_t *) & data_addr_sa6->sin6_addr.s6_addr;
+		pu32[0] =
+		  htonl ((h[0] << 24) | (h[1] << 16) | (h[2] << 8) | h[3]);
+		pu32[1] =
+		  htonl ((h[4] << 24) | (h[5] << 16) | (h[6] << 8) | h[7]);
+		pu32[2] =
+		  htonl ((h[8] << 24) | (h[9] << 16) | (h[10] << 8) | h[11]);
+		pu32[3] =
+		  htonl ((h[12] << 24) | (h[13] << 16) | (h[14] << 8) |
+			 h[15]);
+	      }
+	      if (data_addr_sa6->sin6_addr.s6_addr
+		  != ((struct sockaddr_in6 *) &hisctladdr)->sin6_addr.s6_addr)
 		{
-		  uint32_t *pu32 = (uint32_t *) &data_addr_sa6->sin6_addr.s6_addr;
-		  pu32[0] = htonl ( (h[0] << 24) | (h[1] << 16) | (h[2] << 8) | h[3]);
-		  pu32[1] = htonl ( (h[4] << 24) | (h[5] << 16) | (h[6] << 8) | h[7]);
-		  pu32[2] = htonl ( (h[8] << 24) | (h[9] << 16) | (h[10] << 8) | h[11]);
-		  pu32[3] = htonl ( (h[12] << 24) | (h[13] << 16) | (h[14] << 8) | h[15]);
+		  printf ("Passive mode address mismatch.\n");
+		  (void) command ("ABOR");	/* Cancel any open connection.  */
+		  goto bad;
 		}
-		if (data_addr_sa6->sin6_addr.s6_addr
-		    != ((struct sockaddr_in6 *) &hisctladdr)->sin6_addr.s6_addr)
-		  {
-		    printf ("Passive mode address mismatch.\n");
-		    (void) command ("ABOR");	/* Cancel any open connection.  */
-		    goto bad;
-		  }
-	    } /* LPSV IPv6 */
+	    }			/* LPSV IPv6 */
 	}
-      else /* !EPSV && !LPSV */
-	{ /* PASV */
+      else			/* !EPSV && !LPSV */
+	{			/* PASV */
 	  if (myctladdr.ss_family == AF_INET)
-	    { /* PASV */
+	    {			/* PASV */
 	      if (sscanf (pasv, "%u,%u,%u,%u,%u,%u",
 			  &a0, &a1, &a2, &a3, &p0, &p1) != 6)
 		{
@@ -1425,10 +1425,10 @@ initconn (void)
 		}
 	      data_addr.ss_family = AF_INET;
 	      data_addr_sa4->sin_addr.s_addr =
-		  htonl ( (a0 << 24) | ((a1 & 0xff) << 16)
-			 | ((a2 & 0xff) << 8) | (a3 & 0xff) );
+		htonl ((a0 << 24) | ((a1 & 0xff) << 16)
+		       | ((a2 & 0xff) << 8) | (a3 & 0xff));
 	      data_addr_sa4->sin_port =
-		  htons (((p0 & 0xff) << 8) | (p1 & 0xff));
+		htons (((p0 & 0xff) << 8) | (p1 & 0xff));
 	      if (data_addr_sa4->sin_addr.s_addr
 		  != ((struct sockaddr_in *) &hisctladdr)->sin_addr.s_addr)
 		{
@@ -1436,14 +1436,15 @@ initconn (void)
 		  (void) command ("ABOR");	/* Cancel any open connection.  */
 		  goto bad;
 		}
-	    } /* PASV */
+	    }			/* PASV */
 	  else
 	    {
 	      /* Catch all impossible cases.  */
-	      printf ("Passive mode address scan failure. Shouldn't happen!\n");
+	      printf
+		("Passive mode address scan failure. Shouldn't happen!\n");
 	      goto bad;
 	    }
-	} /* PASV */
+	}			/* PASV */
 
       if (connect (data, (struct sockaddr *) &data_addr, ctladdrlen) < 0)
 	{
@@ -1453,7 +1454,7 @@ initconn (void)
 #if defined IP_TOS && defined IPPROTO_IP && defined IPTOS_THROUGHPUT
       on = IPTOS_THROUGHPUT;
       if (data_addr.ss_family == AF_INET &&
-	   setsockopt (data, IPPROTO_IP, IP_TOS, (char *) &on,
+	  setsockopt (data, IPPROTO_IP, IP_TOS, (char *) &on,
 		      sizeof (int)) < 0)
 	perror ("ftp: setsockopt TOS (ignored)");
 #endif
@@ -1466,12 +1467,12 @@ noport:
     /* Let the system pick a port.  */
     switch (myctladdr.ss_family)
       {
-	case AF_INET:
-	  data_addr_sa4->sin_port = 0;
-	  break;
-	case AF_INET6:
-	  data_addr_sa6->sin6_port = 0;
-	  break;
+      case AF_INET:
+	data_addr_sa4->sin_port = 0;
+	break;
+      case AF_INET6:
+	data_addr_sa6->sin6_port = 0;
+	break;
       }
 
   if (data != -1)
@@ -1516,13 +1517,13 @@ noport:
        *   IPv4: EPRT, PORT, LPRT
        *   IPv6: EPRT, LPRT
        */
-      result = ERROR;	/* For success detection.  */
+      result = ERROR;		/* For success detection.  */
       if (data_addr.ss_family != AF_INET || doepsv4)
 	{
 	  /* Use EPRT mode.  */
 	  getnameinfo ((struct sockaddr *) &data_addr, ctladdrlen,
-			ia, sizeof (ia), portstr, sizeof (portstr),
-			NI_NUMERICHOST | NI_NUMERICSERV);
+		       ia, sizeof (ia), portstr, sizeof (portstr),
+		       NI_NUMERICHOST | NI_NUMERICSERV);
 	  result = command ("EPRT |%d|%s|%s|",
 			    (data_addr.ss_family == AF_INET) ? 1 : 2,
 			    ia, portstr);
@@ -1549,22 +1550,22 @@ noport:
 
 	  switch (data_addr.ss_family)
 	    {
-	      case AF_INET:
-		h = (uint8_t *) &data_addr_sa4->sin_addr;
-		p = (uint8_t *) &data_addr_sa4->sin_port;
-		result = command ("LPRT 4,4,%u,%u,%u,%u,2,%u,%u",
-				  h[0], h[1], h[2], h[3], p[0], p[1]);
-		break;
-	      case AF_INET6:
-		h = (uint8_t *) &data_addr_sa6->sin6_addr;
-		p = (uint8_t *) &data_addr_sa6->sin6_port;
-		result = command ("LPRT 6,16," /* af, hal */
-				  "%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u," /* h[16] */
-				  "2,%u,%u", /* pal, p[2] */
-				  h[0], h[1], h[2], h[3], h[4], h[5], h[6], h[7],
-				  h[8], h[9], h[10], h[11], h[12], h[13], h[14], h[15],
-				  p[0], p[1]);
-		break;
+	    case AF_INET:
+	      h = (uint8_t *) & data_addr_sa4->sin_addr;
+	      p = (uint8_t *) & data_addr_sa4->sin_port;
+	      result = command ("LPRT 4,4,%u,%u,%u,%u,2,%u,%u",
+				h[0], h[1], h[2], h[3], p[0], p[1]);
+	      break;
+	    case AF_INET6:
+	      h = (uint8_t *) & data_addr_sa6->sin6_addr;
+	      p = (uint8_t *) & data_addr_sa6->sin6_port;
+	      result = command ("LPRT 6,16,"	/* af, hal */
+				"%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,"	/* h[16] */
+				"2,%u,%u",	/* pal, p[2] */
+				h[0], h[1], h[2], h[3], h[4], h[5], h[6],
+				h[7], h[8], h[9], h[10], h[11], h[12], h[13],
+				h[14], h[15], p[0], p[1]);
+	      break;
 	    }
 	}
 
@@ -1581,7 +1582,7 @@ noport:
 #if defined IP_TOS && defined IPPROTO_IP && defined IPTOS_THROUGHPUT
   on = IPTOS_THROUGHPUT;
   if (data_addr.ss_family == AF_INET &&
-	setsockopt (data, IPPROTO_IP, IP_TOS, (char *) &on, sizeof (int)) < 0)
+      setsockopt (data, IPPROTO_IP, IP_TOS, (char *) &on, sizeof (int)) < 0)
     error (0, errno, "setsockopt TOS (ignored)");
 #endif
   return (0);
@@ -1614,62 +1615,43 @@ dataconn (char *lmode)
 #if defined IP_TOS && defined IPPROTO_IP && defined IPTOS_THROUGHPUT
   tos = IPTOS_THROUGHPUT;
   if (from.ss_family == AF_INET &&
-	setsockopt (s, IPPROTO_IP, IP_TOS, (char *) &tos, sizeof (int)) < 0)
+      setsockopt (s, IPPROTO_IP, IP_TOS, (char *) &tos, sizeof (int)) < 0)
     error (0, errno, "setsockopt TOS (ignored)");
 #endif
   return (fdopen (data, lmode));
 }
 
 void
-ptransfer (char *direction, long long int bytes,
-	   struct timeval *t0, struct timeval *t1)
+ptransfer (char *direction, long long int bytes, struct timespec *t0,
+	   struct timespec *t1)
 {
-  struct timeval td;
-  float s, bs;
+  double s, bs;
 
   if (verbose)
     {
-      tvsub (&td, t1, t0);
-      s = td.tv_sec + (td.tv_usec / 1000000.);
-#define nz(x)	((x) == 0 ? 1 : (x))
-      bs = bytes / nz (s);
+      struct timespec ts = timespec_sub (*t1, *t0);
+      double seconds = timespectod (ts);
+      double bytes_per_second;
 
-      printf ("%lld bytes %s in %.3g seconds", bytes, direction, s);
+      /* Don't divide by zero.  Can this happen?  */
+      if (seconds == 0.0)
+	seconds = DBL_MIN;
 
-      if (bs > 1048576.0)
-	printf (" (%.3g Mbytes/s)\n", bs / 1048576.0);
-      else if (bs > 1024.0)
-	printf (" (%.3g kbytes/s)\n", bs / 1024.0);
+      bytes_per_second = bytes / seconds;
+
+      printf ("%lld bytes %s in %.4f seconds", bytes, direction, seconds);
+
+      if (bytes_per_second > 1048576.0)
+	printf (" (%.4f Mbytes/s)\n", bytes_per_second / 1048576.0);
+      else if (bytes_per_second > 1024.0)
+	printf (" (%.4f kbytes/s)\n", bytes_per_second / 1024.0);
       else
-	printf (" (%.3g bytes/s)\n", bs);
+	printf (" (%.4f bytes/s)\n", bytes_per_second);
     }
 }
 
-/*
 void
-tvadd(tsum, t0)
-	struct timeval *tsum, *t0;
-{
-
-	tsum->tv_sec += t0->tv_sec;
-	tsum->tv_usec += t0->tv_usec;
-	if (tsum->tv_usec > 1000000)
-		tsum->tv_sec++, tsum->tv_usec -= 1000000;
-}
-*/
-
-void
-tvsub (struct timeval *tdiff, struct timeval *t1, struct timeval *t0)
-{
-
-  tdiff->tv_sec = t1->tv_sec - t0->tv_sec;
-  tdiff->tv_usec = t1->tv_usec - t0->tv_usec;
-  if (tdiff->tv_usec < 0)
-    tdiff->tv_sec--, tdiff->tv_usec += 1000000;
-}
-
-void
-psabort (int sig _GL_UNUSED_PARAMETER)
+psabort (int sig MAYBE_UNUSED)
 {
 
   abrtflag++;
@@ -1699,11 +1681,11 @@ pswitch (int flag)
     int mapflg;
     char *mi;
     char *mo;
-  } proxstruct =
-  {
-  0}, tmpstruct =
-  {
-  0};
+  } proxstruct = {
+    0
+  }, tmpstruct = {
+    0
+  };
   struct comvars *ip, *op;
 
   abrtflag = 0;
@@ -1782,7 +1764,7 @@ pswitch (int flag)
 }
 
 void
-abortpt (int sig _GL_UNUSED_PARAMETER)
+abortpt (int sig MAYBE_UNUSED)
 {
 
   printf ("\n");
@@ -1924,7 +1906,7 @@ abort:
 }
 
 void
-reset (int argc _GL_UNUSED_PARAMETER, char **argv _GL_UNUSED_PARAMETER)
+reset (int argc MAYBE_UNUSED, char **argv MAYBE_UNUSED)
 {
   fd_set mask;
   int nfnd = 1;
@@ -1982,12 +1964,12 @@ gunique (char *local)
 	ext++;
 
       if (stat (new, &st) != 0)
-        {
-          if (errno == ENOENT)
-            return new;
-          else
-            return 0;
-        }
+	{
+	  if (errno == ENOENT)
+	    return new;
+	  else
+	    return 0;
+	}
 
       if (ext != '0')
 	cp--;

@@ -1,14 +1,13 @@
 Source: inetutils
 Section: net
-Priority: optional
 Maintainer: Guillem Jover <guillem@debian.org>
 Vcs-Browser: https://git.hadrons.org/cgit/debian/pkgs/inetutils.git
 Vcs-Git: https://git.hadrons.org/git/debian/pkgs/inetutils.git
 Homepage: https://www.gnu.org/software/inetutils/
-Standards-Version: 4.5.1
-Rules-Requires-Root: no
+Standards-Version: 4.7.3
 Build-Depends:
  debhelper-compat (= 13),
+ debhelper (>= 13.10),
 # Used by the test suite:
 #  /etc/protocols and /etc/services
  netbase <!nocheck>,
@@ -18,14 +17,14 @@ Build-Depends:
  autoconf,
  automake,
  bison,
- libreadline-dev | libreadline6-dev | libreadline5-dev,
+ gnulib,
+ libsystemd-dev [linux-any],
+ libreadline-dev,
  libncurses-dev,
  libpam0g-dev,
  libwrap0-dev,
+ libcrypt-dev,
  libkrb5-dev,
-Build-Conflicts:
- autoconf2.13,
- automake1.4,
 
 Package: inetutils-syslogd
 Architecture: any
@@ -42,7 +41,7 @@ Pre-Depends:
 Depends:
  ${misc:Depends},
  ${shlibs:Depends},
- lsb-base,
+ sysvinit-utils (>= 3.05-4~),
  netbase,
 Description: system logging daemon
  The syslog daemon is responsible for providing logging of messages
@@ -60,8 +59,8 @@ Pre-Depends:
 Depends:
  ${misc:Depends},
  ${shlibs:Depends},
- inetutils-syslogd | system-log-daemon,
- lsb-base,
+ inetutils-syslogd | system-log-daemon | systemd-sysv,
+ sysvinit-utils (>= 3.05-4~),
  tcpd,
  update-inetd,
 Description: internet super server
@@ -139,15 +138,18 @@ Conflicts:
 Depends:
  ${misc:Depends},
  ${shlibs:Depends},
- inetutils-syslogd | system-log-daemon,
+ inetutils-inetd | inet-superserver,
+ inetutils-syslogd | system-log-daemon | systemd-sysv,
  netbase,
 Description: File Transfer Protocol server
  Ftpd is the server that allows another host to connect with the ftp
  command to transfer files using the FTP protocol.
 
 Package: inetutils-telnet
+Priority: standard
 Architecture: any
 Provides:
+ telnet,
  telnet-client,
 Depends:
  ${misc:Depends},
@@ -159,23 +161,65 @@ Description: telnet client
  .
  This implementation supports Kerberos, for authentication and encryption.
 
+Package: telnet
+Section: oldlibs
+Architecture: all
+Multi-Arch: foreign
+Depends:
+ ${misc:Depends},
+ inetutils-telnet,
+Description: transitional dummy package for inetutils-telnet default switch
+ This package will force a switch from the old netkit telnet implementation
+ to the inetutils-telnet one, which is an upstream maintained project.
+ .
+ This package can be safely removed once it has been upgraded, as
+ inetutils-telnet provides a matching virtual package. It will stop being
+ provided after Debian bookworm's release.
+ .
+ If you want to keep using the netkit implementation, then install
+ telnet-ssl instead.
+
 Package: inetutils-telnetd
 Architecture: any
 Provides:
+ telnetd,
  telnet-server,
 Conflicts:
  telnet-server,
+Breaks:
+ telnetd (<< 0.17-46),
 Depends:
  ${misc:Depends},
  ${shlibs:Depends},
  inetutils-inetd | inet-superserver,
- inetutils-syslogd | system-log-daemon,
+ inetutils-syslogd | system-log-daemon | systemd-sysv,
+ login,
  netbase,
 Description: telnet server
  The telnetd program is a server which supports the DARPA telnet
  interactive communication protocol.
  .
  This implementation supports Kerberos, for authentication and encryption.
+
+Package: telnetd
+Section: oldlibs
+Architecture: all
+Multi-Arch: foreign
+Depends:
+ ${misc:Depends},
+ inetutils-telnetd,
+ update-inetd,
+Description: transitional dummy package for inetutils-telnetd default switch
+ This package will force a switch from the old netkit telnetd implementation
+ to the inetutils-telnetd one, which is an upstream maintained project.
+ .
+ This package can be safely removed once it has been upgraded, as
+ inetutils-telnetd provides a matching virtual package. It will stop being
+ provided after Debian bookworm's release.
+ .
+ If you want to keep using the netkit implementation, then install
+ telnetd-ssl instead, and run in.telnetd with the «-z nossl» argument for
+ the clear-text protocol.
 
 Package: inetutils-talk
 Architecture: any
@@ -199,7 +243,7 @@ Depends:
  ${misc:Depends},
  ${shlibs:Depends},
  inetutils-inetd | inet-superserver,
- inetutils-syslogd | system-log-daemon,
+ inetutils-syslogd | system-log-daemon | systemd-sysv,
  netbase,
 Description: remote user communication server
  The talkd program is a server that notifies a user that someone else

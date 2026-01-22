@@ -1,6 +1,6 @@
 /* getugroups.c -- return a list of the groups a user is in
 
-   Copyright (C) 1990-1991, 1998-2000, 2003-2021 Free Software Foundation, Inc.
+   Copyright (C) 1990-1991, 1998-2000, 2003-2025 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -48,8 +48,6 @@ getugroups (_GL_UNUSED int maxcount,
 #else /* HAVE_GRP_H */
 # include <grp.h>
 
-# define STREQ(a, b) (strcmp (a, b) == 0)
-
 /* Like 'getgroups', but for user USERNAME instead of for the current
    process.  Store at most MAXCOUNT group IDs in the GROUPLIST array.
    If GID is not -1, store it first (if possible).  GID should be the
@@ -73,7 +71,6 @@ getugroups (int maxcount, gid_t *grouplist, char const *username,
   setgrent ();
   while (1)
     {
-      char **cp;
       struct group *grp;
 
       errno = 0;
@@ -81,33 +78,33 @@ getugroups (int maxcount, gid_t *grouplist, char const *username,
       if (grp == NULL)
         break;
 
-      for (cp = grp->gr_mem; *cp; ++cp)
+      for (char **cp = grp->gr_mem; *cp; ++cp)
         {
           int n;
 
-          if ( ! STREQ (username, *cp))
-            continue;
-
-          /* See if this group number is already on the list.  */
-          for (n = 0; n < count; ++n)
-            if (grouplist && grouplist[n] == grp->gr_gid)
-              break;
-
-          /* If it's a new group number, then try to add it to the list.  */
-          if (n == count)
+          if (streq (username, *cp))
             {
-              if (maxcount != 0)
+              /* See if this group number is already on the list.  */
+              for (n = 0; n < count; ++n)
+                if (grouplist && grouplist[n] == grp->gr_gid)
+                  break;
+
+              /* If it's a new group number, then try to add it to the list.  */
+              if (n == count)
                 {
-                  if (count >= maxcount)
-                    goto done;
-                  grouplist[count] = grp->gr_gid;
+                  if (maxcount != 0)
+                    {
+                      if (count >= maxcount)
+                        goto done;
+                      grouplist[count] = grp->gr_gid;
+                    }
+                  if (count == INT_MAX)
+                    {
+                      errno = EOVERFLOW;
+                      goto done;
+                    }
+                  count++;
                 }
-              if (count == INT_MAX)
-                {
-                  errno = EOVERFLOW;
-                  goto done;
-                }
-              count++;
             }
         }
     }

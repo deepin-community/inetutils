@@ -1,8 +1,5 @@
 /*
-  Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-  2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
-  2015, 2016, 2017, 2018, 2019, 2020, 2021 Free Software Foundation,
-  Inc.
+  Copyright (C) 1995-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -83,7 +80,7 @@
 #endif
 
 #include <argp.h>
-#include <unused-parameter.h>
+#include <attribute.h>
 
 #include <libinetutils.h>
 
@@ -93,7 +90,7 @@
 
 /* Some systems define PKTSIZE in <arpa/tftp.h>.  */
 #ifndef PKTSIZE
-#define PKTSIZE    SEGSIZE+4
+# define PKTSIZE    SEGSIZE+4
 #endif
 
 char ackbuf[PKTSIZE];
@@ -115,8 +112,8 @@ static int maxtimeout = 5 * TIMEOUT;
 
 static struct sockaddr_storage peeraddr;	/* filled in by main */
 static socklen_t peerlen;
-static int f = -1;				/* the opened socket */
-static int port; /* Port number in host byte order of the server. */
+static int f = -1;		/* the opened socket */
+static int port;		/* Port number in host byte order of the server. */
 static int trace;
 static int verbose;
 static int connected;
@@ -125,7 +122,10 @@ static int fromatty;
 char mode[32];
 char line[200];
 int margc;
-char *margv[20];
+
+#define TFTP_MAX_ARGS 20
+
+char *margv[TFTP_MAX_ARGS];
 char *prompt = "tftp";
 jmp_buf toplevel;
 void intr (int signo);
@@ -193,7 +193,7 @@ struct cmd cmdtab[] = {
   {NULL, NULL, NULL}
 };
 
-struct cmd *getcmd (register char *name);
+struct cmd *getcmd (char *name);
 char *tail (char *filename);
 
 
@@ -206,6 +206,7 @@ static struct argp_option argp_options[] = {
 };
 
 char *hostport_argv[3] = { "connect" };
+
 int hostport_argc = 1;
 
 static in_port_t
@@ -229,11 +230,11 @@ set_port (struct sockaddr_storage *ss, in_port_t port)
   switch (ss->ss_family)
     {
     case AF_INET6:
-      ((struct sockaddr_in6 *) ss)->sin6_port = htons(port);
+      ((struct sockaddr_in6 *) ss)->sin6_port = htons (port);
       break;
     case AF_INET:
     default:
-      ((struct sockaddr_in *) ss)->sin_port = htons(port);
+      ((struct sockaddr_in *) ss)->sin_port = htons (port);
       break;
     }
 }
@@ -246,7 +247,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
 {
   switch (key)
     {
-    case 'v':		/* Verbose.  */
+    case 'v':			/* Verbose.  */
       verbose++;
       break;
 
@@ -265,7 +266,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
 }
 
 static struct argp argp =
-  {argp_options, parse_opt, args_doc, doc, NULL, NULL, NULL};
+  { argp_options, parse_opt, args_doc, doc, NULL, NULL, NULL };
 
 int
 main (int argc, char *argv[])
@@ -369,7 +370,7 @@ resolve_name (char *name)
       ss.ss_len = ai->ai_addrlen;
 #endif
       if (bind (f, (struct sockaddr *) &ss, ai->ai_addrlen))
-        {
+	{
 	  close (f);
 	  f = -1;
 	  continue;
@@ -468,20 +469,19 @@ struct modes
 {
   char *m_name;
   char *m_mode;
-} modes[] =
-  {
-    {"ascii", "netascii"},
-    {"netascii", "netascii"},
-    {"binary", "octet"},
-    {"image", "octet"},
-    {"octet", "octet"},
-    {0, 0}
-  };
+} modes[] = {
+  {"ascii", "netascii"},
+  {"netascii", "netascii"},
+  {"binary", "octet"},
+  {"image", "octet"},
+  {"octet", "octet"},
+  {0, 0}
+};
 
 void
 modecmd (int argc, char *argv[])
 {
-  register struct modes *p;
+  struct modes *p;
   char *sep;
 
   if (argc < 2)
@@ -516,13 +516,13 @@ modecmd (int argc, char *argv[])
 }
 
 void
-setbinary (int argc _GL_UNUSED_PARAMETER, char *argv[] _GL_UNUSED_PARAMETER)
+setbinary (int argc MAYBE_UNUSED, MAYBE_UNUSED char *argv[])
 {
   settftpmode ("octet");
 }
 
 void
-setascii (int argc _GL_UNUSED_PARAMETER, char *argv[] _GL_UNUSED_PARAMETER)
+setascii (int argc MAYBE_UNUSED, MAYBE_UNUSED char *argv[])
 {
   settftpmode ("netascii");
 }
@@ -542,8 +542,8 @@ void
 put (int argc, char *argv[])
 {
   int fd;
-  register int n;
-  register char *cp, *targ;
+  int n;
+  char *cp, *targ;
 
   if (argc < 2)
     get_args ("send", "(file) ", &argc, &argv);
@@ -567,10 +567,10 @@ put (int argc, char *argv[])
       cp = argv[argc - 1];
       /* Is host string escaped using square brackets?  */
       if (cp[0] == '[')
-	{ /* Locate far end.  */
+	{			/* Locate far end.  */
 	  cp = strchr (cp, ']');
 	  if (cp == NULL)
-	    return;	/* Unpaired bracket.  Fail!  */
+	    return;		/* Unpaired bracket.  Fail!  */
 
 	  /* Erase far end and capture valid host string.  */
 	  *cp = 0;
@@ -593,7 +593,7 @@ put (int argc, char *argv[])
 	  /* Test whether host string lacks content.
 	   * Then the host string will be ignored.  */
 	  if (strlen (cp) == 0)
-	    cp = NULL;	/* Invalidate host name string.  */
+	    cp = NULL;		/* Invalidate host name string.  */
 	}
       /* If a remote host was stated, resolve it!  */
       if (cp != NULL && resolve_name (cp) != RESOLVE_OK)
@@ -655,8 +655,8 @@ void
 get (int argc, char *argv[])
 {
   int fd;
-  register int n;
-  register char *cp;
+  int n;
+  char *cp;
   char *src;
 
   if (argc < 2)
@@ -688,7 +688,7 @@ get (int argc, char *argv[])
 	  ++src;
 	}
       else
-	{ /* Parse the host name string; remove square brackets.  */
+	{			/* Parse the host name string; remove square brackets.  */
 	  cp = argv[n];
 
 	  if (cp[0] == '[')
@@ -696,7 +696,7 @@ get (int argc, char *argv[])
 	      cp = strchr (argv[n], ']');
 	      if (cp)
 		{
-		  /* Calculate host string and sorce file name.  */
+		  /* Calculate host string and source file name.  */
 		  src = cp + 1;
 		  *cp = 0;
 		  if (*src == ':')
@@ -705,7 +705,7 @@ get (int argc, char *argv[])
 		}
 	    }
 	  else
-	    { /* No escaping; break string at first colon.  */
+	    {			/* No escaping; break string at first colon.  */
 	      *src++ = 0;
 	    }
 	  if (cp != NULL && resolve_name (cp) != RESOLVE_OK)
@@ -792,7 +792,7 @@ settimeout (int argc, char *argv[])
 }
 
 void
-status (int argc _GL_UNUSED_PARAMETER, char *argv[] _GL_UNUSED_PARAMETER)
+status (int argc MAYBE_UNUSED, MAYBE_UNUSED char *argv[])
 {
   if (connected)
     printf ("Connected to %s.\n", hostname);
@@ -805,7 +805,7 @@ status (int argc _GL_UNUSED_PARAMETER, char *argv[] _GL_UNUSED_PARAMETER)
 }
 
 void
-intr (int signo _GL_UNUSED_PARAMETER)
+intr (int signo MAYBE_UNUSED)
 {
   signal (SIGALRM, SIG_IGN);
   alarm (0);
@@ -815,7 +815,7 @@ intr (int signo _GL_UNUSED_PARAMETER)
 char *
 tail (char *filename)
 {
-  register char *s;
+  char *s;
 
   while (*filename)
     {
@@ -835,7 +835,7 @@ tail (char *filename)
 static void
 command (void)
 {
-  register struct cmd *c;
+  struct cmd *c;
 
   for (;;)
     {
@@ -869,11 +869,11 @@ command (void)
 }
 
 struct cmd *
-getcmd (register char *name)
+getcmd (char *name)
 {
-  register char *p, *q;
-  register struct cmd *c, *found;
-  register int nmatches, longest;
+  char *p, *q;
+  struct cmd *c, *found;
+  int nmatches, longest;
 
   longest = 0;
   nmatches = 0;
@@ -907,8 +907,8 @@ getcmd (register char *name)
 static void
 makeargv (void)
 {
-  register char *cp;
-  register char **argp = margv;
+  char *cp;
+  char **argp = margv;
 
   margc = 0;
   for (cp = line; *cp;)
@@ -917,6 +917,11 @@ makeargv (void)
 	cp++;
       if (*cp == '\0')
 	break;
+      if (margc + 1 >= TFTP_MAX_ARGS)
+	{
+	  fprintf (stderr, "Ignoring excess arguments.\n");
+	  break;
+	}
       *argp++ = cp;
       margc += 1;
       while (*cp != '\0' && !isspace (*cp))
@@ -929,7 +934,7 @@ makeargv (void)
 }
 
 void
-quit (int argc _GL_UNUSED_PARAMETER, char *argv[] _GL_UNUSED_PARAMETER)
+quit (int argc MAYBE_UNUSED, MAYBE_UNUSED char *argv[])
 {
   exit (EXIT_SUCCESS);
 }
@@ -940,7 +945,7 @@ quit (int argc _GL_UNUSED_PARAMETER, char *argv[] _GL_UNUSED_PARAMETER)
 void
 help (int argc, char *argv[])
 {
-  register struct cmd *c;
+  struct cmd *c;
 
   if (argc == 1)
     {
@@ -952,7 +957,7 @@ help (int argc, char *argv[])
 
   while (--argc > 0)
     {
-      register char *arg;
+      char *arg;
 
       arg = *++argv;
       c = getcmd (arg);
@@ -966,14 +971,14 @@ help (int argc, char *argv[])
 }
 
 void
-settrace (int argc _GL_UNUSED_PARAMETER, char *argv[] _GL_UNUSED_PARAMETER)
+settrace (int argc MAYBE_UNUSED, MAYBE_UNUSED char *argv[])
 {
   trace = !trace;
   printf ("Packet tracing %s.\n", trace ? "on" : "off");
 }
 
 void
-setverbose (int argc _GL_UNUSED_PARAMETER, char *argv[] _GL_UNUSED_PARAMETER)
+setverbose (int argc MAYBE_UNUSED, MAYBE_UNUSED char *argv[])
 {
   verbose = !verbose;
   printf ("Verbose mode %s.\n", verbose ? "on" : "off");
@@ -985,9 +990,9 @@ setverbose (int argc _GL_UNUSED_PARAMETER, char *argv[] _GL_UNUSED_PARAMETER)
 void
 tftp_sendfile (int fd, char *name, char *mode)
 {
-  register struct tftphdr *ap;	/* data and ack packets */
+  struct tftphdr *ap;		/* data and ack packets */
   struct tftphdr *r_init (void), *dp;
-  register int n;
+  int n;
   volatile int block, size, convert;
   volatile unsigned long amount;
   struct sockaddr_storage from;
@@ -1098,9 +1103,9 @@ abort:
 void
 recvfile (int fd, char *name, char *mode)
 {
-  register struct tftphdr *ap;
+  struct tftphdr *ap;
   struct tftphdr *dp, *w_init (void);
-  register int n;
+  int n;
   volatile int block, size, firsttrip;
   volatile unsigned long amount;
   struct sockaddr_storage from;
@@ -1219,7 +1224,7 @@ static int
 makerequest (int request, const char *name, struct tftphdr *tp,
 	     const char *mode)
 {
-  register char *cp;
+  char *cp;
   size_t arglen, len;
 
   tp->th_opcode = htons ((unsigned short) request);
@@ -1261,18 +1266,17 @@ struct errmsg
 {
   int e_code;
   const char *e_msg;
-} errmsgs[] =
-  {
-    {EUNDEF, "Undefined error code"},
-    {ENOTFOUND, "File not found"},
-    {EACCESS, "Access violation"},
-    {ENOSPACE, "Disk full or allocation exceeded"},
-    {EBADOP, "Illegal TFTP operation"},
-    {EBADID, "Unknown transfer ID"},
-    {EEXISTS, "File already exists"},
-    {ENOUSER, "No such user"},
-    {-1, 0}
-  };
+} errmsgs[] = {
+  {EUNDEF, "Undefined error code"},
+  {ENOTFOUND, "File not found"},
+  {EACCESS, "Access violation"},
+  {ENOSPACE, "Disk full or allocation exceeded"},
+  {EBADOP, "Illegal TFTP operation"},
+  {EBADID, "Unknown transfer ID"},
+  {EEXISTS, "File already exists"},
+  {ENOUSER, "No such user"},
+  {-1, 0}
+};
 
 /*
  * Send a nak packet (error message).
@@ -1283,8 +1287,8 @@ struct errmsg
 static void
 nak (int error)
 {
-  register struct errmsg *pe;
-  register struct tftphdr *tp;
+  struct errmsg *pe;
+  struct tftphdr *tp;
   int length;
 
   tp = (struct tftphdr *) ackbuf;
@@ -1312,7 +1316,7 @@ static void
 tpacket (const char *s, struct tftphdr *tp, int n)
 {
   static char *opcodes[] = { "#0", "RRQ", "WRQ", "DATA", "ACK", "ERROR" };
-  register char *cp, *file;
+  char *cp, *file;
   unsigned short op = ntohs (tp->th_opcode);
 
   if (op < RRQ || op > ERROR)
@@ -1378,7 +1382,7 @@ printstats (const char *direction, unsigned long amount)
 }
 
 static void
-timer (int sig _GL_UNUSED_PARAMETER)
+timer (int sig MAYBE_UNUSED)
 {
   timeout += rexmtval;
   if (timeout >= maxtimeout)

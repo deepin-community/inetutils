@@ -1,7 +1,6 @@
 #!/bin/sh
 
-# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-# 2019, 2020, 2021 Free Software Foundation, Inc.
+# Copyright (C) 2010-2025 Free Software Foundation, Inc.
 #
 # This file is part of GNU Inetutils.
 #
@@ -117,7 +116,7 @@ AF=${AF:-inet}
 PROTO=${PROTO:-udp}
 USER=`func_id_user`
 
-# Late supplimentary subtest.
+# Late supplementary subtest.
 do_conf_reload=true
 do_secure_setting=true
 
@@ -254,7 +253,7 @@ inetd_pid="`cat $INETD_PID 2>/dev/null`" ||
     {
 	cat <<-EOT >&2
 		Inetd did not create a PID-file.  Aborting test,
-		but loosing control whether an Inetd process is
+		but losing control whether an Inetd process is
 		still around.
 	EOT
 	exit 1
@@ -292,7 +291,7 @@ if test $? -ne 0; then
 	{
 	    cat <<-EOT >&2
 		Inetd did not create a PID-file.  Aborting test,
-		but loosing control whether an Inetd process is
+		but losing control whether an Inetd process is
 		still around.
 		EOT
 	    kill -0 "$spawned_pid" >/dev/null 2>&1 && kill -9 "$spawned_pid" 2>/dev/null

@@ -1,8 +1,5 @@
 /*
-  Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-  2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
-  2015, 2016, 2017, 2018, 2019, 2020, 2021 Free Software Foundation,
-  Inc.
+  Copyright (C) 1995-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -84,9 +81,9 @@ int prettydump;
  */
 
 void
-upcase (register char *argument)
+upcase (char *argument)
 {
-  register int c;
+  int c;
 
   while ((c = *argument) != 0)
     {
@@ -127,7 +124,7 @@ SetSockOpt (int fd, int level, int option, int yesno)
 unsigned char NetTraceFile[256] = "(standard output)";
 
 void
-SetNetTrace (register char *file)
+SetNetTrace (const char *file)
 {
   if (NetTrace && NetTrace != stdout)
     fclose (NetTrace);
@@ -218,11 +215,10 @@ printoption (char *direction, int cmd, int option)
     }
   else
     {
-      register char *fmt;
+      char *fmt;
       fmt = (cmd == WILL)
-	    ? "WILL" : (cmd == WONT)
-		       ? "WONT" : (cmd == DO)
-				  ? "DO" : (cmd == DONT) ? "DONT" : 0;
+	? "WILL" : (cmd == WONT)
+	? "WONT" : (cmd == DO) ? "DO" : (cmd == DONT) ? "DONT" : 0;
       if (fmt)
 	{
 	  fprintf (NetTrace, "%s %s ", direction, fmt);
@@ -251,7 +247,7 @@ printoption (char *direction, int cmd, int option)
 void
 optionstatus (void)
 {
-  register int i;
+  int i;
   extern char will_wont_resp[], do_dont_resp[];
 
   for (i = 0; i < 256; i++)
@@ -344,7 +340,7 @@ optionstatus (void)
 void
 printsub (char direction, unsigned char *pointer, int length)
 {
-  register int i;
+  int i;
   extern int want_status_response;
 
 #if defined AUTHENTICATION || defined ENCRYPTION
@@ -360,7 +356,7 @@ printsub (char direction, unsigned char *pointer, int length)
 		   (direction == '<') ? "RCVD" : "SENT");
 	  if (length >= 3)
 	    {
-	      register int j;
+	      int j;
 
 	      i = pointer[length - 2];
 	      j = pointer[length - 1];
@@ -613,7 +609,8 @@ printsub (char direction, unsigned char *pointer, int length)
 	      fprintf (NetTrace, " SUPPORT ");
 	      while (i < length)
 		{
-		  if (ENCTYPE_NAME_OK (pointer[i]) && ENCTYPE_NAME (pointer[i]))
+		  if (ENCTYPE_NAME_OK (pointer[i])
+		      && ENCTYPE_NAME (pointer[i]))
 		    fprintf (NetTrace, "%s ", ENCTYPE_NAME (pointer[i]));
 		  else
 		    fprintf (NetTrace, "%d ", pointer[i]);
@@ -710,7 +707,7 @@ printsub (char direction, unsigned char *pointer, int length)
 			   (pointer[i + SLC_FLAGS] & SLC_FLUSHIN)
 			   ? "|FLUSHIN" : "",
 			   (pointer[i + SLC_FLAGS] & SLC_FLUSHOUT)
-			   ?  "|FLUSHOUT" : "");
+			   ? "|FLUSHOUT" : "");
 		  if (pointer[i + SLC_FLAGS] &
 		      ~(SLC_ACK | SLC_FLUSHIN | SLC_FLUSHOUT | SLC_LEVELBITS))
 		    fprintf (NetTrace, "(0x%x)", pointer[i + SLC_FLAGS]);
@@ -734,11 +731,11 @@ printsub (char direction, unsigned char *pointer, int length)
 		char tbuf[64];
 
 		snprintf (tbuf, sizeof (tbuf), "%s%s%s%s%s",
-			 pointer[2] & MODE_EDIT ? "|EDIT" : "",
-			 pointer[2] & MODE_TRAPSIG ? "|TRAPSIG" : "",
-			 pointer[2] & MODE_SOFT_TAB ? "|SOFT_TAB" : "",
-			 pointer[2] & MODE_LIT_ECHO ? "|LIT_ECHO" : "",
-			 pointer[2] & MODE_ACK ? "|ACK" : "");
+			  pointer[2] & MODE_EDIT ? "|EDIT" : "",
+			  pointer[2] & MODE_TRAPSIG ? "|TRAPSIG" : "",
+			  pointer[2] & MODE_SOFT_TAB ? "|SOFT_TAB" : "",
+			  pointer[2] & MODE_LIT_ECHO ? "|LIT_ECHO" : "",
+			  pointer[2] & MODE_ACK ? "|ACK" : "");
 		fprintf (NetTrace, "%s", tbuf[0] ? &tbuf[1] : "0");
 	      }
 	      if (pointer[2] & ~(MODE_MASK))
@@ -755,8 +752,8 @@ printsub (char direction, unsigned char *pointer, int length)
 
 	case TELOPT_STATUS:
 	  {
-	    register char *cp;
-	    register int j, k;
+	    char *cp;
+	    int j, k;
 
 	    fprintf (NetTrace, "STATUS");
 
@@ -1063,7 +1060,6 @@ Exit (int returnCode)
 void
 ExitString (char *string, int returnCode)
 {
-  SetForExit ();
   fwrite (string, 1, strlen (string), stderr);
   exit (returnCode);
 }

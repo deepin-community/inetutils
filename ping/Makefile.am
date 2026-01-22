@@ -1,7 +1,5 @@
 #
-# Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-# 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016,
-# 2017, 2018, 2019, 2020, 2021 Free Software Foundation, Inc.
+# Copyright (C) 1997-2025 Free Software Foundation, Inc.
 #
 # This file is part of GNU Inetutils.
 #
@@ -25,17 +23,23 @@ AM_CPPFLAGS = \
 
 LDADD = \
 	$(iu_LIBRARIES) \
-	$(LIBIDN)
+	$(LIBIDN) \
+	$(CLOCK_TIME_LIB) \
+	$(PTHREAD_SIGMASK_LIB) \
+	$(SELECT_LIB)
 
 bin_PROGRAMS = $(ping_BUILD) $(ping6_BUILD)
 
 EXTRA_PROGRAMS = ping ping6
 
-ping_LDADD = $(top_builddir)/libicmp/libicmp.a $(LDADD)
-
 ping_SOURCES = ping.c ping_common.c ping_echo.c ping_address.c \
   ping_router.c ping_timestamp.c ping_common.h  ping_impl.h ping.h libping.c
+ping_LDADD = $(top_builddir)/libicmp/libicmp.a $(LDADD) $(LIBSOCKET) \
+  $(HOSTENT_LIB) $(LIBINTL) $(GETADDRINFO_LIB)
+
 ping6_SOURCES = ping6.c ping_common.c ping_common.h ping6.h
+ping6_LDADD = $(top_builddir)/libicmp/libicmp.a $(LDADD) $(LIBSOCKET) \
+  $(HOSTENT_LIB) $(LIBINTL) $(GETADDRINFO_LIB)
 
 SUIDMODE = -o root -m 4755
 

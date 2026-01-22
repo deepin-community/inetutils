@@ -1,7 +1,5 @@
 dnl
-dnl Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-dnl 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015,
-dnl 2016, 2017, 2018, 2019, 2020, 2021 Free Software Foundation, Inc.
+dnl Copyright (C) 1996-2025 Free Software Foundation, Inc.
 dnl
 dnl This file is part of GNU Inetutils.
 dnl
@@ -22,7 +20,7 @@ dnl Written by Miles Bader.
 
 dnl IU_CHECK_MACRO -- Check for cpp defines
 dnl   $1 - NAME   -- printed in message
-dnl   $2 - INCLS  -- C program text to inculde necessary files for testing
+dnl   $2 - INCLS  -- C program text to include necessary files for testing
 dnl   $3 - MACROS -- a space-separated list of macros that all must be defined
 dnl		     defaults to NAME
 dnl   $4 - TRUE	  -- what to do if all macros are defined; defaults to

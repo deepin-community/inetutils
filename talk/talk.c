@@ -1,8 +1,5 @@
 /*
-  Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-  2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
-  2015, 2016, 2017, 2018, 2019, 2020, 2021 Free Software Foundation,
-  Inc.
+  Copyright (C) 1995-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -75,17 +72,16 @@ void usage (void);
  *		Modified to run under 4.1c by Peter Moore 3/17/83
  */
 
-const char *program_authors[] =
-  {
-    "Kipp Hickman",
-    "Clem Cole",
-    "Peter Moore",
-    NULL
-  };
+const char *program_authors[] = {
+  "Kipp Hickman",
+  "Clem Cole",
+  "Peter Moore",
+  NULL
+};
 
 const char doc[] = "Talk to another user.";
 const char args_doc[] = "person [ttyname]";
-static struct argp argp = { NULL, NULL, args_doc, doc, NULL, NULL, NULL};
+static struct argp argp = { NULL, NULL, args_doc, doc, NULL, NULL, NULL };
 
 int
 main (int argc, char *argv[])

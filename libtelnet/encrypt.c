@@ -1,8 +1,5 @@
 /*
-  Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
-  2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012,
-  2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021 Free Software
-  Foundation, Inc.
+  Copyright (C) 1993-2025 Free Software Foundation, Inc.
 
   This file is part of GNU Inetutils.
 
@@ -82,7 +79,7 @@
 # include <string.h>
 
 # include <stdio.h>
-# include <unused-parameter.h>
+# include <attribute.h>
 # include "genget.h"
 
 /* String representation of our capabilities.
@@ -121,12 +118,15 @@ static char *Name = "Noname";
 
 /* Only the type ENCTYPE_DES_CFB64 seems universal.  */
 # ifdef ENCTYPE_DES_OFB64
-static long i_support_encrypt = typemask (ENCTYPE_DES_CFB64) | typemask (ENCTYPE_DES_OFB64);
-static long i_support_decrypt = typemask (ENCTYPE_DES_CFB64) | typemask (ENCTYPE_DES_OFB64);
-# else /* !ENCTYPE_DES_OFB64 */
+static long i_support_encrypt =
+typemask (ENCTYPE_DES_CFB64) | typemask (ENCTYPE_DES_OFB64);
+     static long
+       i_support_decrypt =
+       typemask (ENCTYPE_DES_CFB64) | typemask (ENCTYPE_DES_OFB64);
+# else/* !ENCTYPE_DES_OFB64 */
 static long i_support_encrypt = typemask (ENCTYPE_DES_CFB64);
 static long i_support_decrypt = typemask (ENCTYPE_DES_CFB64);
-# endif /* !ENCTYPE_DES_OFB64 */
+# endif/* !ENCTYPE_DES_OFB64 */
 
 static long i_wont_support_encrypt = 0;
 static long i_wont_support_decrypt = 0;
@@ -159,8 +159,9 @@ static Encryptions encryptions[] = {
    ofb64_session,
    ofb64_keyid,
    ofb64_printsub},
-#  endif /* ENCTYPE_DES_OFB64 */
-# endif	/* DES_ENCRYPTION */
+#  endif
+  /* ENCTYPE_DES_OFB64 */
+# endif/* DES_ENCRYPTION */
   {0,},
 };
 
@@ -202,7 +203,7 @@ static struct key_info
   int keylen;
   int dir;
   int *modep;
-  Encryptions *(*getcrypt) ();
+  Encryptions *(*getcrypt) (int);
 } ki[2] = {
   {{0}, 0, DIR_ENCRYPT, &encrypt_mode, findencryption},
   {{0}, 0, DIR_DECRYPT, &decrypt_mode, finddecryption},
@@ -468,7 +469,7 @@ encrypt_send_support (void)
     {
       /*
        * If the user has requested that decryption start
-       * immediatly, then send a "REQUEST START" before
+       * immediately, then send a "REQUEST START" before
        * we negotiate the type.
        */
       if (!Server && autodecrypt)
@@ -601,8 +602,7 @@ encrypt_is (unsigned char *data, int cnt)
 	printf ("(*ep->is)(%p, %d) returned %s (%d).\r\n",
 		data, cnt,
 		(ret < 0) ? "FAIL "
-			  : ((ret == 0) ? "SUCCESS " : "MORE_TO_DO "),
-		ret);
+		: ((ret == 0) ? "SUCCESS " : "MORE_TO_DO "), ret);
     }
   if (ret < 0)
     autodecrypt = 0;
@@ -650,8 +650,7 @@ encrypt_reply (unsigned char *data, int cnt)
 	printf ("(*ep->reply)(%p, %d) returned %s (%d).\r\n",
 		data, cnt,
 		(ret < 0) ? "FAIL "
-			  : ((ret == 0) ? "SUCCESS " : "MORE_TO_DO "),
-		ret);
+		: ((ret == 0) ? "SUCCESS " : "MORE_TO_DO "), ret);
     }
   if (encrypt_debug_mode)
     printf (">>>%s: encrypt_reply returned %d\n", Name, ret);
@@ -669,8 +668,7 @@ encrypt_reply (unsigned char *data, int cnt)
  * Called when a ENCRYPT START command is received.
  */
 void
-encrypt_start (unsigned char *data _GL_UNUSED_PARAMETER,
-	       int cnt _GL_UNUSED_PARAMETER)
+encrypt_start (unsigned char *data MAYBE_UNUSED, int cnt MAYBE_UNUSED)
 {
   Encryptions *ep;
 
@@ -752,8 +750,7 @@ encrypt_request_end (void)
  * can.
  */
 void
-encrypt_request_start (unsigned char *data _GL_UNUSED_PARAMETER,
-		       int cnt _GL_UNUSED_PARAMETER)
+encrypt_request_start (unsigned char *data MAYBE_UNUSED, int cnt MAYBE_UNUSED)
 {
   if (encrypt_mode == 0)
     {
@@ -1004,8 +1001,7 @@ encrypt_debug (int mode)
 }
 
 static void
-encrypt_gen_printsub (unsigned char *data, int cnt,
-		      char *buf, int buflen)
+encrypt_gen_printsub (unsigned char *data, int cnt, char *buf, int buflen)
 {
   char tbuf[16], *cp;
 
@@ -1026,8 +1022,7 @@ encrypt_gen_printsub (unsigned char *data, int cnt,
 }
 
 void
-encrypt_printsub (unsigned char *data, int cnt,
-		  char *buf, int buflen)
+encrypt_printsub (unsigned char *data, int cnt, char *buf, int buflen)
 {
   Encryptions *ep;
   int type = data[1];
